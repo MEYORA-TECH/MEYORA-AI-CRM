@@ -1,0 +1,270 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+/* ------------------------------------------------------------------
+   Meyora design tokens
+   Light: sage canvas, frosted white glass, ink text, jade accent.
+   Dark: deep forest canvas, smoked glass, same jade family.
+   ------------------------------------------------------------------ */
+:root {
+  --canvas: #e3ebe4;
+  --glow-mint: #cfe6da;
+  --glow-lilac: #e6e1f3;
+  --glow-peach: #f6e3d3;
+
+  --ink: #14181b;
+  --ink-2: #4a5550;
+  --ink-3: #7c8781;
+  --line: rgb(20 24 27 / 0.08);
+  --line-strong: rgb(20 24 27 / 0.14);
+
+  /* Glass steps: 1 = airy panels, 2 = cards, 3 = dense data & inputs */
+  --glass-1: rgb(255 255 255 / 0.42);
+  --glass-2: rgb(255 255 255 / 0.62);
+  --glass-3: rgb(255 255 255 / 0.84);
+  --glass-edge: rgb(255 255 255 / 0.75);
+  --glass-shadow: 0 1px 1px rgb(20 24 27 / 0.03), 0 8px 24px -6px rgb(35 60 48 / 0.12),
+    0 24px 48px -24px rgb(35 60 48 / 0.18);
+
+  --rail: rgb(20 24 27 / 0.86);
+  --rail-ink: rgb(255 255 255 / 0.62);
+  --rail-lens: rgb(255 255 255 / 0.14);
+
+  --jade: #1e6b57;
+  --jade-ink: #ffffff;
+  --jade-soft: #d3ebe1;
+  --danger: #b4233c;
+  --danger-soft: #fbdde3;
+  --warn: #9a5b0a;
+
+  --tint-slate: #e6eaee;
+  --tint-sky: #dcebfb;
+  --tint-violet: #e8e1fa;
+  --tint-amber: #fdebd3;
+  --tint-orange: #fde0cc;
+  --tint-emerald: #d8f1e4;
+  --tint-rose: #fbdde5;
+
+  --ring: 0 0 0 3px rgb(30 107 87 / 0.28);
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --canvas: #0e1311;
+    --glow-mint: #12332a;
+    --glow-lilac: #1f1b33;
+    --glow-peach: #2e2119;
+    --ink: #eef3f0;
+    --ink-2: #b3beb8;
+    --ink-3: #7f8a85;
+    --line: rgb(255 255 255 / 0.07);
+    --line-strong: rgb(255 255 255 / 0.13);
+    --glass-1: rgb(28 36 33 / 0.42);
+    --glass-2: rgb(30 38 35 / 0.6);
+    --glass-3: rgb(24 31 28 / 0.88);
+    --glass-edge: rgb(255 255 255 / 0.1);
+    --glass-shadow: 0 1px 1px rgb(0 0 0 / 0.2), 0 12px 32px -8px rgb(0 0 0 / 0.5);
+    --rail: rgb(8 11 10 / 0.8);
+    --jade: #5fcfa6;
+    --jade-ink: #06201a;
+    --jade-soft: rgb(95 207 166 / 0.16);
+    --danger: #ff7b93;
+    --danger-soft: rgb(255 123 147 / 0.14);
+    --warn: #f2b35c;
+    --tint-slate: rgb(160 175 190 / 0.14);
+    --tint-sky: rgb(110 170 240 / 0.16);
+    --tint-violet: rgb(160 130 240 / 0.16);
+    --tint-amber: rgb(240 180 90 / 0.16);
+    --tint-orange: rgb(245 150 90 / 0.16);
+    --tint-emerald: rgb(95 207 166 / 0.16);
+    --tint-rose: rgb(245 120 150 / 0.16);
+    --ring: 0 0 0 3px rgb(95 207 166 / 0.35);
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme="dark"] {
+  --canvas: #0e1311;
+  --glow-mint: #12332a;
+  --glow-lilac: #1f1b33;
+  --glow-peach: #2e2119;
+  --ink: #eef3f0;
+  --ink-2: #b3beb8;
+  --ink-3: #7f8a85;
+  --line: rgb(255 255 255 / 0.07);
+  --line-strong: rgb(255 255 255 / 0.13);
+  --glass-1: rgb(28 36 33 / 0.42);
+  --glass-2: rgb(30 38 35 / 0.6);
+  --glass-3: rgb(24 31 28 / 0.88);
+  --glass-edge: rgb(255 255 255 / 0.1);
+  --glass-shadow: 0 1px 1px rgb(0 0 0 / 0.2), 0 12px 32px -8px rgb(0 0 0 / 0.5);
+  --rail: rgb(8 11 10 / 0.8);
+  --jade: #5fcfa6;
+  --jade-ink: #06201a;
+  --jade-soft: rgb(95 207 166 / 0.16);
+  --danger: #ff7b93;
+  --danger-soft: rgb(255 123 147 / 0.14);
+  --warn: #f2b35c;
+  --tint-slate: rgb(160 175 190 / 0.14);
+  --tint-sky: rgb(110 170 240 / 0.16);
+  --tint-violet: rgb(160 130 240 / 0.16);
+  --tint-amber: rgb(240 180 90 / 0.16);
+  --tint-orange: rgb(245 150 90 / 0.16);
+  --tint-emerald: rgb(95 207 166 / 0.16);
+  --tint-rose: rgb(245 120 150 / 0.16);
+  --ring: 0 0 0 3px rgb(95 207 166 / 0.35);
+  color-scheme: dark;
+}
+
+@theme inline {
+  --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "Geist Mono", ui-monospace, "SFMono-Regular", monospace;
+
+  --color-canvas: var(--canvas);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-ink-3: var(--ink-3);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-glass-1: var(--glass-1);
+  --color-glass-2: var(--glass-2);
+  --color-glass-3: var(--glass-3);
+  --color-jade: var(--jade);
+  --color-jade-ink: var(--jade-ink);
+  --color-jade-soft: var(--jade-soft);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --color-warn: var(--warn);
+  --color-tint-slate: var(--tint-slate);
+  --color-tint-sky: var(--tint-sky);
+  --color-tint-violet: var(--tint-violet);
+  --color-tint-amber: var(--tint-amber);
+  --color-tint-orange: var(--tint-orange);
+  --color-tint-emerald: var(--tint-emerald);
+  --color-tint-rose: var(--tint-rose);
+
+  --radius-card: 22px;
+  --radius-control: 12px;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--canvas);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-feature-settings: "ss01", "cv11";
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Ambient canvas: three soft glows the glass can refract. Fixed so it never scrolls. */
+.ambient {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(40vw 40vw at 12% 8%, var(--glow-mint) 0%, transparent 70%),
+    radial-gradient(36vw 36vw at 88% 18%, var(--glow-lilac) 0%, transparent 70%),
+    radial-gradient(44vw 44vw at 70% 100%, var(--glow-peach) 0%, transparent 70%),
+    var(--canvas);
+}
+
+@layer components {
+  /* Frosted surface with a lit top edge. */
+  .glass {
+    background: var(--glass-2);
+    border: 1px solid var(--glass-edge);
+    box-shadow: var(--glass-shadow), inset 0 1px 0 0 var(--glass-edge);
+    backdrop-filter: blur(22px) saturate(160%);
+    -webkit-backdrop-filter: blur(22px) saturate(160%);
+  }
+  .glass-soft {
+    background: var(--glass-1);
+    border: 1px solid var(--glass-edge);
+    backdrop-filter: blur(18px) saturate(150%);
+    -webkit-backdrop-filter: blur(18px) saturate(150%);
+  }
+  .glass-dense {
+    background: var(--glass-3);
+    border: 1px solid var(--line);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+  }
+  .glass-rail {
+    background: var(--rail);
+    border: 1px solid rgb(255 255 255 / 0.08);
+    box-shadow: 0 20px 40px -12px rgb(0 0 0 / 0.35), inset 0 1px 0 rgb(255 255 255 / 0.08);
+    backdrop-filter: blur(24px) saturate(140%);
+    -webkit-backdrop-filter: blur(24px) saturate(140%);
+  }
+  .num {
+    font-variant-numeric: tabular-nums;
+  }
+  .focus-ring:focus-visible {
+    outline: none;
+    box-shadow: var(--ring);
+  }
+}
+
+:focus-visible {
+  outline: 2px solid var(--jade);
+  outline-offset: 2px;
+}
+
+/* People who ask the OS for less transparency get solid surfaces. */
+@media (prefers-reduced-transparency: reduce) {
+  .glass,
+  .glass-soft,
+  .glass-dense {
+    background: var(--glass-3);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+  .glass-rail {
+    background: #14181b;
+    backdrop-filter: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+::selection {
+  background: var(--jade-soft);
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes sheet-in {
+  from { opacity: 0; transform: translateX(24px) scale(0.99); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes pop-in {
+  /* Tailwind v4 positions with the separate `translate` property, so only scale here. */
+  from { opacity: 0; transform: scale(0.97); }
+  to { opacity: 1; transform: scale(1); }
+}
+@keyframes rise {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+.rise {
+  animation: rise 360ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
