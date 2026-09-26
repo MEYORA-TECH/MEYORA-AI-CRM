@@ -32,7 +32,12 @@ ISSUERS = {"accounts.google.com", "https://accounts.google.com"}
 Purpose = Literal["login", "gmail"]
 SCOPES: dict[Purpose, list[str]] = {
     "login": ["openid", "email", "profile"],
-    "gmail": ["openid", "email", "https://www.googleapis.com/auth/gmail.readonly"],
+    "gmail": [
+        "openid",
+        "email",
+        "https://www.googleapis.com/auth/gmail.readonly",
+        "https://www.googleapis.com/auth/gmail.send",  # only used when the user presses Send on a draft
+    ],
 }
 CALLBACK_PATH: dict[Purpose, str] = {"login": "/api/auth/google/callback", "gmail": "/api/integrations/gmail/callback"}
 STATE_TTL = timedelta(minutes=10)

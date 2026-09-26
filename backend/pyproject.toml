@@ -20,6 +20,7 @@ ignore = ["B008", "UP046"]  # FastAPI Depends() in defaults; Generic[] kept for 
 "app/ai/tools/email_tools.py" = ["E501"]
 "app/ai/tools/web_tools.py" = ["E501"]
 "app/services/web_research.py" = ["E501"]  # prompt text
+"app/ai/actions/*" = ["E501"]
 "app/ai/summaries.py" = ["E501"]
 
 [tool.pytest.ini_options]

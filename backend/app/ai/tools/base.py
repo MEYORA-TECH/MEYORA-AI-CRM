@@ -69,6 +69,7 @@ class ToolContext:
     tenant: TenantContext
     working_set: WorkingSet
     timezone: str
+    conversation_id: uuid.UUID | None = None
 
 
 @dataclass

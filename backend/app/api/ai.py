@@ -9,12 +9,13 @@ from pydantic import Field
 from sqlalchemy import exists, func, select
 
 from app.ai import registry
+from app.ai.actions import service as actions_service
 from app.ai.service import ChatRequest, chat_stream, get_conversation, tokens_used_today
 from app.auth.deps import TenantContext, require
 from app.auth.permissions import Perm
 from app.core.config import get_settings
 from app.core.errors import ValidationFailed
-from app.models import AIConversation, AIMessage
+from app.models import AIAction, AIConversation, AIMessage
 from app.schemas.common import InputModel, OutputModel, Page
 from app.services.crud import ListQuery, like_pattern, list_query
 
@@ -141,8 +142,67 @@ async def conversation_messages(conversation_id: uuid.UUID, ctx: TenantContext =
         .order_by(AIMessage.created_at)
         .limit(400)
     )
-    # Assistant turns that only requested tools carry no text; the UI doesn't need them.
-    return [MessageOut.model_validate(m) for m in rows if m.role != "assistant" or m.content]
+    rows = [m for m in rows if m.role != "assistant" or m.content]  # tool-request turns carry no text
+    # Action cards show their live status (confirmed later, expired, …), not the status at proposal time.
+    action_ids = [uuid.UUID(m.ui["id"]) for m in rows if m.ui and m.ui.get("kind") == "action"]
+    actions = (
+        {str(a.id): a for a in await ctx.session.scalars(select(AIAction).where(AIAction.id.in_(action_ids)))}
+        if action_ids
+        else {}
+    )
+    out = []
+    for m in rows:
+        item = MessageOut.model_validate(m)
+        if m.ui and m.ui.get("kind") == "action" and (a := actions.get(m.ui["id"])):
+            item.ui = {**m.ui, **_action_state(a)}
+        out.append(item)
+    return out
+
+
+def _action_state(a: AIAction) -> dict[str, Any]:
+    return {"status": a.status, "result": a.result, "error": a.error, "expires_at": a.expires_at.isoformat()}
+
+
+class ActionOut(OutputModel):
+    id: uuid.UUID
+    ref: str
+    tool: str
+    status: str
+    preview: dict[str, Any]
+    result: dict[str, Any] | None
+    error: str | None
+    expires_at: datetime
+    decided_at: datetime | None
+
+
+class ConfirmIn(InputModel):
+    # Email drafts can be edited on the card before sending.
+    edits: dict[str, Any] | None = None
+
+
+class ConfirmAllIn(InputModel):
+    ids: list[uuid.UUID] = Field(min_length=1, max_length=20)
+
+
+@router.post("/actions/{action_id}/confirm", response_model=ActionOut)
+async def confirm_action(
+    action_id: uuid.UUID, body: ConfirmIn | None = None, ctx: TenantContext = Depends(require(Perm.CRM_WRITE))
+):
+    edits = body.edits if body else None
+    if edits is not None:
+        edits = {k: v for k, v in edits.items() if k in ("to", "subject", "body")}
+    return await actions_service.confirm(ctx, action_id, edits)
+
+
+@router.post("/actions/{action_id}/reject", response_model=ActionOut)
+async def reject_action(action_id: uuid.UUID, ctx: TenantContext = Depends(require(Perm.CRM_WRITE))):
+    return await actions_service.reject(ctx, action_id)
+
+
+@router.post("/actions/confirm-all", response_model=list[ActionOut])
+async def confirm_all(body: ConfirmAllIn, ctx: TenantContext = Depends(require(Perm.CRM_WRITE))):
+    """Confirm several proposals in order. Each succeeds or fails on its own."""
+    return [await actions_service.confirm(ctx, action_id) for action_id in body.ids]
 
 
 @router.patch("/conversations/{conversation_id}", response_model=ConversationOut)

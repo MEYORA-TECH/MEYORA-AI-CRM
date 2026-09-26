@@ -33,6 +33,8 @@ class TenantContext:
     role: Role
     meta: RequestMeta
     permissions: frozenset[Perm] = field(default_factory=frozenset)
+    # "ai" when a person confirmed an action the assistant proposed; audit entries record it.
+    actor_type: str = "user"
 
     @property
     def user_id(self) -> uuid.UUID:

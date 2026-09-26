@@ -4226,6 +4226,170 @@
     }
    }
   },
+  "/api/ai/actions/{action_id}/confirm": {
+   "post": {
+    "tags": [
+     "ai"
+    ],
+    "summary": "Confirm Action",
+    "operationId": "confirm_action_api_ai_actions__action_id__confirm_post",
+    "security": [
+     {
+      "HTTPBearer": []
+     }
+    ],
+    "parameters": [
+     {
+      "name": "action_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Action Id"
+      }
+     }
+    ],
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "anyOf": [
+         {
+          "$ref": "#/components/schemas/ConfirmIn"
+         },
+         {
+          "type": "null"
+         }
+        ],
+        "title": "Body"
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ActionOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/ai/actions/{action_id}/reject": {
+   "post": {
+    "tags": [
+     "ai"
+    ],
+    "summary": "Reject Action",
+    "operationId": "reject_action_api_ai_actions__action_id__reject_post",
+    "security": [
+     {
+      "HTTPBearer": []
+     }
+    ],
+    "parameters": [
+     {
+      "name": "action_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Action Id"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ActionOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/ai/actions/confirm-all": {
+   "post": {
+    "tags": [
+     "ai"
+    ],
+    "summary": "Confirm All",
+    "description": "Confirm several proposals in order. Each succeeds or fails on its own.",
+    "operationId": "confirm_all_api_ai_actions_confirm_all_post",
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ConfirmAllIn"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "items": {
+          "$ref": "#/components/schemas/ActionOut"
+         },
+         "type": "array",
+         "title": "Response Confirm All Api Ai Actions Confirm All Post"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    },
+    "security": [
+     {
+      "HTTPBearer": []
+     }
+    ]
+   }
+  },
   "/api/ai/conversations/{conversation_id}": {
    "patch": {
     "tags": [
@@ -5267,6 +5431,85 @@
      "token"
     ],
     "title": "AcceptInvitationIn"
+   },
+   "ActionOut": {
+    "properties": {
+     "id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Id"
+     },
+     "ref": {
+      "type": "string",
+      "title": "Ref"
+     },
+     "tool": {
+      "type": "string",
+      "title": "Tool"
+     },
+     "status": {
+      "type": "string",
+      "title": "Status"
+     },
+     "preview": {
+      "additionalProperties": true,
+      "type": "object",
+      "title": "Preview"
+     },
+     "result": {
+      "anyOf": [
+       {
+        "additionalProperties": true,
+        "type": "object"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Result"
+     },
+     "error": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Error"
+     },
+     "expires_at": {
+      "type": "string",
+      "format": "date-time",
+      "title": "Expires At"
+     },
+     "decided_at": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "date-time"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Decided At"
+     }
+    },
+    "type": "object",
+    "required": [
+     "id",
+     "ref",
+     "tool",
+     "status",
+     "preview",
+     "result",
+     "error",
+     "expires_at",
+     "decided_at"
+    ],
+    "title": "ActionOut"
    },
    "ActivityCreate": {
     "properties": {
@@ -6634,6 +6877,45 @@
     "additionalProperties": false,
     "type": "object",
     "title": "CompanyUpdate"
+   },
+   "ConfirmAllIn": {
+    "properties": {
+     "ids": {
+      "items": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "type": "array",
+      "maxItems": 20,
+      "minItems": 1,
+      "title": "Ids"
+     }
+    },
+    "additionalProperties": false,
+    "type": "object",
+    "required": [
+     "ids"
+    ],
+    "title": "ConfirmAllIn"
+   },
+   "ConfirmIn": {
+    "properties": {
+     "edits": {
+      "anyOf": [
+       {
+        "additionalProperties": true,
+        "type": "object"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Edits"
+     }
+    },
+    "additionalProperties": false,
+    "type": "object",
+    "title": "ConfirmIn"
    },
    "ContactCreate": {
     "properties": {

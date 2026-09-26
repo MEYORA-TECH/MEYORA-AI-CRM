@@ -1,4 +1,5 @@
 from app.models.ai import AIConversation, AIMessage, AIUsageLog
+from app.models.ai_action import AIAction
 from app.models.base import Base
 from app.models.crm import (
     RLS_TABLES,
@@ -26,6 +27,7 @@ from app.models.memory import AIConversationSummary, AIMemory, Job, KnowledgeChu
 from app.models.research import ResearchBrief, WebSearchCache, WebSearchLog
 
 __all__ = [
+    "AIAction",
     "AIConversation",
     "AIMessage",
     "AIUsageLog",

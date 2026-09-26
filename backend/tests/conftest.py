@@ -21,6 +21,16 @@ os.environ.update(
     RATE_LIMIT_ENABLED="false",
     EMBEDDING_BACKEND="hash",
     JOBS_WORKER_ENABLED="false",
+    # Never reach real services from tests, whatever is in the developer's .env.
+    GROQ_API_KEY="",
+    OPENROUTER_API_KEY="",
+    GEMINI_API_KEY="",
+    TAVILY_API_KEY="",
+    GOOGLE_CLIENT_ID="",
+    GOOGLE_CLIENT_SECRET="",
+    GOOGLE_AUTH_ENABLED="false",
+    GMAIL_ENABLED="false",
+    AI_EXTRA_PROVIDERS="[]",
     JWT_SECRET=_env.get("JWT_SECRET") or "test-secret-" + "x" * 40,
 )
 
@@ -62,6 +72,24 @@ def use_pool(monkeypatch):
         monkeypatch.setattr(registry, "pool", lambda: list(entries))
 
     return _set
+
+
+@pytest.fixture
+def google(monkeypatch):
+    from pydantic import SecretStr
+
+    from app.core.config import get_settings
+    from app.integrations.google import oauth
+    from tests.google_fake import CLIENT_ID, FakeGoogle
+
+    fake = FakeGoogle()
+    s = get_settings()
+    for k, v in {"google_auth_enabled": True, "gmail_enabled": True, "google_client_id": CLIENT_ID,
+                 "google_client_secret": SecretStr("secret"), "public_url": "http://app.test"}.items():
+        monkeypatch.setattr(s, k, v)
+    monkeypatch.setattr(oauth, "transport", httpx.MockTransport(fake.handler))
+    monkeypatch.setitem(oauth._jwks, "keys", None)
+    return fake
 
 
 @pytest.fixture

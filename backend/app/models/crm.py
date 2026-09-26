@@ -281,4 +281,5 @@ RLS_TABLES = [
     "web_search_cache",
     "web_search_logs",
     "research_briefs",
+    "ai_actions",
 ]

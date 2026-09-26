@@ -80,7 +80,7 @@ async def _history(ctx: TenantContext, conv: AIConversation, after: datetime | N
             select(AIMessage)
             .where(
                 AIMessage.conversation_id == conv.id,
-                AIMessage.role.in_(["user", "assistant"]),
+                AIMessage.role.in_(["user", "assistant", "event"]),
                 AIMessage.content.is_not(None),
                 *([AIMessage.created_at > after] if after else []),
             )
@@ -88,7 +88,11 @@ async def _history(ctx: TenantContext, conv: AIConversation, after: datetime | N
             .limit(HISTORY_MESSAGES)
         )
     )
-    return [ChatMessage(role=m.role, content=m.content) for m in reversed(rows)]  # type: ignore[arg-type]
+    # Events (e.g. "Action a1 confirmed and done") tell the model what actually happened.
+    return [
+        ChatMessage(role="system" if m.role == "event" else m.role, content=m.content)  # type: ignore[arg-type]
+        for m in reversed(rows)
+    ]
 
 
 async def _page_note(
@@ -247,7 +251,7 @@ async def chat_stream(req: ChatRequest) -> AsyncIterator[str]:
             return
 
         record = TurnRecord()
-        tool_ctx = ToolContext(tenant=ctx, working_set=ws, timezone=req.timezone)
+        tool_ctx = ToolContext(tenant=ctx, working_set=ws, timezone=req.timezone, conversation_id=conv.id)
         try:
             async for event in run_turn(
                 candidates=candidates,

@@ -68,4 +68,5 @@ def audit(
         entity_type=entity_type,
         entity_id=entity_id,
         changes=changes,
+        actor_type=ActorType(ctx.actor_type),
     )
