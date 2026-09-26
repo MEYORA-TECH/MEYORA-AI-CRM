@@ -710,6 +710,42 @@ export interface paths {
         patch: operations["rename_conversation_api_ai_conversations__conversation_id__patch"];
         trace?: never;
     };
+    "/api/memories": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Memories */
+        get: operations["list_memories_api_memories_get"];
+        put?: never;
+        /** Create Memory */
+        post: operations["create_memory_api_memories_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/memories/{memory_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete Memory */
+        delete: operations["delete_memory_api_memories__memory_id__delete"];
+        options?: never;
+        head?: never;
+        /** Update Memory */
+        patch: operations["update_memory_api_memories__memory_id__patch"];
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -1636,6 +1672,98 @@ export interface components {
             organization: components["schemas"]["OrganizationOut"];
             role: components["schemas"]["Role"];
         };
+        /** MemoryCreate */
+        MemoryCreate: {
+            /** Content */
+            content: string;
+            /**
+             * Memory Type
+             * @default fact
+             * @enum {string}
+             */
+            memory_type: "fact" | "preference" | "requirement" | "relationship" | "decision";
+            /**
+             * Importance
+             * @default 3
+             */
+            importance: number;
+            /** Company Id */
+            company_id?: string | null;
+            /** Contact Id */
+            contact_id?: string | null;
+            /** Deal Id */
+            deal_id?: string | null;
+            /**
+             * Personal
+             * @description Only visible to you
+             * @default false
+             */
+            personal: boolean;
+        };
+        /** MemoryOut */
+        MemoryOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Content */
+            content: string;
+            /** Memory Type */
+            memory_type: string;
+            /** Scope */
+            scope: string;
+            /** User Id */
+            user_id: string | null;
+            /** Company Id */
+            company_id: string | null;
+            /** Contact Id */
+            contact_id: string | null;
+            /** Deal Id */
+            deal_id: string | null;
+            /** Source Type */
+            source_type: string;
+            /** Source Id */
+            source_id: string | null;
+            /** Source Model */
+            source_model: string | null;
+            /** Confidence */
+            confidence: number;
+            /** Importance */
+            importance: number;
+            /** Status */
+            status: string;
+            /** Superseded By Id */
+            superseded_by_id: string | null;
+            /** Created By */
+            created_by: string;
+            /** Access Count */
+            access_count: number;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+        };
+        /** MemoryUpdate */
+        MemoryUpdate: {
+            /** Content */
+            content?: string | null;
+            /** Memory Type */
+            memory_type?: ("fact" | "preference" | "requirement" | "relationship" | "decision") | null;
+            /** Importance */
+            importance?: number | null;
+            /**
+             * Status
+             * @description Approve a memory waiting for review
+             */
+            status?: "active" | null;
+        };
         /** MessageOut */
         MessageOut: {
             /**
@@ -1819,6 +1947,17 @@ export interface components {
         Page_LeadOut_: {
             /** Items */
             items: components["schemas"]["LeadOut"][];
+            /** Total */
+            total: number;
+            /** Page */
+            page: number;
+            /** Page Size */
+            page_size: number;
+        };
+        /** Page[MemoryOut] */
+        Page_MemoryOut_: {
+            /** Items */
+            items: components["schemas"]["MemoryOut"][];
             /** Total */
             total: number;
             /** Page */
@@ -4251,6 +4390,142 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ConversationOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_memories_api_memories_get: {
+        parameters: {
+            query?: {
+                scope?: ("user" | "organization" | "company" | "contact" | "deal") | null;
+                status?: ("active" | "superseded" | "pending_review") | null;
+                company_id?: string | null;
+                contact_id?: string | null;
+                deal_id?: string | null;
+                page?: number;
+                page_size?: number;
+                q?: string | null;
+                sort?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Page_MemoryOut_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_memory_api_memories_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MemoryCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MemoryOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_memory_api_memories__memory_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                memory_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_memory_api_memories__memory_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                memory_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MemoryUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MemoryOut"];
                 };
             };
             /** @description Validation Error */

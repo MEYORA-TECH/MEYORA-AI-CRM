@@ -1,4 +1,5 @@
 import {
+  Brain,
   Building2,
   CalendarRange,
   CheckSquare,
@@ -26,6 +27,7 @@ export const PRIMARY_NAV: NavItem[] = [
   { to: "/contacts", label: "Contacts", icon: UsersRound },
   { to: "/activities", label: "Activities", icon: CalendarRange },
   { to: "/tasks", label: "Tasks", icon: CheckSquare },
+  { to: "/memory", label: "Memory", icon: Brain },
 ];
 
 export const SECONDARY_NAV: NavItem[] = [{ to: "/settings", label: "Settings", icon: Settings }];

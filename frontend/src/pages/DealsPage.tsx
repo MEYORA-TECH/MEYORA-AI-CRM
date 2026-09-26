@@ -10,6 +10,7 @@ import { EntityName } from "@/components/data/EntityPicker";
 import { ListPage } from "@/components/data/ListPage";
 import { Facts, RecordPage } from "@/components/data/RecordPage";
 import { LogActivityButton, NotesPanel, TasksPanel } from "@/components/data/Related";
+import { RecordMemoryPanel } from "@/ai/memories";
 import { Timeline } from "@/components/data/Timeline";
 import { Badge, Button, EmptyState, ErrorState, Skeleton, tintBg } from "@/components/ui/primitives";
 import { deals, useBoard, useMoveDeal, usePipelines } from "@/hooks/resources";
@@ -329,6 +330,7 @@ export function DealDetailPage() {
         { value: "timeline", label: "Timeline", content: <Timeline entity="deals" id={d.id} /> },
         { value: "tasks", label: "Tasks", content: <TasksPanel field="deal_id" id={d.id} /> },
         { value: "notes", label: "Notes", content: <NotesPanel field="deal_id" id={d.id} /> },
+        { value: "memory", label: "AI memory", content: <RecordMemoryPanel field="deal_id" id={d.id} /> },
       ]}
     />
   );

@@ -54,3 +54,14 @@ Postgres row-level security (`ENABLE` + `FORCE`) enforces it again: each transac
 `set_config('app.org_id', …, true)`, and with no organization set, queries return nothing. The app
 connects as a non-superuser role, so policies always apply. Cross-record references are validated
 against the caller's organization before insert.
+
+## AI assistant, memory and background jobs
+
+- **AI provider:** add a free `GROQ_API_KEY` to `.env` and restart the API. Without a key the
+  assistant says it isn't set up; nothing is faked. More providers: `AI_EXTRA_PROVIDERS` (JSON),
+  each tagged `trusted` or `public_only` — CRM data only ever goes to `trusted` ones.
+- **Embeddings** run locally (FastEmbed, `BAAI/bge-small-en-v1.5`, ~200 MB RAM). The model
+  downloads from Hugging Face on first use.
+- **Jobs** (indexing, memory extraction, summaries) run in a worker inside the API process.
+  Jobs that need a model wait until a provider is configured.
+- **Existing data** created before the knowledge index: `.venv/Scripts/python -m app.ai.backfill`.

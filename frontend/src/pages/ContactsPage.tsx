@@ -6,6 +6,7 @@ import { EntityName } from "@/components/data/EntityPicker";
 import { ListPage } from "@/components/data/ListPage";
 import { Facts, RecordPage } from "@/components/data/RecordPage";
 import { DealsPanel, LogActivityButton, NotesPanel, TasksPanel } from "@/components/data/Related";
+import { RecordMemoryPanel } from "@/ai/memories";
 import { Timeline } from "@/components/data/Timeline";
 import { Avatar, Badge } from "@/components/ui/primitives";
 import { contacts } from "@/hooks/resources";
@@ -110,6 +111,7 @@ export function ContactDetailPage() {
         { value: "deals", label: "Deals", content: <DealsPanel filter={{ contact_id: c.id }} /> },
         { value: "tasks", label: "Tasks", content: <TasksPanel field="contact_id" id={c.id} /> },
         { value: "notes", label: "Notes", content: <NotesPanel field="contact_id" id={c.id} /> },
+        { value: "memory", label: "AI memory", content: <RecordMemoryPanel field="contact_id" id={c.id} /> },
       ]}
     />
   );

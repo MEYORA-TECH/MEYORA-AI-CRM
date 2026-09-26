@@ -3,7 +3,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 import { api, describeError } from "@/services/api";
 import { timeZone } from "@/lib/format";
-import { streamChat, type RecordsUi } from "./stream";
+import { streamChat, type ToolUi, type UsedMemory } from "./stream";
 import type { PageContext } from "./store";
 
 export interface ChatItem {
@@ -11,7 +11,8 @@ export interface ChatItem {
   role: "user" | "assistant" | "tool";
   content: string;
   toolName?: string;
-  ui?: RecordsUi | null;
+  ui?: ToolUi | null;
+  memories?: UsedMemory[];
   pending?: boolean;
   error?: string;
   provider?: string | null;
@@ -22,7 +23,7 @@ interface StoredMessage {
   role: "user" | "assistant" | "tool";
   content: string | null;
   tool_name: string | null;
-  ui: RecordsUi | null;
+  ui: ToolUi | null;
   provider: string | null;
 }
 
@@ -108,6 +109,8 @@ export function useChat(conversationId: string | null, onConversation?: (id: str
               current.current = ev.id;
               onConversation?.(ev.id);
             }
+          } else if (ev.type === "memories") {
+            patchAssistant({ memories: ev.items });
           } else if (ev.type === "token") {
             patchAssistant((i) => ({ content: i.content + ev.text }));
           } else if (ev.type === "tool_start") {

@@ -1,4 +1,4 @@
-import { ArrowUp, Building2, CheckSquare, Handshake, Loader2, Magnet, Square, UserRound, CalendarRange, Sparkles } from "lucide-react";
+import { ArrowUp, Brain, Building2, CheckSquare, ChevronDown, Handshake, Loader2, Magnet, Square, StickyNote, UserRound, CalendarRange, Sparkles } from "lucide-react";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import Markdown from "react-markdown";
 import { Link } from "react-router-dom";
@@ -22,6 +22,8 @@ const TOOL_LABEL: Record<string, [string, string]> = {
   search_tasks: ["Checking tasks", "Checked tasks"],
   search_activities: ["Reading activity", "Read activity"],
   pipeline_summary: ["Totalling the pipeline", "Totalled the pipeline"],
+  search_knowledge: ["Searching notes and call logs", "Searched notes and call logs"],
+  remember: ["Saving to memory", "Saved to memory"],
 };
 
 const ENTITY: Record<RecordsUi["entity"], { icon: ReactNode; path?: string }> = {
@@ -31,6 +33,7 @@ const ENTITY: Record<RecordsUi["entity"], { icon: ReactNode; path?: string }> = 
   deal: { icon: <Handshake className="size-3.5" />, path: "/deals" },
   task: { icon: <CheckSquare className="size-3.5" />, path: "/tasks" },
   activity: { icon: <CalendarRange className="size-3.5" />, path: "/activities" },
+  note: { icon: <StickyNote className="size-3.5" /> },
 };
 
 export function Spark({ className }: { className?: string }) {
@@ -45,6 +48,21 @@ export function Spark({ className }: { className?: string }) {
 
 function ToolStep({ item, compact }: { item: ChatItem; compact?: boolean }) {
   const [label, done] = TOOL_LABEL[item.toolName ?? ""] ?? ["Looking up the CRM", "Looked up the CRM"];
+  if (item.ui?.kind === "memory") {
+    const m = item.ui;
+    return (
+      <Link to="/memory" className="focus-ring glass-dense flex items-start gap-2.5 rounded-xl px-3 py-2.5 text-xs hover:bg-[var(--glass-2)]">
+        <Brain className="mt-0.5 size-4 shrink-0 text-jade" />
+        <span>
+          <span className="block font-semibold text-ink">
+            {m.action === "merged" ? "Already remembered" : "Remembered"}
+            {m.scope === "user" ? " (just for you)" : ""}
+          </span>
+          <span className="block text-ink-2">{m.content}</span>
+        </span>
+      </Link>
+    );
+  }
   const ui = item.ui;
   const entity = ui ? ENTITY[ui.entity] : undefined;
   const linkable = ui && ui.entity !== "activity" && ui.entity !== "task";
@@ -69,10 +87,11 @@ function ToolStep({ item, compact }: { item: ChatItem; compact?: boolean }) {
                 {r.badge ? <Badge className="h-5 px-2 text-[10px]">{r.badge.replace(/_/g, " ")}</Badge> : null}
               </>
             );
+            const href = r.href ?? (linkable && entity?.path ? `${entity.path}/${r.id}` : null);
             return (
               <li key={r.id}>
-                {linkable && entity?.path ? (
-                  <Link to={`${entity.path}/${r.id}`} className="focus-ring flex items-center gap-2.5 px-3 py-2 hover:bg-[var(--glass-2)]">{body}</Link>
+                {href ? (
+                  <Link to={href} className="focus-ring flex items-center gap-2.5 px-3 py-2 hover:bg-[var(--glass-2)]">{body}</Link>
                 ) : (
                   <div className="flex items-center gap-2.5 px-3 py-2">{body}</div>
                 )}
@@ -86,6 +105,31 @@ function ToolStep({ item, compact }: { item: ChatItem; compact?: boolean }) {
 }
 
 /* ---------- Messages ---------- */
+
+function UsedMemories({ items }: { items: NonNullable<ChatItem["memories"]> }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="mb-2 text-xs">
+      <button
+        onClick={() => setOpen(!open)}
+        aria-expanded={open}
+        className="focus-ring inline-flex items-center gap-1.5 rounded-full bg-jade-soft px-2.5 py-1 font-semibold text-jade"
+      >
+        <Brain className="size-3.5" /> Used {items.length} memor{items.length === 1 ? "y" : "ies"}
+        <ChevronDown className={cn("size-3.5 transition", open && "rotate-180")} />
+      </button>
+      {open ? (
+        <ul className="glass-dense mt-1.5 divide-y divide-[var(--line)] rounded-xl">
+          {items.map((m) => (
+            <li key={m.id} className="px-3 py-2 text-ink-2">
+              {m.content} <span className="text-ink-3">· {m.scope === "user" ? "just for you" : `from ${m.source_type}`}</span>
+            </li>
+          ))}
+        </ul>
+      ) : null}
+    </div>
+  );
+}
 
 function AssistantText({ item }: { item: ChatItem }) {
   if (item.error) {
@@ -128,7 +172,10 @@ export function Messages({ items, compact }: { items: ChatItem[]; compact?: bool
         ) : (
           <div key={item.key} className="flex gap-2.5">
             <Spark className="mt-0.5 size-6 shrink-0" />
-            <div className="min-w-0 flex-1"><AssistantText item={item} /></div>
+            <div className="min-w-0 flex-1">
+              {item.memories?.length ? <UsedMemories items={item.memories} /> : null}
+              <AssistantText item={item} />
+            </div>
           </div>
         ),
       )}

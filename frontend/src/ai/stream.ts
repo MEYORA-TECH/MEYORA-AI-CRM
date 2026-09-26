@@ -4,16 +4,34 @@ export type ChatEvent =
   | { type: "conversation"; id: string; title: string }
   | { type: "token"; text: string }
   | { type: "tool_start"; id: string; name: string }
-  | { type: "tool_result"; id: string; name: string; ok: boolean; ui: RecordsUi | null }
+  | { type: "tool_result"; id: string; name: string; ok: boolean; ui: ToolUi | null }
+  | { type: "memories"; items: UsedMemory[] }
   | { type: "done"; message_id: string | null; tokens: number; provider: string | null; used_today: number; quota: number }
   | { type: "error"; message: string; code?: string };
 
 export interface RecordsUi {
   kind: "records";
-  entity: "company" | "contact" | "lead" | "deal" | "task" | "activity";
+  entity: "company" | "contact" | "lead" | "deal" | "task" | "activity" | "note";
   title: string;
   total: number;
-  rows: { id: string; title: string; subtitle?: string; badge?: string; value?: string }[];
+  rows: { id: string; title: string; subtitle?: string; badge?: string; value?: string; href?: string | null }[];
+}
+
+export interface MemoryUi {
+  kind: "memory";
+  action: "created" | "merged";
+  id: string;
+  content: string;
+  scope: string;
+}
+
+export type ToolUi = RecordsUi | MemoryUi;
+
+export interface UsedMemory {
+  id: string;
+  content: string;
+  scope: string;
+  source_type: string;
 }
 
 export interface ChatBody {
