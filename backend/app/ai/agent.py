@@ -4,6 +4,7 @@ Provider failover happens only before the first token of a turn, so one answer
 never mixes two models. Tool arguments are validated before anything runs.
 """
 
+import asyncio
 import time
 from collections.abc import AsyncIterator
 from dataclasses import dataclass, field
@@ -23,6 +24,10 @@ from app.ai.tools.base import Tool, ToolContext
 from app.core.logging import get_logger
 
 log = get_logger("ai.agent")
+
+# Short provider waits (e.g. Groq "retry in 4s") are absorbed instead of failing the answer.
+MAX_SHORT_WAITS = 2
+MAX_WAIT_SECONDS = 15.0
 
 
 @dataclass
@@ -72,20 +77,61 @@ async def run_turn(
         completion: Completion | None = None
 
         # Try providers in order until one starts answering.
-        for entry in [record.provider] if record.provider else candidates:
-            started = time.perf_counter()
-            try:
-                async for event in entry.provider.stream_chat(
-                    model=entry.chat_model,
-                    messages=messages,
-                    tools=[] if last_call else specs,
-                    max_tokens=max_output_tokens,
-                ):
-                    if isinstance(event, TextDelta):
-                        streamed_any = True
-                        yield {"type": "token", "text": event.text}
-                    else:
-                        completion = event
+        pool = [record.provider] if record.provider else candidates
+        for entry in pool:
+            failure: ProviderError | None = None
+            for attempt in range(MAX_SHORT_WAITS + 1):
+                started = time.perf_counter()
+                call_streamed = False
+                try:
+                    async for event in entry.provider.stream_chat(
+                        model=entry.chat_model,
+                        messages=messages,
+                        tools=specs,
+                        tool_choice="none" if last_call else "auto",
+                        max_tokens=max_output_tokens,
+                    ):
+                        if isinstance(event, TextDelta):
+                            streamed_any = call_streamed = True
+                            yield {"type": "token", "text": event.text}
+                        else:
+                            completion = event
+                    failure = None
+                    break
+                except ProviderError as exc:
+                    failure = exc
+                    record.calls.append(
+                        ModelCall(
+                            provider=entry.id,
+                            model=entry.chat_model,
+                            latency_ms=int((time.perf_counter() - started) * 1000),
+                            usage=Usage(),
+                            tool_calls=[],
+                            status="rate_limited" if isinstance(exc, ProviderRateLimited) else "error",
+                            error=exc.message[:300],
+                        )
+                    )
+                    log.warning("ai_provider_failed", provider=entry.id, status=exc.status, error=exc.message)
+                    # Free tiers limit tokens per minute; a short pause mid-answer is better than failing it.
+                    wait = exc.retry_after if isinstance(exc, ProviderRateLimited) else None
+                    # Only wait if there's nobody better: a pinned provider mid-answer, or the last candidate.
+                    no_alternative = record.provider is not None or entry is pool[-1]
+                    if (
+                        wait is not None
+                        and wait <= MAX_WAIT_SECONDS
+                        and no_alternative
+                        and not call_streamed
+                        and attempt < MAX_SHORT_WAITS
+                    ):
+                        yield {
+                            "type": "status",
+                            "message": f"Waiting {int(wait) + 1}s for the AI provider's free-tier limit…",
+                        }
+                        await asyncio.sleep(wait + 0.5)
+                        continue
+                    break
+
+            if failure is None:
                 record.provider = entry
                 record.calls.append(
                     ModelCall(
@@ -97,24 +143,11 @@ async def run_turn(
                     )
                 )
                 break
-            except ProviderError as exc:
-                record.calls.append(
-                    ModelCall(
-                        provider=entry.id,
-                        model=entry.chat_model,
-                        latency_ms=int((time.perf_counter() - started) * 1000),
-                        usage=Usage(),
-                        tool_calls=[],
-                        status="rate_limited" if isinstance(exc, ProviderRateLimited) else "error",
-                        error=exc.message[:300],
-                    )
-                )
-                log.warning("ai_provider_failed", provider=entry.id, status=exc.status, error=exc.message)
-                if streamed_any or record.provider is not None:
-                    record.error = exc.message
-                    yield {"type": "error", "message": exc.message}
-                    return
-                continue  # nothing shown yet: fail over to the next allowed provider
+            if streamed_any or record.provider is not None:
+                record.error = failure.message
+                yield {"type": "error", "message": failure.message}
+                return
+            # nothing shown yet: fail over to the next allowed provider
 
         if completion is None:
             record.error = record.calls[-1].error if record.calls else "No AI provider is available."

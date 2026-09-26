@@ -6,6 +6,7 @@ import remarkGfm from "remark-gfm";
 
 import { Badge } from "@/components/ui/primitives";
 import { cn } from "@/lib/format";
+import { ActionCard, ConfirmAllBar, type ActionUi } from "./actions";
 import type { PageContext } from "./store";
 import type { RecordsUi } from "./stream";
 import { useAiStatus, type ChatItem } from "./useChat";
@@ -24,6 +25,15 @@ const TOOL_LABEL: Record<string, [string, string]> = {
   pipeline_summary: ["Totalling the pipeline", "Totalled the pipeline"],
   search_knowledge: ["Searching notes and call logs", "Searched notes and call logs"],
   remember: ["Saving to memory", "Saved to memory"],
+  create_task: ["Preparing a task", "Proposed a task"],
+  update_task: ["Preparing a task change", "Proposed a task change"],
+  log_activity: ["Preparing an activity", "Proposed an activity"],
+  add_note: ["Preparing a note", "Proposed a note"],
+  create_lead: ["Preparing a lead", "Proposed a lead"],
+  update_lead: ["Preparing a lead change", "Proposed a lead change"],
+  update_deal: ["Preparing a deal change", "Proposed a deal change"],
+  update_contact: ["Preparing a contact change", "Proposed a contact change"],
+  draft_email: ["Drafting an email", "Drafted an email"],
   search_emails: ["Searching emails", "Searched emails"],
   get_email_thread: ["Reading the email thread", "Read the email thread"],
   web_search: ["Searching the web", "Searched the web"],
@@ -54,6 +64,9 @@ export function Spark({ className }: { className?: string }) {
 
 function ToolStep({ item, compact }: { item: ChatItem; compact?: boolean }) {
   const [label, done] = TOOL_LABEL[item.toolName ?? ""] ?? ["Looking up the CRM", "Looked up the CRM"];
+  if (item.ui?.kind === "action") {
+    return <ActionCard ui={item.ui} />;
+  }
   if (item.ui?.kind === "web") {
     const w = item.ui;
     return (
@@ -197,6 +210,17 @@ function AssistantText({ item, sources }: { item: ChatItem; sources: Map<string,
   );
 }
 
+/** Action proposals made in the turn that ends with this assistant message. */
+function turnActions(items: ChatItem[], assistantKey: string): ActionUi[] {
+  const at = items.findIndex((i) => i.key === assistantKey);
+  const out: ActionUi[] = [];
+  for (let i = at - 1; i >= 0 && items[i].role === "tool"; i--) {
+    const ui = items[i].ui;
+    if (ui?.kind === "action") out.unshift(ui);
+  }
+  return out;
+}
+
 export function Messages({ items, compact }: { items: ChatItem[]; compact?: boolean }) {
   const end = useRef<HTMLDivElement>(null);
   const sources = new Map<string, string>();
@@ -217,6 +241,7 @@ export function Messages({ items, compact }: { items: ChatItem[]; compact?: bool
             <div className="min-w-0 flex-1">
               {item.memories?.length ? <UsedMemories items={item.memories} /> : null}
               <AssistantText item={item} sources={sources} />
+              <div className="mt-2"><ConfirmAllBar actions={turnActions(items, item.key)} /></div>
             </div>
           </div>
         ),

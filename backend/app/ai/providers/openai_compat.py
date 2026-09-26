@@ -83,6 +83,7 @@ class OpenAICompatibleProvider:
         temperature: float = 0.2,
         json_mode: bool = False,
         extra: dict[str, Any] | None = None,
+        tool_choice: str = "auto",
     ) -> AsyncIterator[ProviderEvent]:
         body: dict[str, Any] = {
             "model": model,
@@ -104,8 +105,9 @@ class OpenAICompatibleProvider:
                 }
                 for t in tools
             ]
-            body["tool_choice"] = "auto"
-            body["parallel_tool_calls"] = True
+            body["tool_choice"] = tool_choice
+            if tool_choice != "none":
+                body["parallel_tool_calls"] = True
 
         text_parts: list[str] = []
         calls: dict[int, dict[str, str]] = {}
@@ -139,6 +141,13 @@ class OpenAICompatibleProvider:
                         except json.JSONDecodeError:
                             continue
 
+                        if err := chunk.get("error") or (chunk.get("x_groq") or {}).get("error"):
+                            # Errors can arrive inside a 200 stream (e.g. a malformed tool call).
+                            detail = err.get("message") if isinstance(err, dict) else str(err)
+                            code = err.get("code") if isinstance(err, dict) else None
+                            raise ProviderError(
+                                f"The AI provider stopped with an error: {detail}"[:300]
+                            ) from RuntimeError(code)
                         raw_usage = chunk.get("usage") or (chunk.get("x_groq") or {}).get("usage")
                         if raw_usage:
                             usage = Usage(

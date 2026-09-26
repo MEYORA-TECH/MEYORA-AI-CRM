@@ -35,8 +35,9 @@ class ScriptedProvider:
         self.turns = list(turns)
         self.requests: list[dict] = []
 
-    async def stream_chat(self, *, model, messages, tools, max_tokens, temperature=0.2, json_mode=False, extra=None):
-        self.requests.append({"messages": list(messages), "tools": [t.name for t in tools]})
+    async def stream_chat(self, *, model, messages, tools, max_tokens, temperature=0.2, json_mode=False, extra=None,
+                          tool_choice="auto"):
+        self.requests.append({"messages": list(messages), "tools": [t.name for t in tools], "tool_choice": tool_choice})
         turn = self.turns.pop(0)
         if isinstance(turn, Exception):
             raise turn
@@ -270,3 +271,23 @@ async def test_ai_tables_are_row_level_secured(owner, use_pool):
         assert await session.scalar(text("SELECT count(*) FROM ai_messages")) == 0  # no tenant set
         await set_tenant(session, uuid.UUID(owner.org_id))
         assert await session.scalar(select(text("count(*)")).select_from(AIMessage)) == 2
+
+
+async def test_short_rate_limit_mid_answer_is_waited_out(owner, use_pool):
+    provider = ScriptedProvider("groq", [tool_turn("search_deals", {}), ProviderRateLimited(0.1), text_turn("Done after waiting.")])
+    use_pool(entry(provider))
+    events = await chat(owner, "Which deals are open?")
+    status = [d for k, d in events if k == "status"]
+    assert status and "free-tier limit" in status[0]["message"]
+    assert events[-1][0] == "done" and not any(k == "error" for k, _ in events)
+    assert "".join(d["text"] for k, d in events if k == "token") == "Done after waiting."
+
+
+async def test_unexpected_error_mid_turn_is_reported_not_crashed(owner, use_pool):
+    use_pool(entry(ScriptedProvider("groq", [tool_turn("search_deals", {}), RuntimeError("bug in a provider")])))
+    events = await chat(owner, "Which deals are open?")
+    kinds = [k for k, _ in events]
+    assert "error" in kinds and kinds[-1] == "done"
+    conv_id = events[0][1]["id"]
+    messages = (await owner.get(f"/api/ai/conversations/{conv_id}/messages")).json()
+    assert messages[0]["role"] == "user"

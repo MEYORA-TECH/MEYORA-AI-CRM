@@ -1,4 +1,5 @@
 import { ApiError, getAccessToken, refreshSession } from "@/services/api";
+import type { ActionUi } from "./actions";
 
 export type ChatEvent =
   | { type: "conversation"; id: string; title: string }
@@ -31,7 +32,7 @@ export interface WebUi {
   rows: { ref: string; title: string; url: string; domain: string; snippet: string; published?: string | null }[];
 }
 
-export type ToolUi = RecordsUi | MemoryUi | WebUi;
+export type ToolUi = RecordsUi | MemoryUi | WebUi | ActionUi;
 
 export interface UsedMemory {
   id: string;

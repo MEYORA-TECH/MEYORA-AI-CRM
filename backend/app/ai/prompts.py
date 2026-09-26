@@ -140,6 +140,9 @@ GROUP_KEYWORDS: dict[str, tuple[str, ...]] = {
     ),
 }
 
+READ_GROUPS = {"companies", "contacts", "leads", "deals", "tasks", "activities", "knowledge", "emails"}
+ALWAYS = {"search_companies", "search_contacts", "search_deals", "search_leads"}
+
 PAGE_GROUPS = {"company": "companies", "contact": "contacts", "lead": "leads", "deal": "deals"}
 
 
@@ -156,7 +159,13 @@ def select_tools(message: str, page_type: str | None) -> list[Tool]:
     # Record details often need the timeline tools of neighbours (a company's deals, a deal's company).
     if groups & {"companies", "deals"}:
         groups |= {"companies", "deals"}
-    return [t for t in TOOLS if t.group in groups]
+    # Actions refer to people and records by name ("call Ravi"), so the model must be able to look them up.
+    if "actions" in groups:
+        groups |= {"tasks"}  # plus the ALWAYS searches below; enough to find what an action refers to
+    chosen = [t for t in TOOLS if t.group in groups]
+    # Providers reject calls to tools that weren't offered, so the basic lookups are always available.
+    names = {t.name for t in chosen}
+    return chosen + [t for t in TOOLS if t.name in ALWAYS and t.name not in names]
 
 
 def system_prompt(*, org: str, user: str, role: str, tz: str, currency: str) -> str:

@@ -83,4 +83,5 @@ class AIProvider(Protocol):
         temperature: float = 0.2,
         json_mode: bool = False,
         extra: dict[str, Any] | None = None,
+        tool_choice: str = "auto",
     ) -> AsyncIterator[ProviderEvent]: ...

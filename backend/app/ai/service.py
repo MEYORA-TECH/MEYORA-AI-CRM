@@ -198,6 +198,7 @@ async def chat_stream(req: ChatRequest) -> AsyncIterator[str]:
         session.add(user_message)
         conv.last_message_at = datetime.now(UTC)
         await session.commit()
+        user_message_id = user_message.id  # plain value: survives a rollback later in the turn
         yield sse("conversation", {"id": str(conv.id), "title": conv.title})
 
         ws = WorkingSet.load(conv.state)
@@ -266,10 +267,12 @@ async def chat_stream(req: ChatRequest) -> AsyncIterator[str]:
             log.exception("ai_turn_failed", conversation_id=str(conv.id))
             await session.rollback()
             await session.refresh(conv)  # rollback expires loaded objects
+            # Proposals and results from this turn were rolled back; don't save cards pointing at them.
+            record.tool_messages.clear()
             record.error = "Something went wrong while answering."
             yield sse("error", {"message": record.error})
 
-        assistant_id = await _persist(session, req, conv, ws, record, user_message.id)
+        assistant_id = await _persist(session, req, conv, ws, record, user_message_id)
         total = sum(c.usage.prompt_tokens + c.usage.completion_tokens for c in record.calls)
         yield sse(
             "done",

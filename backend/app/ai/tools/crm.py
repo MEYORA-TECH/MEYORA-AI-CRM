@@ -169,7 +169,9 @@ async def search_contacts(ctx: ToolContext, a: SearchContacts) -> ToolResult:
     lines, ui_rows = [], []
     for c, last_at in rows:
         ref = ctx.working_set.ref_for("contact", c.id, c.full_name)
-        company = c.company.name if c.company else "-"
+        company = (
+            f"{ctx.working_set.ref_for('company', c.company.id, c.company.name)} {c.company.name}" if c.company else "-"
+        )
         lines.append(
             f"{ref}: {c.full_name} · {c.job_title or '-'} at {company} · {c.email or '-'} · last contact {_ago(last_at)}"
         )
@@ -333,7 +335,9 @@ async def search_deals(ctx: ToolContext, a: SearchDeals) -> ToolResult:
     lines, ui_rows = [], []
     for d, last_at in rows:
         ref = ctx.working_set.ref_for("deal", d.id, d.name)
-        company = d.company.name if d.company else "-"
+        company = (
+            f"{ctx.working_set.ref_for('company', d.company.id, d.company.name)} {d.company.name}" if d.company else "-"
+        )
         close = d.expected_close_date.isoformat() if d.expected_close_date else "-"
         lines.append(
             f"{ref}: {d.name} · {company} · {_money(d.amount, d.currency)} · {stage_names.get(d.stage_id, '?')} ({d.probability}%) · {d.status} · close {close} · last activity {_ago(last_at)}"

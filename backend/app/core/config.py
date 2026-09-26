@@ -37,7 +37,7 @@ class Settings(BaseSettings):
     # Extra providers as JSON (see docs/ai-providers.md), for any OpenAI-compatible API.
     ai_extra_providers: str | None = None
     ai_daily_token_quota: int = 60_000  # per user
-    ai_max_model_calls: int = 3  # per chat turn
+    ai_max_model_calls: int = 5  # per chat turn (look up, then act, then answer)
     ai_request_token_budget: int = 6_000  # prompt tokens per call on the free tier
 
     # --- Memory & knowledge -----------------------------------------------
