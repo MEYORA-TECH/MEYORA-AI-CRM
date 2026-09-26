@@ -47,6 +47,23 @@ class Settings(BaseSettings):
     memory_dedup_similarity: float = 0.92
     jobs_worker_enabled: bool = True
 
+    # --- Google sign-in & Gmail (toggle layers; off by default) -------------------
+    google_auth_enabled: bool = False
+    gmail_enabled: bool = False
+    google_client_id: str | None = None
+    google_client_secret: SecretStr | None = None
+    # Public URL of this app as the browser sees it; OAuth redirect URIs are built from it.
+    public_url: str = "http://localhost:5173"
+    gmail_sync_interval_minutes: int = 5
+    gmail_initial_sync_days: int = 90
+    gmail_initial_sync_max_messages: int = 500
+    # 32-byte key, base64. Encrypts stored OAuth tokens. Required in production.
+    encryption_key: SecretStr | None = None
+
+    @property
+    def google_ready(self) -> bool:
+        return bool(self.google_client_id and self.google_client_secret)
+
     @property
     def is_production(self) -> bool:
         return self.app_env == "production"

@@ -43,8 +43,7 @@ async def list_members(ctx: TenantContext = Depends(require(Perm.MEMBERS_READ)))
 
 
 @org.patch("/members/{user_id}", response_model=MemberOut)
-async def change_role(user_id: uuid.UUID, body: RoleUpdate,
-                      ctx: TenantContext = Depends(require(Perm.MEMBERS_MANAGE))):
+async def change_role(user_id: uuid.UUID, body: RoleUpdate, ctx: TenantContext = Depends(require(Perm.MEMBERS_MANAGE))):
     membership = await org_service.change_role(ctx, user_id, body.role)
     await ctx.session.commit()
     return membership
@@ -121,8 +120,9 @@ async def create_pipeline(body: PipelineCreate, ctx: TenantContext = Depends(req
 
 
 @pipelines.patch("/{pipeline_id}", response_model=PipelineOut)
-async def update_pipeline(pipeline_id: uuid.UUID, body: PipelineUpdate,
-                          ctx: TenantContext = Depends(require(Perm.PIPELINES_MANAGE))):
+async def update_pipeline(
+    pipeline_id: uuid.UUID, body: PipelineUpdate, ctx: TenantContext = Depends(require(Perm.PIPELINES_MANAGE))
+):
     pipeline = await pipeline_service.update_pipeline(ctx, pipeline_id, body)
     await ctx.session.commit()
     return pipeline
@@ -141,8 +141,9 @@ dashboard = APIRouter(prefix="/dashboard", tags=["dashboard"])
 
 
 @dashboard.get("", response_model=DashboardOut)
-async def get_dashboard(tz: str = Query("Asia/Kolkata", max_length=64),
-                        ctx: TenantContext = Depends(require(Perm.CRM_READ))):
+async def get_dashboard(
+    tz: str = Query("Asia/Kolkata", max_length=64), ctx: TenantContext = Depends(require(Perm.CRM_READ))
+):
     try:
         ZoneInfo(tz)
     except (ZoneInfoNotFoundError, ValueError) as exc:

@@ -50,9 +50,7 @@ async def is_member(ctx: TenantContext, user_id: uuid.UUID) -> bool:
 
 async def _get_membership(ctx: TenantContext, user_id: uuid.UUID) -> Membership:
     membership = await ctx.session.scalar(
-        select(Membership).where(
-            Membership.organization_id == ctx.organization_id, Membership.user_id == user_id
-        )
+        select(Membership).where(Membership.organization_id == ctx.organization_id, Membership.user_id == user_id)
     )
     if membership is None:
         raise NotFound("Member")
@@ -60,11 +58,14 @@ async def _get_membership(ctx: TenantContext, user_id: uuid.UUID) -> Membership:
 
 
 async def _owner_count(ctx: TenantContext) -> int:
-    return await ctx.session.scalar(
-        select(func.count(Membership.id)).where(
-            Membership.organization_id == ctx.organization_id, Membership.role == Role.OWNER
+    return (
+        await ctx.session.scalar(
+            select(func.count(Membership.id)).where(
+                Membership.organization_id == ctx.organization_id, Membership.role == Role.OWNER
+            )
         )
-    ) or 0
+        or 0
+    )
 
 
 def _check_can_manage(ctx: TenantContext, target_role: Role, new_role: Role | None = None) -> None:
@@ -81,8 +82,13 @@ async def change_role(ctx: TenantContext, user_id: uuid.UUID, role: Role) -> Mem
     if membership.role == Role.OWNER and role != Role.OWNER and await _owner_count(ctx) <= 1:
         raise Conflict("An organization must keep at least one owner")
     if membership.role != role:
-        audit(ctx, "member.role_change", entity_type="user", entity_id=user_id,
-              changes={"role": {"old": membership.role, "new": role}})
+        audit(
+            ctx,
+            "member.role_change",
+            entity_type="user",
+            entity_id=user_id,
+            changes={"role": {"old": membership.role, "new": role}},
+        )
         membership.role = role
     return membership
 
@@ -94,8 +100,13 @@ async def remove_member(ctx: TenantContext, user_id: uuid.UUID) -> None:
     if membership.role == Role.OWNER and await _owner_count(ctx) <= 1:
         raise Conflict("An organization must keep at least one owner")
     await ctx.session.delete(membership)
-    audit(ctx, "member.remove", entity_type="user", entity_id=user_id,
-          changes={"role": {"old": membership.role, "new": None}})
+    audit(
+        ctx,
+        "member.remove",
+        entity_type="user",
+        entity_id=user_id,
+        changes={"role": {"old": membership.role, "new": None}},
+    )
 
 
 async def list_invitations(ctx: TenantContext) -> list[Invitation]:
@@ -132,16 +143,19 @@ async def create_invitation(ctx: TenantContext, email: str, role: Role) -> tuple
     )
     ctx.session.add(invitation)
     await ctx.session.flush()
-    audit(ctx, "member.invite", entity_type="invitation", entity_id=invitation.id,
-          changes={"email": {"old": None, "new": invitation.email}, "role": {"old": None, "new": role}})
+    audit(
+        ctx,
+        "member.invite",
+        entity_type="invitation",
+        entity_id=invitation.id,
+        changes={"email": {"old": None, "new": invitation.email}, "role": {"old": None, "new": role}},
+    )
     return invitation, raw
 
 
 async def revoke_invitation(ctx: TenantContext, invitation_id: uuid.UUID) -> None:
     invitation = await ctx.session.scalar(
-        select(Invitation).where(
-            Invitation.id == invitation_id, Invitation.organization_id == ctx.organization_id
-        )
+        select(Invitation).where(Invitation.id == invitation_id, Invitation.organization_id == ctx.organization_id)
     )
     if invitation is None or invitation.accepted_at or invitation.revoked_at:
         raise NotFound("Invitation")

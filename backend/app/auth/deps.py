@@ -89,9 +89,7 @@ async def get_tenant(
     # Membership is re-checked on every request, so removing a member or
     # changing a role takes effect immediately, not when the token expires.
     membership = await session.scalar(
-        select(Membership).where(
-            Membership.organization_id == organization_id, Membership.user_id == user.id
-        )
+        select(Membership).where(Membership.organization_id == organization_id, Membership.user_id == user.id)
     )
     if membership is None:
         raise Forbidden("You are not a member of this organization")

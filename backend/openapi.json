@@ -259,6 +259,123 @@
     ]
    }
   },
+  "/api/auth/providers": {
+   "get": {
+    "tags": [
+     "auth"
+    ],
+    "summary": "Auth Providers",
+    "operationId": "auth_providers_api_auth_providers_get",
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/auth/google/start": {
+   "get": {
+    "tags": [
+     "auth"
+    ],
+    "summary": "Google Start",
+    "operationId": "google_start_api_auth_google_start_get",
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/auth/google/callback": {
+   "get": {
+    "tags": [
+     "auth"
+    ],
+    "summary": "Google Callback",
+    "operationId": "google_callback_api_auth_google_callback_get",
+    "parameters": [
+     {
+      "name": "code",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Code"
+      }
+     },
+     {
+      "name": "state",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "State"
+      }
+     },
+     {
+      "name": "error",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Error"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
   "/api/organization": {
    "get": {
     "tags": [
@@ -4089,7 +4206,7 @@
         "schema": {
          "type": "array",
          "items": {
-          "$ref": "#/components/schemas/MessageOut"
+          "$ref": "#/components/schemas/app__api__ai__MessageOut"
          },
          "title": "Response Conversation Messages Api Ai Conversations  Conversation Id  Messages Get"
         }
@@ -4525,6 +4642,403 @@
     "responses": {
      "204": {
       "description": "Successful Response"
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/integrations/gmail": {
+   "get": {
+    "tags": [
+     "integrations"
+    ],
+    "summary": "Gmail Status",
+    "operationId": "gmail_status_api_integrations_gmail_get",
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/GmailStatus"
+        }
+       }
+      }
+     }
+    },
+    "security": [
+     {
+      "HTTPBearer": []
+     }
+    ]
+   }
+  },
+  "/api/integrations/gmail/connect": {
+   "post": {
+    "tags": [
+     "integrations"
+    ],
+    "summary": "Gmail Connect",
+    "operationId": "gmail_connect_api_integrations_gmail_connect_post",
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      }
+     }
+    },
+    "security": [
+     {
+      "HTTPBearer": []
+     }
+    ]
+   }
+  },
+  "/api/integrations/gmail/callback": {
+   "get": {
+    "tags": [
+     "integrations"
+    ],
+    "summary": "Gmail Callback",
+    "operationId": "gmail_callback_api_integrations_gmail_callback_get",
+    "parameters": [
+     {
+      "name": "code",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Code"
+      }
+     },
+     {
+      "name": "state",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "State"
+      }
+     },
+     {
+      "name": "error",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Error"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/integrations/gmail/{account_id}/sync": {
+   "post": {
+    "tags": [
+     "integrations"
+    ],
+    "summary": "Gmail Sync Now",
+    "operationId": "gmail_sync_now_api_integrations_gmail__account_id__sync_post",
+    "security": [
+     {
+      "HTTPBearer": []
+     }
+    ],
+    "parameters": [
+     {
+      "name": "account_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Account Id"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/MailAccountOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/integrations/gmail/{account_id}": {
+   "delete": {
+    "tags": [
+     "integrations"
+    ],
+    "summary": "Gmail Disconnect",
+    "operationId": "gmail_disconnect_api_integrations_gmail__account_id__delete",
+    "security": [
+     {
+      "HTTPBearer": []
+     }
+    ],
+    "parameters": [
+     {
+      "name": "account_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Account Id"
+      }
+     }
+    ],
+    "responses": {
+     "204": {
+      "description": "Successful Response"
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/emails/threads": {
+   "get": {
+    "tags": [
+     "emails"
+    ],
+    "summary": "List Threads",
+    "operationId": "list_threads_api_emails_threads_get",
+    "security": [
+     {
+      "HTTPBearer": []
+     }
+    ],
+    "parameters": [
+     {
+      "name": "contact_id",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string",
+         "format": "uuid"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Contact Id"
+      }
+     },
+     {
+      "name": "company_id",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string",
+         "format": "uuid"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Company Id"
+      }
+     },
+     {
+      "name": "page",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "type": "integer",
+       "maximum": 10000,
+       "minimum": 1,
+       "default": 1,
+       "title": "Page"
+      }
+     },
+     {
+      "name": "page_size",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "type": "integer",
+       "maximum": 100,
+       "minimum": 1,
+       "default": 25,
+       "title": "Page Size"
+      }
+     },
+     {
+      "name": "q",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string",
+         "maxLength": 200
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Q"
+      }
+     },
+     {
+      "name": "sort",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string",
+         "maxLength": 50,
+         "pattern": "^-?[a-z_]+$"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Sort"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Page_ThreadOut_"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/emails/threads/{thread_id}": {
+   "get": {
+    "tags": [
+     "emails"
+    ],
+    "summary": "Get Thread",
+    "operationId": "get_thread_api_emails_threads__thread_id__get",
+    "security": [
+     {
+      "HTTPBearer": []
+     }
+    ],
+    "parameters": [
+     {
+      "name": "thread_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Thread Id"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ThreadDetail"
+        }
+       }
+      }
      },
      "422": {
       "description": "Validation Error",
@@ -7176,6 +7690,27 @@
     "type": "object",
     "title": "DealUpdate"
    },
+   "GmailStatus": {
+    "properties": {
+     "enabled": {
+      "type": "boolean",
+      "title": "Enabled"
+     },
+     "accounts": {
+      "items": {
+       "$ref": "#/components/schemas/MailAccountOut"
+      },
+      "type": "array",
+      "title": "Accounts"
+     }
+    },
+    "type": "object",
+    "required": [
+     "enabled",
+     "accounts"
+    ],
+    "title": "GmailStatus"
+   },
    "HTTPValidationError": {
     "properties": {
      "detail": {
@@ -8061,6 +8596,85 @@
     ],
     "title": "LoginIn"
    },
+   "MailAccountOut": {
+    "properties": {
+     "id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Id"
+     },
+     "user_id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "User Id"
+     },
+     "email_address": {
+      "type": "string",
+      "title": "Email Address"
+     },
+     "status": {
+      "type": "string",
+      "title": "Status"
+     },
+     "last_sync_at": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "date-time"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Last Sync At"
+     },
+     "next_sync_at": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "date-time"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Next Sync At"
+     },
+     "last_error": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Last Error"
+     },
+     "messages_synced": {
+      "type": "integer",
+      "title": "Messages Synced"
+     },
+     "created_at": {
+      "type": "string",
+      "format": "date-time",
+      "title": "Created At"
+     }
+    },
+    "type": "object",
+    "required": [
+     "id",
+     "user_id",
+     "email_address",
+     "status",
+     "last_sync_at",
+     "next_sync_at",
+     "last_error",
+     "messages_synced",
+     "created_at"
+    ],
+    "title": "MailAccountOut"
+   },
    "MeOut": {
     "properties": {
      "id": {
@@ -8476,92 +9090,6 @@
     "additionalProperties": false,
     "type": "object",
     "title": "MemoryUpdate"
-   },
-   "MessageOut": {
-    "properties": {
-     "id": {
-      "type": "string",
-      "format": "uuid",
-      "title": "Id"
-     },
-     "role": {
-      "type": "string",
-      "title": "Role"
-     },
-     "content": {
-      "anyOf": [
-       {
-        "type": "string"
-       },
-       {
-        "type": "null"
-       }
-      ],
-      "title": "Content"
-     },
-     "tool_name": {
-      "anyOf": [
-       {
-        "type": "string"
-       },
-       {
-        "type": "null"
-       }
-      ],
-      "title": "Tool Name"
-     },
-     "tool_call_id": {
-      "anyOf": [
-       {
-        "type": "string"
-       },
-       {
-        "type": "null"
-       }
-      ],
-      "title": "Tool Call Id"
-     },
-     "ui": {
-      "anyOf": [
-       {
-        "additionalProperties": true,
-        "type": "object"
-       },
-       {
-        "type": "null"
-       }
-      ],
-      "title": "Ui"
-     },
-     "provider": {
-      "anyOf": [
-       {
-        "type": "string"
-       },
-       {
-        "type": "null"
-       }
-      ],
-      "title": "Provider"
-     },
-     "created_at": {
-      "type": "string",
-      "format": "date-time",
-      "title": "Created At"
-     }
-    },
-    "type": "object",
-    "required": [
-     "id",
-     "role",
-     "content",
-     "tool_name",
-     "tool_call_id",
-     "ui",
-     "provider",
-     "created_at"
-    ],
-    "title": "MessageOut"
    },
    "NoteCreate": {
     "properties": {
@@ -9160,6 +9688,37 @@
      "page_size"
     ],
     "title": "Page[TaskOut]"
+   },
+   "Page_ThreadOut_": {
+    "properties": {
+     "items": {
+      "items": {
+       "$ref": "#/components/schemas/ThreadOut"
+      },
+      "type": "array",
+      "title": "Items"
+     },
+     "total": {
+      "type": "integer",
+      "title": "Total"
+     },
+     "page": {
+      "type": "integer",
+      "title": "Page"
+     },
+     "page_size": {
+      "type": "integer",
+      "title": "Page Size"
+     }
+    },
+    "type": "object",
+    "required": [
+     "items",
+     "total",
+     "page",
+     "page_size"
+    ],
+    "title": "Page[ThreadOut]"
    },
    "Perm": {
     "type": "string",
@@ -10044,6 +10603,138 @@
     "type": "object",
     "title": "TaskUpdate"
    },
+   "ThreadDetail": {
+    "properties": {
+     "id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Id"
+     },
+     "subject": {
+      "type": "string",
+      "title": "Subject"
+     },
+     "snippet": {
+      "type": "string",
+      "title": "Snippet"
+     },
+     "participants": {
+      "items": {
+       "additionalProperties": true,
+       "type": "object"
+      },
+      "type": "array",
+      "title": "Participants"
+     },
+     "contact_ids": {
+      "items": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "type": "array",
+      "title": "Contact Ids"
+     },
+     "company_ids": {
+      "items": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "type": "array",
+      "title": "Company Ids"
+     },
+     "message_count": {
+      "type": "integer",
+      "title": "Message Count"
+     },
+     "last_message_at": {
+      "type": "string",
+      "format": "date-time",
+      "title": "Last Message At"
+     },
+     "messages": {
+      "items": {
+       "$ref": "#/components/schemas/app__api__emails__MessageOut"
+      },
+      "type": "array",
+      "title": "Messages"
+     }
+    },
+    "type": "object",
+    "required": [
+     "id",
+     "subject",
+     "snippet",
+     "participants",
+     "contact_ids",
+     "company_ids",
+     "message_count",
+     "last_message_at",
+     "messages"
+    ],
+    "title": "ThreadDetail"
+   },
+   "ThreadOut": {
+    "properties": {
+     "id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Id"
+     },
+     "subject": {
+      "type": "string",
+      "title": "Subject"
+     },
+     "snippet": {
+      "type": "string",
+      "title": "Snippet"
+     },
+     "participants": {
+      "items": {
+       "additionalProperties": true,
+       "type": "object"
+      },
+      "type": "array",
+      "title": "Participants"
+     },
+     "contact_ids": {
+      "items": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "type": "array",
+      "title": "Contact Ids"
+     },
+     "company_ids": {
+      "items": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "type": "array",
+      "title": "Company Ids"
+     },
+     "message_count": {
+      "type": "integer",
+      "title": "Message Count"
+     },
+     "last_message_at": {
+      "type": "string",
+      "format": "date-time",
+      "title": "Last Message At"
+     }
+    },
+    "type": "object",
+    "required": [
+     "id",
+     "subject",
+     "snippet",
+     "participants",
+     "contact_ids",
+     "company_ids",
+     "message_count",
+     "last_message_at"
+    ],
+    "title": "ThreadOut"
+   },
    "TimelineItem": {
     "properties": {
      "kind": {
@@ -10225,6 +10916,167 @@
      "type"
     ],
     "title": "ValidationError"
+   },
+   "app__api__ai__MessageOut": {
+    "properties": {
+     "id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Id"
+     },
+     "role": {
+      "type": "string",
+      "title": "Role"
+     },
+     "content": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Content"
+     },
+     "tool_name": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Tool Name"
+     },
+     "tool_call_id": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Tool Call Id"
+     },
+     "ui": {
+      "anyOf": [
+       {
+        "additionalProperties": true,
+        "type": "object"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Ui"
+     },
+     "provider": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Provider"
+     },
+     "created_at": {
+      "type": "string",
+      "format": "date-time",
+      "title": "Created At"
+     }
+    },
+    "type": "object",
+    "required": [
+     "id",
+     "role",
+     "content",
+     "tool_name",
+     "tool_call_id",
+     "ui",
+     "provider",
+     "created_at"
+    ],
+    "title": "MessageOut"
+   },
+   "app__api__emails__MessageOut": {
+    "properties": {
+     "id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Id"
+     },
+     "direction": {
+      "type": "string",
+      "title": "Direction"
+     },
+     "from_email": {
+      "type": "string",
+      "title": "From Email"
+     },
+     "from_name": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "From Name"
+     },
+     "to": {
+      "items": {
+       "additionalProperties": true,
+       "type": "object"
+      },
+      "type": "array",
+      "title": "To"
+     },
+     "cc": {
+      "items": {
+       "additionalProperties": true,
+       "type": "object"
+      },
+      "type": "array",
+      "title": "Cc"
+     },
+     "subject": {
+      "type": "string",
+      "title": "Subject"
+     },
+     "body_text": {
+      "type": "string",
+      "title": "Body Text"
+     },
+     "has_attachments": {
+      "type": "boolean",
+      "title": "Has Attachments"
+     },
+     "sent_at": {
+      "type": "string",
+      "format": "date-time",
+      "title": "Sent At"
+     }
+    },
+    "type": "object",
+    "required": [
+     "id",
+     "direction",
+     "from_email",
+     "from_name",
+     "to",
+     "cc",
+     "subject",
+     "body_text",
+     "has_attachments",
+     "sent_at"
+    ],
+    "title": "MessageOut"
    }
   },
   "securitySchemes": {

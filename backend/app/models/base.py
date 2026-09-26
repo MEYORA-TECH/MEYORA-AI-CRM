@@ -42,7 +42,9 @@ def str_enum(enum_cls: type[StrEnum], name: str) -> Enum:
 
 class UUIDPk:
     id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4,
+        UUID(as_uuid=True),
+        primary_key=True,
+        default=uuid.uuid4,
         server_default=text("gen_random_uuid()"),
     )
 
@@ -59,9 +61,7 @@ class TenantOwned:
 
     @declared_attr
     def organization_id(cls) -> Mapped[uuid.UUID]:
-        return mapped_column(
-            ForeignKey("organizations.id", ondelete="CASCADE"), index=True, nullable=False
-        )
+        return mapped_column(ForeignKey("organizations.id", ondelete="CASCADE"), index=True, nullable=False)
 
 
 class SoftDelete:

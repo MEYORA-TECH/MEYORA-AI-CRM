@@ -13,6 +13,7 @@ from app.models.crm import (
     PipelineStage,
     Task,
 )
+from app.models.email import EmailMessage, EmailThread, MailAccount, OAuthState
 from app.models.identity import (
     Invitation,
     Membership,
@@ -27,6 +28,10 @@ __all__ = [
     "AIConversation",
     "AIMessage",
     "AIUsageLog",
+    "EmailMessage",
+    "EmailThread",
+    "MailAccount",
+    "OAuthState",
     "AIConversationSummary",
     "AIMemory",
     "Job",

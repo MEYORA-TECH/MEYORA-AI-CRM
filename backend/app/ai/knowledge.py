@@ -13,9 +13,17 @@ from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.ai.embeddings import embed, embed_one, embedder
-from app.models import Activity, Company, Contact, Deal, KnowledgeChunk, Lead, Note
+from app.models import Activity, Company, Contact, Deal, EmailMessage, KnowledgeChunk, Lead, Note
 
-INDEXED = {"note": Note, "activity": Activity, "company": Company, "contact": Contact, "lead": Lead, "deal": Deal}
+INDEXED = {
+    "note": Note,
+    "activity": Activity,
+    "company": Company,
+    "contact": Contact,
+    "lead": Lead,
+    "deal": Deal,
+    "email": EmailMessage,
+}
 CHUNK_CHARS = 900
 OVERLAP = 120
 
@@ -33,6 +41,19 @@ def _source(kind: str, obj) -> Source | None:
         return None
     if kind == "note":
         return Source("Note", obj.body, obj.created_at, _links(obj))
+    if kind == "email":
+        if not obj.body_text:
+            return None
+        who = obj.from_name or obj.from_email
+        return Source(
+            f"Email: {obj.subject} (from {who})",
+            obj.body_text,
+            obj.sent_at,
+            {
+                "company_id": obj.company_ids[0] if obj.company_ids else None,
+                "contact_id": obj.contact_ids[0] if obj.contact_ids else None,
+            },
+        )
     if kind == "activity":
         body = "\n".join(filter(None, [obj.body, f"Outcome: {obj.outcome}" if obj.outcome else None]))
         if not body:

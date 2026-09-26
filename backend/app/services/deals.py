@@ -32,8 +32,7 @@ async def _resolve_stage(
             raise ValidationFailed("Stage does not belong to that pipeline")
         return stage
     pipeline = (
-        await pipelines.get_pipeline(ctx, pipeline_id) if pipeline_id
-        else await pipelines.get_default_pipeline(ctx)
+        await pipelines.get_pipeline(ctx, pipeline_id) if pipeline_id else await pipelines.get_default_pipeline(ctx)
     )
     first_open = next((s for s in pipeline.stages if s.kind == StageKind.OPEN), None)
     if first_open is None:
@@ -95,14 +94,11 @@ async def update_deal(ctx: TenantContext, deal: Deal, data: dict[str, Any]) -> D
 
 async def board(ctx: TenantContext, pipeline_id: uuid.UUID | None, per_stage: int = 50) -> BoardOut:
     pipeline = (
-        await pipelines.get_pipeline(ctx, pipeline_id) if pipeline_id
-        else await pipelines.get_default_pipeline(ctx)
+        await pipelines.get_pipeline(ctx, pipeline_id) if pipeline_id else await pipelines.get_default_pipeline(ctx)
     )
     repo = records.deals(ctx)
     rows = list(
-        await ctx.session.scalars(
-            repo.base().where(Deal.pipeline_id == pipeline.id).order_by(Deal.updated_at.desc())
-        )
+        await ctx.session.scalars(repo.base().where(Deal.pipeline_id == pipeline.id).order_by(Deal.updated_at.desc()))
     )
     columns = []
     for stage in pipeline.stages:
@@ -120,4 +116,3 @@ async def board(ctx: TenantContext, pipeline_id: uuid.UUID | None, per_stage: in
             )
         )
     return BoardOut(pipeline_id=pipeline.id, columns=columns)
-

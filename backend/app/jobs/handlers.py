@@ -10,7 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.ai import knowledge, memory, summaries
 from app.ai.tools.base import WorkingSet
 from app.jobs.queue import handler
-from app.models import AIConversation, AIMessage, Company, Contact, Deal, Note
+from app.models import AIConversation, AIMessage, Company, Contact, Deal, MailAccount, Note
 
 # Questions and commands rarely contain durable facts; skipping them saves free-tier tokens.
 _QUESTION = re.compile(
@@ -30,6 +30,17 @@ async def _refs_for(session: AsyncSession, links: dict[str, uuid.UUID | None]) -
         if links.get(field) and (obj := await session.get(model, links[field])):
             ws.ref_for(field.removesuffix("_id"), obj.id, obj.full_name if model is Contact else obj.name)
     return ws.refs
+
+
+@handler("gmail_sync")
+async def gmail_sync(session: AsyncSession, org_id: uuid.UUID, payload: dict[str, Any]) -> None:
+    from app.integrations.gmail import sync
+
+    account_id = uuid.UUID(payload["account_id"])
+    result = await sync.sync_account(session, org_id, account_id)
+    if result is not None:  # still connected: keep the chain going
+        account = await session.get(MailAccount, account_id)
+        await sync.schedule_next(session, account)
 
 
 @handler("index_record")

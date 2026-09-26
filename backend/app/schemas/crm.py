@@ -47,6 +47,7 @@ class TaggedOut(RecordOut):
 
 # --- Companies -------------------------------------------------------------
 
+
 class CompanyFields(TaggedInput):
     name: Name | None = None
     industry: ShortText | None = None
@@ -96,6 +97,7 @@ class CompanyRef(OutputModel):
 
 # --- Contacts --------------------------------------------------------------
 
+
 class ContactFields(TaggedInput):
     first_name: Name | None = None
     last_name: ShortText | None = None
@@ -139,6 +141,7 @@ class ContactOut(TaggedOut):
 
 
 # --- Leads -----------------------------------------------------------------
+
 
 class LeadFields(TaggedInput):
     name: Name | None = None
@@ -201,6 +204,7 @@ class LeadConvertOut(OutputModel):
 
 
 # --- Deals -----------------------------------------------------------------
+
 
 class DealFields(TaggedInput):
     name: Name | None = None
@@ -266,6 +270,7 @@ class BoardOut(OutputModel):
 
 # --- Links shared by activities, tasks and notes ---------------------------
 
+
 class RelatedFields(InputModel):
     company_id: uuid.UUID | None = None
     contact_id: uuid.UUID | None = None
@@ -281,6 +286,7 @@ class RelatedOut(OutputModel):
 
 
 # --- Activities ------------------------------------------------------------
+
 
 class ActivityFields(RelatedFields):
     type: ActivityType | None = None
@@ -315,6 +321,7 @@ class ActivityOut(RecordOut, RelatedOut):
 
 # --- Tasks -----------------------------------------------------------------
 
+
 class TaskFields(RelatedFields):
     title: Name | None = None
     description: LongText | None = None
@@ -345,6 +352,7 @@ class TaskOut(RecordOut, RelatedOut):
 
 # --- Notes -----------------------------------------------------------------
 
+
 class NoteCreate(RelatedFields):
     body: LongText = Field(min_length=1)
     task_id: uuid.UUID | None = None
@@ -361,6 +369,7 @@ class NoteOut(RecordOut, RelatedOut):
 
 
 # --- Timeline --------------------------------------------------------------
+
 
 class TimelineItem(OutputModel):
     kind: str  # activity | task | note

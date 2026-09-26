@@ -296,9 +296,13 @@ async def list_deals(
     f = _tag_filter(Deal, tag)
     if status:
         f.append(Deal.status.in_(status))
-    for col, val in ((Deal.pipeline_id, pipeline_id), (Deal.stage_id, stage_id),
-                     (Deal.owner_id, owner_id), (Deal.company_id, company_id),
-                     (Deal.contact_id, contact_id)):
+    for col, val in (
+        (Deal.pipeline_id, pipeline_id),
+        (Deal.stage_id, stage_id),
+        (Deal.owner_id, owner_id),
+        (Deal.company_id, company_id),
+        (Deal.contact_id, contact_id),
+    ):
         if val:
             f.append(col == val)
     if closing_from:
@@ -357,8 +361,12 @@ activities = APIRouter(prefix="/activities", tags=["activities"])
 
 
 def _related_filters(model, company_id, contact_id, lead_id, deal_id) -> list:
-    pairs = ((model.company_id, company_id), (model.contact_id, contact_id),
-             (model.lead_id, lead_id), (model.deal_id, deal_id))
+    pairs = (
+        (model.company_id, company_id),
+        (model.contact_id, contact_id),
+        (model.lead_id, lead_id),
+        (model.deal_id, deal_id),
+    )
     return [col == val for col, val in pairs if val]
 
 

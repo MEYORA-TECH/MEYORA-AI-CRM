@@ -26,28 +26,32 @@ async def convert(ctx: TenantContext, lead: Lead, opts: LeadConvertIn) -> tuple[
     if company_id:
         await check_refs(ctx, {"company_id": company_id})
     elif opts.create_company and lead.company_name:
-        company = await records.companies(ctx).create({
-            "name": lead.company_name,
-            "industry": lead.industry,
-            "owner_id": lead.owner_id,
-            "tags": list(lead.tags),
-        })
+        company = await records.companies(ctx).create(
+            {
+                "name": lead.company_name,
+                "industry": lead.industry,
+                "owner_id": lead.owner_id,
+                "tags": list(lead.tags),
+            }
+        )
         company_id = company.id
 
     contact_id = None
     if opts.create_contact:
         first, last = _split_name(lead.name)
-        contact = await records.contacts(ctx).create({
-            "first_name": first,
-            "last_name": last,
-            "job_title": lead.job_title,
-            "email": lead.email,
-            "phone": lead.phone,
-            "company_id": company_id,
-            "owner_id": lead.owner_id,
-            "description": lead.description,
-            "tags": list(lead.tags),
-        })
+        contact = await records.contacts(ctx).create(
+            {
+                "first_name": first,
+                "last_name": last,
+                "job_title": lead.job_title,
+                "email": lead.email,
+                "phone": lead.phone,
+                "company_id": company_id,
+                "owner_id": lead.owner_id,
+                "description": lead.description,
+                "tags": list(lead.tags),
+            }
+        )
         contact_id = contact.id
 
     deal_id = None
@@ -75,19 +79,26 @@ async def convert(ctx: TenantContext, lead: Lead, opts: LeadConvertIn) -> tuple[
     lead.converted_company_id = company_id
     lead.converted_contact_id = contact_id
     lead.converted_deal_id = deal_id
-    ctx.session.add(Activity(
-        organization_id=ctx.organization_id,
-        type=ActivityType.SYSTEM,
-        subject=f"Lead {lead.name} converted",
-        occurred_at=now,
-        actor_id=ctx.user_id,
-        lead_id=lead.id,
-        company_id=company_id,
-        contact_id=contact_id,
-        deal_id=deal_id,
-    ))
+    ctx.session.add(
+        Activity(
+            organization_id=ctx.organization_id,
+            type=ActivityType.SYSTEM,
+            subject=f"Lead {lead.name} converted",
+            occurred_at=now,
+            actor_id=ctx.user_id,
+            lead_id=lead.id,
+            company_id=company_id,
+            contact_id=contact_id,
+            deal_id=deal_id,
+        )
+    )
     await ctx.session.flush()
     result = {"company_id": company_id, "contact_id": contact_id, "deal_id": deal_id}
-    audit(ctx, "lead.convert", entity_type="lead", entity_id=lead.id,
-          changes={k: {"old": None, "new": v} for k, v in result.items() if v})
+    audit(
+        ctx,
+        "lead.convert",
+        entity_type="lead",
+        entity_id=lead.id,
+        changes={k: {"old": None, "new": v} for k, v in result.items() if v},
+    )
     return lead, result

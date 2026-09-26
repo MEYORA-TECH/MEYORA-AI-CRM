@@ -17,6 +17,7 @@ ignore = ["B008", "UP046"]  # FastAPI Depends() in defaults; Generic[] kept for 
 "app/ai/prompts.py" = ["E501"]
 "app/ai/tools/crm.py" = ["E501"]  # one-line summaries the model reads
 "app/ai/memory.py" = ["E501"]
+"app/ai/tools/email_tools.py" = ["E501"]
 "app/ai/summaries.py" = ["E501"]
 
 [tool.pytest.ini_options]

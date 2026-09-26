@@ -12,9 +12,7 @@ def configure_logging(json_logs: bool) -> None:
         structlog.processors.StackInfoRenderer(),
         structlog.processors.format_exc_info,
     ]
-    renderer = (
-        structlog.processors.JSONRenderer() if json_logs else structlog.dev.ConsoleRenderer()
-    )
+    renderer = structlog.processors.JSONRenderer() if json_logs else structlog.dev.ConsoleRenderer()
     structlog.configure(
         processors=[*processors, renderer],
         wrapper_class=structlog.make_filtering_bound_logger(logging.INFO),

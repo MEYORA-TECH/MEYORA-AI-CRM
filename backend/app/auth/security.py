@@ -36,9 +36,7 @@ def create_access_token(user_id: uuid.UUID, organization_id: uuid.UUID | None) -
         "iat": now,
         "exp": now + timedelta(minutes=settings.access_token_ttl_minutes),
     }
-    return jwt.encode(
-        payload, settings.jwt_secret.get_secret_value(), algorithm=settings.jwt_algorithm
-    )
+    return jwt.encode(payload, settings.jwt_secret.get_secret_value(), algorithm=settings.jwt_algorithm)
 
 
 def decode_access_token(token: str) -> dict:

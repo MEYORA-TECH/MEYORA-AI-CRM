@@ -43,9 +43,7 @@ def _ref_fk(table: str) -> Any:
 
 
 def _trgm(name: str, column: str) -> Index:
-    return Index(
-        name, column, postgresql_using="gin", postgresql_ops={column: "gin_trgm_ops"}
-    )
+    return Index(name, column, postgresql_using="gin", postgresql_ops={column: "gin_trgm_ops"})
 
 
 def _tags(table: str) -> Index:
@@ -126,19 +124,13 @@ class Lead(CrmRecord, Base):
     phone: Mapped[str | None] = mapped_column(String(50))
     source: Mapped[str | None] = mapped_column(String(120))
     industry: Mapped[str | None] = mapped_column(String(120))
-    status: Mapped[LeadStatus] = mapped_column(
-        str_enum(LeadStatus, "lead_status"), default=LeadStatus.NEW
-    )
+    status: Mapped[LeadStatus] = mapped_column(str_enum(LeadStatus, "lead_status"), default=LeadStatus.NEW)
     score: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
     description: Mapped[str | None] = mapped_column(Text)
     owner_id: Mapped[uuid.UUID | None] = _user_fk(index=True)
     converted_at: Mapped[datetime | None]
-    converted_company_id: Mapped[uuid.UUID | None] = mapped_column(
-        ForeignKey("companies.id", ondelete="SET NULL")
-    )
-    converted_contact_id: Mapped[uuid.UUID | None] = mapped_column(
-        ForeignKey("contacts.id", ondelete="SET NULL")
-    )
+    converted_company_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("companies.id", ondelete="SET NULL"))
+    converted_contact_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("contacts.id", ondelete="SET NULL"))
     converted_deal_id: Mapped[uuid.UUID | None] = mapped_column(
         ForeignKey("deals.id", ondelete="SET NULL", use_alter=True)
     )
@@ -160,13 +152,9 @@ class Pipeline(UUIDPk, Timestamps, TenantOwned, Base):
 
 class PipelineStage(UUIDPk, Timestamps, TenantOwned, Base):
     __tablename__ = "pipeline_stages"
-    __table_args__ = (
-        CheckConstraint("probability BETWEEN 0 AND 100", name="probability_range"),
-    )
+    __table_args__ = (CheckConstraint("probability BETWEEN 0 AND 100", name="probability_range"),)
 
-    pipeline_id: Mapped[uuid.UUID] = mapped_column(
-        ForeignKey("pipelines.id", ondelete="CASCADE"), index=True
-    )
+    pipeline_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("pipelines.id", ondelete="CASCADE"), index=True)
     name: Mapped[str] = mapped_column(String(120))
     position: Mapped[int] = mapped_column(Integer)
     probability: Mapped[int] = mapped_column(Integer, default=0)
@@ -197,9 +185,7 @@ class Deal(CrmRecord, Base):
     currency: Mapped[str] = mapped_column(String(3), default="INR")
     pipeline_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("pipelines.id", ondelete="RESTRICT"))
     stage_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("pipeline_stages.id", ondelete="RESTRICT"))
-    status: Mapped[DealStatus] = mapped_column(
-        str_enum(DealStatus, "deal_status"), default=DealStatus.OPEN
-    )
+    status: Mapped[DealStatus] = mapped_column(str_enum(DealStatus, "deal_status"), default=DealStatus.OPEN)
     probability: Mapped[int] = mapped_column(Integer, default=0)
     expected_close_date: Mapped[date | None] = mapped_column(Date)
     closed_at: Mapped[datetime | None]
@@ -220,9 +206,7 @@ class _Related:
 
 class Activity(UUIDPk, Timestamps, TenantOwned, _Related, Base):
     __tablename__ = "activities"
-    __table_args__ = (
-        Index("ix_activities_org_occurred", "organization_id", "occurred_at"),
-    )
+    __table_args__ = (Index("ix_activities_org_occurred", "organization_id", "occurred_at"),)
 
     type: Mapped[ActivityType] = mapped_column(str_enum(ActivityType, "activity_type"))
     status: Mapped[ActivityStatus] = mapped_column(
@@ -234,9 +218,7 @@ class Activity(UUIDPk, Timestamps, TenantOwned, _Related, Base):
     duration_minutes: Mapped[int | None] = mapped_column(Integer)
     outcome: Mapped[str | None] = mapped_column(String(300))
     actor_id: Mapped[uuid.UUID | None] = _user_fk()
-    metadata_: Mapped[dict[str, Any]] = mapped_column(
-        "metadata", default=dict, server_default="{}"
-    )
+    metadata_: Mapped[dict[str, Any]] = mapped_column("metadata", default=dict, server_default="{}")
 
 
 class Task(UUIDPk, Timestamps, TenantOwned, _Related, Base):
@@ -249,9 +231,7 @@ class Task(UUIDPk, Timestamps, TenantOwned, _Related, Base):
     title: Mapped[str] = mapped_column(String(300))
     description: Mapped[str | None] = mapped_column(Text)
     status: Mapped[TaskStatus] = mapped_column(str_enum(TaskStatus, "task_status"), default=TaskStatus.TODO)
-    priority: Mapped[TaskPriority] = mapped_column(
-        str_enum(TaskPriority, "task_priority"), default=TaskPriority.MEDIUM
-    )
+    priority: Mapped[TaskPriority] = mapped_column(str_enum(TaskPriority, "task_priority"), default=TaskPriority.MEDIUM)
     due_at: Mapped[datetime | None]
     completed_at: Mapped[datetime | None]
     assignee_id: Mapped[uuid.UUID | None] = _user_fk()
@@ -263,9 +243,7 @@ class Note(UUIDPk, Timestamps, TenantOwned, _Related, Base):
 
     body: Mapped[str] = mapped_column(Text)
     author_id: Mapped[uuid.UUID | None] = _user_fk()
-    task_id: Mapped[uuid.UUID | None] = mapped_column(
-        ForeignKey("tasks.id", ondelete="CASCADE"), index=True
-    )
+    task_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("tasks.id", ondelete="CASCADE"), index=True)
 
 
 class AuditLog(UUIDPk, TenantOwned, Base):
@@ -289,7 +267,15 @@ class AuditLog(UUIDPk, TenantOwned, Base):
 
 # Every table listed here gets ENABLE + FORCE ROW LEVEL SECURITY in migrations.
 RLS_TABLES = [
-    t.__tablename__
-    for t in (Company, Contact, Lead, Pipeline, PipelineStage, Deal, Activity, Task, Note, AuditLog)
-] + ["ai_conversations", "ai_messages", "ai_usage_logs", "ai_memories", "knowledge_chunks", "ai_conversation_summaries"]
-
+    t.__tablename__ for t in (Company, Contact, Lead, Pipeline, PipelineStage, Deal, Activity, Task, Note, AuditLog)
+] + [
+    "ai_conversations",
+    "ai_messages",
+    "ai_usage_logs",
+    "ai_memories",
+    "knowledge_chunks",
+    "ai_conversation_summaries",
+    "mail_accounts",
+    "email_threads",
+    "email_messages",
+]

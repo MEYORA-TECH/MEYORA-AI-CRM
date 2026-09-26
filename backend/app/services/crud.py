@@ -86,9 +86,7 @@ class Repo(Generic[M]):
         key = sort or self.default_sort
         desc = key.startswith("-")
         name = key.lstrip("-")
-        column = self.sorts.get(name) or (
-            getattr(self.model, name) if name in ("created_at", "updated_at") else None
-        )
+        column = self.sorts.get(name) or (getattr(self.model, name) if name in ("created_at", "updated_at") else None)
         if column is None:
             raise ValidationFailed(f"Cannot sort by '{name}'", details=sorted(self.sorts))
         primary = column.desc().nulls_last() if desc else column.asc().nulls_last()
@@ -104,9 +102,7 @@ class Repo(Generic[M]):
 
         total = await self.ctx.session.scalar(select(func.count()).select_from(stmt.subquery()))
         rows = await self.ctx.session.scalars(
-            stmt.order_by(*self._order(query.sort))
-            .limit(query.page_size)
-            .offset((query.page - 1) * query.page_size)
+            stmt.order_by(*self._order(query.sort)).limit(query.page_size).offset((query.page - 1) * query.page_size)
         )
         return list(rows), total or 0
 
@@ -115,8 +111,13 @@ class Repo(Generic[M]):
         self.ctx.session.add(obj)
         await self.ctx.session.flush()
         await self._load_relations(obj)
-        audit(self.ctx, f"{self.entity}.create", entity_type=self.entity, entity_id=obj.id,
-              changes=snapshot(obj, list(data)))
+        audit(
+            self.ctx,
+            f"{self.entity}.create",
+            entity_type=self.entity,
+            entity_id=obj.id,
+            changes=snapshot(obj, list(data)),
+        )
         await self._reindex(obj)
         return obj
 
@@ -125,8 +126,7 @@ class Repo(Generic[M]):
         if changes:
             await self.ctx.session.flush()
             await self._load_relations(obj)
-            audit(self.ctx, f"{self.entity}.update", entity_type=self.entity, entity_id=obj.id,
-                  changes=changes)
+            audit(self.ctx, f"{self.entity}.update", entity_type=self.entity, entity_id=obj.id, changes=changes)
             await self._reindex(obj)
         return changes
 
@@ -145,8 +145,13 @@ class Repo(Generic[M]):
 
     async def _reindex(self, obj: M) -> None:
         if self.entity in INDEXED:
-            await enqueue(self.ctx.session, "index_record", self.ctx.organization_id,
-                          {"kind": self.entity, "id": str(obj.id)}, dedupe_key=f"{self.entity}:{obj.id}")
+            await enqueue(
+                self.ctx.session,
+                "index_record",
+                self.ctx.organization_id,
+                {"kind": self.entity, "id": str(obj.id)},
+                dedupe_key=f"{self.entity}:{obj.id}",
+            )
 
 
 _REF_MODELS: dict[str, tuple[type, str]] = {
@@ -170,9 +175,7 @@ async def check_refs(ctx: TenantContext, data: dict[str, Any]) -> None:
         ref = data.get(field)
         if ref is None:
             continue
-        stmt = select(func.count(model.id)).where(
-            model.id == ref, model.organization_id == ctx.organization_id
-        )
+        stmt = select(func.count(model.id)).where(model.id == ref, model.organization_id == ctx.organization_id)
         if hasattr(model, "deleted_at"):
             stmt = stmt.where(model.deleted_at.is_(None))
         if not await ctx.session.scalar(stmt):

@@ -28,18 +28,15 @@ class User(UUIDPk, Timestamps, Base):
     avatar_url: Mapped[str | None] = mapped_column(String(1000))
     is_active: Mapped[bool] = mapped_column(default=True, server_default="true")
     last_login_at: Mapped[datetime | None]
+    google_sub: Mapped[str | None] = mapped_column(String(255), unique=True)
 
 
 class Membership(UUIDPk, Timestamps, Base):
     __tablename__ = "memberships"
     __table_args__ = (UniqueConstraint("organization_id", "user_id"),)
 
-    organization_id: Mapped[uuid.UUID] = mapped_column(
-        ForeignKey("organizations.id", ondelete="CASCADE"), index=True
-    )
-    user_id: Mapped[uuid.UUID] = mapped_column(
-        ForeignKey("users.id", ondelete="CASCADE"), index=True
-    )
+    organization_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("organizations.id", ondelete="CASCADE"), index=True)
+    user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
     role: Mapped[Role] = mapped_column(str_enum(Role, "role"))
 
     organization: Mapped[Organization] = relationship(lazy="joined")
@@ -49,12 +46,8 @@ class Membership(UUIDPk, Timestamps, Base):
 class RefreshToken(UUIDPk, Base):
     __tablename__ = "refresh_tokens"
 
-    user_id: Mapped[uuid.UUID] = mapped_column(
-        ForeignKey("users.id", ondelete="CASCADE"), index=True
-    )
-    organization_id: Mapped[uuid.UUID | None] = mapped_column(
-        ForeignKey("organizations.id", ondelete="SET NULL")
-    )
+    user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    organization_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("organizations.id", ondelete="SET NULL"))
     token_hash: Mapped[str] = mapped_column(String(64), unique=True)
     family_id: Mapped[uuid.UUID] = mapped_column(index=True)
     created_at: Mapped[datetime] = mapped_column(server_default=func.now())
@@ -68,15 +61,11 @@ class RefreshToken(UUIDPk, Base):
 class Invitation(UUIDPk, Timestamps, Base):
     __tablename__ = "invitations"
 
-    organization_id: Mapped[uuid.UUID] = mapped_column(
-        ForeignKey("organizations.id", ondelete="CASCADE"), index=True
-    )
+    organization_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("organizations.id", ondelete="CASCADE"), index=True)
     email: Mapped[str] = mapped_column(String(320))
     role: Mapped[Role] = mapped_column(str_enum(Role, "invitation_role"))
     token_hash: Mapped[str] = mapped_column(String(64), unique=True)
-    invited_by_id: Mapped[uuid.UUID | None] = mapped_column(
-        ForeignKey("users.id", ondelete="SET NULL")
-    )
+    invited_by_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"))
     expires_at: Mapped[datetime]
     accepted_at: Mapped[datetime | None]
     revoked_at: Mapped[datetime | None]

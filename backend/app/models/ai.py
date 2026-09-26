@@ -14,8 +14,13 @@ from app.models.base import Base, SoftDelete, TenantOwned, Timestamps, UUIDPk
 class AIConversation(UUIDPk, Timestamps, TenantOwned, SoftDelete, Base):
     __tablename__ = "ai_conversations"
     __table_args__ = (
-        Index("ix_ai_conversations_user_recent", "organization_id", "user_id", "last_message_at",
-              postgresql_where=text("deleted_at IS NULL")),
+        Index(
+            "ix_ai_conversations_user_recent",
+            "organization_id",
+            "user_id",
+            "last_message_at",
+            postgresql_where=text("deleted_at IS NULL"),
+        ),
     )
 
     user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))

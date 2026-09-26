@@ -50,9 +50,7 @@ async def list_pipelines(ctx: TenantContext) -> list[Pipeline]:
 
 async def get_pipeline(ctx: TenantContext, pipeline_id: uuid.UUID) -> Pipeline:
     pipeline = await ctx.session.scalar(
-        select(Pipeline).where(
-            Pipeline.id == pipeline_id, Pipeline.organization_id == ctx.organization_id
-        )
+        select(Pipeline).where(Pipeline.id == pipeline_id, Pipeline.organization_id == ctx.organization_id)
     )
     if pipeline is None:
         raise NotFound("Pipeline")
@@ -68,9 +66,7 @@ async def get_default_pipeline(ctx: TenantContext) -> Pipeline:
 
 async def get_stage(ctx: TenantContext, stage_id: uuid.UUID) -> PipelineStage:
     stage = await ctx.session.scalar(
-        select(PipelineStage).where(
-            PipelineStage.id == stage_id, PipelineStage.organization_id == ctx.organization_id
-        )
+        select(PipelineStage).where(PipelineStage.id == stage_id, PipelineStage.organization_id == ctx.organization_id)
     )
     if stage is None:
         raise NotFound("Stage")
@@ -109,8 +105,13 @@ async def create_pipeline(ctx: TenantContext, data: PipelineCreate) -> Pipeline:
         await _clear_default(ctx, keep=None)
     ctx.session.add(pipeline)
     await ctx.session.flush()
-    audit(ctx, "pipeline.create", entity_type="pipeline", entity_id=pipeline.id,
-          changes={"name": {"old": None, "new": data.name}})
+    audit(
+        ctx,
+        "pipeline.create",
+        entity_type="pipeline",
+        entity_id=pipeline.id,
+        changes={"name": {"old": None, "new": data.name}},
+    )
     return pipeline
 
 
@@ -162,9 +163,7 @@ async def delete_pipeline(ctx: TenantContext, pipeline_id: uuid.UUID) -> None:
     pipeline = await get_pipeline(ctx, pipeline_id)
     if pipeline.is_default:
         raise Conflict("The default pipeline cannot be deleted")
-    deals = await ctx.session.scalar(
-        select(func.count(Deal.id)).where(Deal.pipeline_id == pipeline.id)
-    )
+    deals = await ctx.session.scalar(select(func.count(Deal.id)).where(Deal.pipeline_id == pipeline.id))
     if deals:
         raise Conflict("Move or delete this pipeline's deals first")
     await ctx.session.delete(pipeline)
