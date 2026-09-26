@@ -3,6 +3,7 @@ import { Maximize2, Plus, X } from "lucide-react";
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { IconButton } from "@/components/ui/primitives";
 import { Composer, Messages, Spark, UsageLine, Welcome } from "./ChatThread";
 import { useAiUi } from "./store";
@@ -74,7 +75,9 @@ export function AIPanel() {
             {chat.items.length === 0 && !chat.loading ? (
               <Welcome page={page} onPick={(t) => chat.send(t, page)} />
             ) : (
-              <Messages items={chat.items} compact />
+              <ErrorBoundary resetKey={chat.items.length} label="This conversation couldn't be shown.">
+                <Messages items={chat.items} compact />
+              </ErrorBoundary>
             )}
           </div>
 

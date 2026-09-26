@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
 
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { Composer, Messages, UsageLine, Welcome } from "@/ai/ChatThread";
 import { useAiStatus, useChat } from "@/ai/useChat";
 import { ConfirmDialog, DropdownMenu, MenuItem, Modal } from "@/components/ui/overlay";
@@ -104,7 +105,9 @@ export function AssistantPage() {
             ) : chat.items.length === 0 ? (
               <Welcome page={null} onPick={(t) => chat.send(t, null)} />
             ) : (
-              <Messages items={chat.items} />
+              <ErrorBoundary resetKey={chat.items.length} label="This conversation couldn't be shown.">
+                <Messages items={chat.items} />
+              </ErrorBoundary>
             )}
           </div>
         </div>

@@ -225,7 +225,9 @@ export function Messages({ items, compact }: { items: ChatItem[]; compact?: bool
   const end = useRef<HTMLDivElement>(null);
   const sources = new Map<string, string>();
   for (const i of items) if (i.ui?.kind === "web") for (const r of i.ui.rows) sources.set(r.ref, r.url);
-  useEffect(() => end.current?.scrollIntoView({ block: "end" }), [items]);
+  useEffect(() => {
+    end.current?.scrollIntoView({ block: "end" });
+  }, [items]);
   return (
     <div className="flex flex-col gap-4" aria-live="polite">
       {items.map((item) =>

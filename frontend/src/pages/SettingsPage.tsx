@@ -231,7 +231,9 @@ function PipelineEditor({ pipeline }: { pipeline: Pipeline }) {
   const qc = useQueryClient();
   const canManage = useCan("pipelines:manage");
   const [stages, setStages] = useState<StageDraft[]>([]);
-  useEffect(() => setStages(pipeline.stages.map(({ id, name, probability, kind, color }) => ({ id, name, probability, kind, color }))), [pipeline]);
+  useEffect(() => {
+    setStages(pipeline.stages.map(({ id, name, probability, kind, color }) => ({ id, name, probability, kind, color })));
+  }, [pipeline]);
 
   const save = useMutation({
     mutationFn: () => api.patch<Pipeline>(`/pipelines/${pipeline.id}`, { stages }),
