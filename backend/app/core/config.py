@@ -40,6 +40,13 @@ class Settings(BaseSettings):
     ai_max_model_calls: int = 3  # per chat turn
     ai_request_token_budget: int = 6_000  # prompt tokens per call on the free tier
 
+    # --- Memory & knowledge -----------------------------------------------
+    embedding_backend: Literal["fastembed", "hash"] = "fastembed"  # "hash" is for tests only
+    embedding_model: str = "BAAI/bge-small-en-v1.5"
+    memory_min_similarity: float = 0.55
+    memory_dedup_similarity: float = 0.92
+    jobs_worker_enabled: bool = True
+
     @property
     def is_production(self) -> bool:
         return self.app_env == "production"

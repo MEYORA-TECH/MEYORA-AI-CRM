@@ -9,7 +9,7 @@ from typing import Any, Literal
 
 from sqlalchemy import func, select
 
-from app.ai import registry
+from app.ai import memory, registry, summaries
 from app.ai.agent import TurnRecord, estimate_tokens, run_turn
 from app.ai.prompts import select_tools, system_prompt
 from app.ai.providers.base import ChatMessage
@@ -20,6 +20,8 @@ from app.core.config import get_settings
 from app.core.errors import NotFound
 from app.core.logging import get_logger
 from app.database.session import SessionLocal, set_tenant
+from app.jobs.handlers import worth_extracting
+from app.jobs.queue import enqueue
 from app.models import AIConversation, AIMessage, AIUsageLog, Membership, Organization, User
 from app.services import records
 
@@ -71,8 +73,8 @@ async def get_conversation(ctx: TenantContext, conversation_id: uuid.UUID) -> AI
     return conv
 
 
-async def _history(ctx: TenantContext, conv: AIConversation) -> list[ChatMessage]:
-    """Recent user/assistant text only. Old tool payloads are not replayed: the working set keeps the refs."""
+async def _history(ctx: TenantContext, conv: AIConversation, after: datetime | None) -> list[ChatMessage]:
+    """Recent user/assistant text after the summary. Tool payloads are not replayed; the working set keeps refs."""
     rows = list(
         await ctx.session.scalars(
             select(AIMessage)
@@ -80,6 +82,7 @@ async def _history(ctx: TenantContext, conv: AIConversation) -> list[ChatMessage
                 AIMessage.conversation_id == conv.id,
                 AIMessage.role.in_(["user", "assistant"]),
                 AIMessage.content.is_not(None),
+                *([AIMessage.created_at > after] if after else []),
             )
             .order_by(AIMessage.created_at.desc())
             .limit(HISTORY_MESSAGES)
@@ -103,6 +106,26 @@ async def _page_note(
     name = obj.full_name if page_type == "contact" else obj.name
     ref = ws.ref_for(page_type, obj.id, name)
     return f"The user is looking at {page_type} {ref} ({name}). 'This', 'it' or 'them' likely refers to it."
+
+
+async def _recall(ctx: TenantContext, ws: WorkingSet, question: str) -> list[memory.Recalled]:
+    focus: dict[str, set[uuid.UUID]] = {"company_id": set(), "contact_id": set(), "deal_id": set()}
+    for entry in ws.refs.values():
+        field = f"{entry['type']}_id"
+        if field in focus:
+            focus[field].add(uuid.UUID(entry["id"]))
+    try:
+        return await memory.recall(ctx.session, ctx.organization_id, ctx.user_id, question, focus=focus)
+    except Exception:  # memory is an enhancement; never block an answer on it
+        log.exception("memory_recall_failed")
+        return []
+
+
+def _memory_block(recalled: list[memory.Recalled]) -> str:
+    lines = [
+        f"- {r.memory.content} (source: {r.memory.source_type}, saved {r.memory.valid_from:%Y-%m-%d})" for r in recalled
+    ]
+    return "<memories>\n" + "\n".join(lines) + "\n</memories>"
 
 
 def _fit(
@@ -165,9 +188,10 @@ async def chat_stream(req: ChatRequest) -> AsyncIterator[str]:
             session.add(conv)
             await session.flush()
 
-        session.add(
-            AIMessage(organization_id=req.organization_id, conversation_id=conv.id, role="user", content=req.message)
+        user_message = AIMessage(
+            organization_id=req.organization_id, conversation_id=conv.id, role="user", content=req.message
         )
+        session.add(user_message)
         conv.last_message_at = datetime.now(UTC)
         await session.commit()
         yield sse("conversation", {"id": str(conv.id), "title": conv.title})
@@ -191,7 +215,29 @@ async def chat_stream(req: ChatRequest) -> AsyncIterator[str]:
         current = ([ChatMessage(role="system", content=note)] if note else []) + [
             ChatMessage(role="user", content=req.message)
         ]
-        history = (await _history(ctx, conv))[:-1]  # the message just saved is `current`
+        summary = await summaries.summary_for(session, conv.id)
+        if summary:
+            system.append(
+                ChatMessage(role="system", content=f"Earlier in this conversation (summary):\n{summary.summary}")
+            )
+        recalled = await _recall(ctx, ws, req.message)
+        if recalled:
+            current.insert(0, ChatMessage(role="system", content=_memory_block(recalled)))
+            yield sse(
+                "memories",
+                {
+                    "items": [
+                        {
+                            "id": str(r.memory.id),
+                            "content": r.memory.content,
+                            "scope": r.memory.scope,
+                            "source_type": r.memory.source_type,
+                        }
+                        for r in recalled
+                    ]
+                },
+            )
+        history = (await _history(ctx, conv, summary.covered_until if summary else None))[:-1]  # last one is `current`
         messages = _fit(system, history, current, tool_tokens, settings.ai_request_token_budget)
 
         try:
@@ -219,7 +265,7 @@ async def chat_stream(req: ChatRequest) -> AsyncIterator[str]:
             record.error = "Something went wrong while answering."
             yield sse("error", {"message": record.error})
 
-        assistant_id = await _persist(session, req, conv, ws, record)
+        assistant_id = await _persist(session, req, conv, ws, record, user_message.id)
         total = sum(c.usage.prompt_tokens + c.usage.completion_tokens for c in record.calls)
         yield sse(
             "done",
@@ -234,7 +280,7 @@ async def chat_stream(req: ChatRequest) -> AsyncIterator[str]:
 
 
 async def _persist(
-    session, req: ChatRequest, conv: AIConversation, ws: WorkingSet, record: TurnRecord
+    session, req: ChatRequest, conv: AIConversation, ws: WorkingSet, record: TurnRecord, user_message_id: uuid.UUID
 ) -> uuid.UUID | None:
     org_id = req.organization_id
     for m in record.tool_messages:
@@ -299,6 +345,16 @@ async def _persist(
         conv.provider, conv.model = record.provider.id, record.provider.chat_model
     conv.state = ws.dump()
     conv.last_message_at = datetime.now(UTC)
+    # Background: learn durable facts from what the user said, and fold long history into a summary.
+    if worth_extracting(req.message) and not record.error:
+        await enqueue(
+            session,
+            "extract_memories",
+            org_id,
+            {"source_type": "chat", "source_id": str(user_message_id)},
+            dedupe_key=f"chat:{user_message_id}",
+        )
+    await summaries.maybe_enqueue(session, conv)
     await session.commit()
     return assistant_id
 

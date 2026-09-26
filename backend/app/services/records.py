@@ -6,6 +6,7 @@ from typing import Any
 from app.auth.deps import TenantContext
 from app.auth.permissions import Perm
 from app.core.errors import Forbidden
+from app.jobs.queue import enqueue
 from app.models import Activity, Company, Contact, Deal, Lead, Note, Task
 from app.models.enums import ActivityStatus, TaskStatus
 from app.services.crud import Repo, check_refs
@@ -117,7 +118,11 @@ def _check_note_owner(ctx: TenantContext, note: Note) -> None:
 
 async def create_note(ctx: TenantContext, data: dict[str, Any]) -> Note:
     await check_refs(ctx, data)
-    return await notes(ctx).create({**data, "author_id": ctx.user_id})
+    note = await notes(ctx).create({**data, "author_id": ctx.user_id})
+    if len(note.body.strip()) >= 40:  # notes are where requirements and preferences get written down
+        await enqueue(ctx.session, "extract_memories", ctx.organization_id,
+                      {"source_type": "note", "source_id": str(note.id)}, dedupe_key=f"note:{note.id}")
+    return note
 
 
 async def update_note(ctx: TenantContext, note: Note, body: str) -> Note:

@@ -1,13 +1,31 @@
+import asyncio
+from contextlib import asynccontextmanager
+
 from fastapi import APIRouter, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
 
-from app.api import ai, auth, crm, organizations
+from app.api import ai, auth, crm, memories, organizations
 from app.core.config import get_settings
 from app.core.errors import register_error_handlers
 from app.core.logging import configure_logging
 from app.core.middleware import RequestContextMiddleware
 from app.database.session import engine
+
+
+@asynccontextmanager
+async def lifespan(_: FastAPI):
+    settings = get_settings()
+    stop = asyncio.Event()
+    task = None
+    if settings.jobs_worker_enabled:
+        from app.jobs.worker import worker_loop
+
+        task = asyncio.create_task(worker_loop(stop))
+    yield
+    stop.set()
+    if task:
+        await task
 
 
 def create_app() -> FastAPI:
@@ -20,6 +38,7 @@ def create_app() -> FastAPI:
         docs_url=None if settings.is_production else "/api/docs",
         redoc_url=None,
         openapi_url=None if settings.is_production else "/api/openapi.json",
+        lifespan=lifespan,
     )
     register_error_handlers(app)
 
@@ -45,6 +64,7 @@ def create_app() -> FastAPI:
     api.include_router(organizations.router)
     api.include_router(crm.router)
     api.include_router(ai.router)
+    api.include_router(memories.router)
     app.include_router(api)
     return app
 

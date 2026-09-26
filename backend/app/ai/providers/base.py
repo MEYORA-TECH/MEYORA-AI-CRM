@@ -81,4 +81,5 @@ class AIProvider(Protocol):
         tools: list[ToolSpec],
         max_tokens: int,
         temperature: float = 0.2,
+        json_mode: bool = False,
     ) -> AsyncIterator[ProviderEvent]: ...

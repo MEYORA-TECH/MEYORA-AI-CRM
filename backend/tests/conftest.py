@@ -19,6 +19,8 @@ os.environ.update(
     DATABASE_URL=TEST_DB,
     APP_ENV="test",
     RATE_LIMIT_ENABLED="false",
+    EMBEDDING_BACKEND="hash",
+    JOBS_WORKER_ENABLED="false",
     JWT_SECRET=_env.get("JWT_SECRET") or "test-secret-" + "x" * 40,
 )
 
@@ -49,6 +51,17 @@ async def _clean_db():
     async with engine.begin() as conn:
         await conn.execute(text(f"TRUNCATE {tables} RESTART IDENTITY CASCADE"))
     yield
+
+
+@pytest.fixture
+def use_pool(monkeypatch):
+    """Replace the AI provider pool, e.g. with scripted test providers."""
+    from app.ai import registry
+
+    def _set(*entries):
+        monkeypatch.setattr(registry, "pool", lambda: list(entries))
+
+    return _set
 
 
 @pytest.fixture

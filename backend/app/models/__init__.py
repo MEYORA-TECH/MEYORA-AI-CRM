@@ -21,11 +21,16 @@ from app.models.identity import (
     RefreshToken,
     User,
 )
+from app.models.memory import AIConversationSummary, AIMemory, Job, KnowledgeChunk
 
 __all__ = [
     "AIConversation",
     "AIMessage",
     "AIUsageLog",
+    "AIConversationSummary",
+    "AIMemory",
+    "Job",
+    "KnowledgeChunk",
     "RLS_TABLES",
     "Activity",
     "AuditLog",

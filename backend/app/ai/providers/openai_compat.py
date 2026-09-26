@@ -81,6 +81,7 @@ class OpenAICompatibleProvider:
         tools: list[ToolSpec],
         max_tokens: int,
         temperature: float = 0.2,
+        json_mode: bool = False,
     ) -> AsyncIterator[ProviderEvent]:
         body: dict[str, Any] = {
             "model": model,
@@ -91,6 +92,8 @@ class OpenAICompatibleProvider:
             "stream_options": {"include_usage": True},
             **self._extra_body,
         }
+        if json_mode:
+            body["response_format"] = {"type": "json_object"}
         if tools:
             body["tools"] = [
                 {

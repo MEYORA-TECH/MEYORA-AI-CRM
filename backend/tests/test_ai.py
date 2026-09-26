@@ -35,7 +35,7 @@ class ScriptedProvider:
         self.turns = list(turns)
         self.requests: list[dict] = []
 
-    async def stream_chat(self, *, model, messages, tools, max_tokens, temperature=0.2):
+    async def stream_chat(self, *, model, messages, tools, max_tokens, temperature=0.2, json_mode=False):
         self.requests.append({"messages": list(messages), "tools": [t.name for t in tools]})
         turn = self.turns.pop(0)
         if isinstance(turn, Exception):
@@ -56,13 +56,6 @@ def tool_turn(name: str, args: dict) -> list:
 def entry(provider, privacy="trusted", priority=10) -> ProviderEntry:
     return ProviderEntry(id=provider.id, label=provider.id.title(), privacy=privacy, chat_model="m", fast_model="m",
                          context_window=131072, provider=provider, priority=priority)
-
-
-@pytest.fixture
-def use_pool(monkeypatch):
-    def _set(*entries):
-        monkeypatch.setattr(registry, "pool", lambda: list(entries))
-    return _set
 
 
 def parse_sse(body: str) -> list[tuple[str, dict]]:

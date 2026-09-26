@@ -15,8 +15,12 @@ from sqlalchemy.orm import InstrumentedAttribute, selectinload
 
 from app.auth.deps import TenantContext
 from app.core.errors import NotFound, ValidationFailed
+from app.jobs.queue import enqueue
 from app.models import Company, Contact, Deal, Lead, Membership, Task
 from app.services.audit import apply_changes, audit, snapshot
+
+# Entities whose text feeds the knowledge index (see app/ai/knowledge.py).
+INDEXED = {"company", "contact", "lead", "deal", "activity", "note"}
 
 M = TypeVar("M")
 
@@ -113,6 +117,7 @@ class Repo(Generic[M]):
         await self._load_relations(obj)
         audit(self.ctx, f"{self.entity}.create", entity_type=self.entity, entity_id=obj.id,
               changes=snapshot(obj, list(data)))
+        await self._reindex(obj)
         return obj
 
     async def update(self, obj: M, data: dict[str, Any]) -> dict:
@@ -122,6 +127,7 @@ class Repo(Generic[M]):
             await self._load_relations(obj)
             audit(self.ctx, f"{self.entity}.update", entity_type=self.entity, entity_id=obj.id,
                   changes=changes)
+            await self._reindex(obj)
         return changes
 
     async def _load_relations(self, obj: M) -> None:
@@ -135,6 +141,12 @@ class Repo(Generic[M]):
             await self.ctx.session.delete(obj)
         await self.ctx.session.flush()
         audit(self.ctx, f"{self.entity}.delete", entity_type=self.entity, entity_id=obj.id)
+        await self._reindex(obj)
+
+    async def _reindex(self, obj: M) -> None:
+        if self.entity in INDEXED:
+            await enqueue(self.ctx.session, "index_record", self.ctx.organization_id,
+                          {"kind": self.entity, "id": str(obj.id)}, dedupe_key=f"{self.entity}:{obj.id}")
 
 
 _REF_MODELS: dict[str, tuple[type, str]] = {
