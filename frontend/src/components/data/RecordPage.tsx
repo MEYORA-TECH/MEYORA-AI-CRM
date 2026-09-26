@@ -1,8 +1,9 @@
 import * as Tabs from "@radix-ui/react-tabs";
 import { ArrowLeft, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
+import { useAiUi, type PageContext } from "@/ai/store";
 import { ConfirmDialog, DropdownMenu, MenuItem } from "@/components/ui/overlay";
 import { Button, Card, ErrorState, IconButton, Skeleton } from "@/components/ui/primitives";
 import { cn } from "@/lib/format";
@@ -34,6 +35,7 @@ export function RecordPage<T extends Record<string, any>>({
   saving,
   onDelete,
   deleting,
+  aiContext,
 }: {
   backTo: string;
   backLabel: string;
@@ -50,6 +52,8 @@ export function RecordPage<T extends Record<string, any>>({
   saving?: boolean;
   onDelete: () => Promise<unknown>;
   deleting?: boolean;
+  /** Tells the assistant which record is on screen. */
+  aiContext?: { type: PageContext["type"]; name: (row: T) => string };
 }) {
   const navigate = useNavigate();
   const canWrite = useCan("crm:write");
@@ -57,6 +61,14 @@ export function RecordPage<T extends Record<string, any>>({
   const [editing, setEditing] = useState(false);
   const [confirming, setConfirming] = useState(false);
   const row = query.data;
+  const setAiPage = useAiUi((s) => s.setPage);
+  const aiName = row && aiContext ? aiContext.name(row) : null;
+  useEffect(() => {
+    if (!row || !aiContext || !aiName) return;
+    setAiPage({ type: aiContext.type, id: row.id as string, name: aiName });
+    return () => setAiPage(null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [row?.id, aiName]);
 
   if (query.error) {
     return (

@@ -71,6 +71,7 @@ export function CompanyDetailPage() {
       backLabel="Companies"
       noun="Company"
       query={query}
+      aiContext={{ type: "company", name: (c) => c.name }}
       title={(c) => c.name}
       subtitle={(c) => [c.industry, [c.city, c.state, c.country].filter(Boolean).join(", ")].filter(Boolean).join(" · ") || undefined}
       badges={(c) => <Badge tint={COMPANY_STATUS[c.status].tint}>{COMPANY_STATUS[c.status].label}</Badge>}

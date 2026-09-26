@@ -268,6 +268,7 @@ export function DealDetailPage() {
       backLabel="Deals"
       noun="Deal"
       query={query}
+      aiContext={{ type: "deal", name: (d) => d.name }}
       title={(d) => d.name}
       subtitle={(d) => (d.company ? <Link className="font-semibold text-jade hover:underline" to={`/companies/${d.company.id}`}>{d.company.name}</Link> : undefined)}
       badges={(d) => <Badge tint={DEAL_STATUS[d.status].tint}>{DEAL_STATUS[d.status].label}</Badge>}

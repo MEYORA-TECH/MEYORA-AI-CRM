@@ -8,6 +8,8 @@ import { label } from "@/lib/format";
 import { describeError } from "@/services/api";
 import { useAuth } from "@/stores/auth";
 import { useUi, type Theme } from "@/stores/ui";
+import { Spark } from "@/ai/ChatThread";
+import { useAiUi } from "@/ai/store";
 
 const THEMES: { value: Theme; label: string; icon: typeof Sun }[] = [
   { value: "system", label: "Match system", icon: Monitor },
@@ -20,6 +22,7 @@ export function Topbar() {
   const logout = useAuth((s) => s.logout);
   const switchOrganization = useAuth((s) => s.switchOrganization);
   const { theme, setTheme, setPaletteOpen } = useUi();
+  const setPanelOpen = useAiUi((s) => s.setPanelOpen);
   const navigate = useNavigate();
 
   const current = me?.memberships.find((m) => m.organization.id === me.current_organization_id);
@@ -73,6 +76,15 @@ export function Topbar() {
           <Search className="size-4" />
           <span className="flex-1 text-left">Search Meyora</span>
           <kbd className="hidden rounded-md border border-line px-1.5 font-mono text-[11px] sm:inline">Ctrl K</kbd>
+        </button>
+
+        <button
+          onClick={() => setPanelOpen(!useAiUi.getState().panelOpen)}
+          className="focus-ring glass-dense flex h-9 items-center gap-2 rounded-full pr-3.5 pl-1.5 text-sm font-semibold"
+          aria-label="Ask Meyora (Ctrl J)"
+        >
+          <Spark className="size-6" />
+          <span className="hidden lg:inline">Ask Meyora</span>
         </button>
 
         <DropdownMenu trigger={<IconButton label="Theme"><ThemeIcon className="size-[18px]" /></IconButton>}>

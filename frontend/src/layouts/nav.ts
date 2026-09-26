@@ -6,6 +6,7 @@ import {
   LayoutDashboard,
   Magnet,
   Settings,
+  Sparkles,
   UsersRound,
   type LucideIcon,
 } from "lucide-react";
@@ -18,6 +19,7 @@ export interface NavItem {
 
 export const PRIMARY_NAV: NavItem[] = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard },
+  { to: "/assistant", label: "Assistant", icon: Sparkles },
   { to: "/leads", label: "Leads", icon: Magnet },
   { to: "/deals", label: "Deals", icon: Handshake },
   { to: "/companies", label: "Companies", icon: Building2 },

@@ -167,6 +167,7 @@ export function LeadDetailPage() {
       backLabel="Leads"
       noun="Lead"
       query={query}
+      aiContext={{ type: "lead", name: (l) => l.name }}
       title={(l) => l.name}
       subtitle={(l) => [l.job_title, l.company_name].filter(Boolean).join(" · ") || undefined}
       badges={(l) => <Badge tint={LEAD_STATUS[l.status].tint}>{LEAD_STATUS[l.status].label}</Badge>}

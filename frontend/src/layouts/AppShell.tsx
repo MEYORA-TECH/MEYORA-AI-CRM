@@ -1,6 +1,7 @@
 import { Suspense, type ReactNode } from "react";
 import { Outlet } from "react-router-dom";
 
+import { AIPanel } from "@/ai/AIPanel";
 import { Spinner } from "@/components/ui/primitives";
 import { cn } from "@/lib/format";
 import { CommandPalette } from "./CommandPalette";
@@ -19,6 +20,7 @@ export function AppShell() {
         </Suspense>
       </main>
       <CommandPalette />
+      <AIPanel />
     </div>
   );
 }

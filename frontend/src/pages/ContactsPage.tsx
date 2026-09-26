@@ -68,6 +68,7 @@ export function ContactDetailPage() {
       backLabel="Contacts"
       noun="Contact"
       query={query}
+      aiContext={{ type: "contact", name: (c) => c.full_name }}
       title={(c) => (
         <span className="flex items-center gap-3">
           <Avatar name={c.full_name} size={40} /> {c.full_name}

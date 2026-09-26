@@ -28,6 +28,8 @@ export function setAccessToken(token: string | null) {
   accessToken = token;
 }
 
+export const getAccessToken = () => accessToken;
+
 export function configureSession(opts: {
   onExpired: () => void;
   onRefreshed: (body: unknown) => void;
