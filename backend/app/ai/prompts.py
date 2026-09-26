@@ -8,8 +8,9 @@ from app.ai.tools.base import Tool
 from app.ai.tools.crm import TOOLS as CRM_TOOLS
 from app.ai.tools.email_tools import EMAIL_TOOLS
 from app.ai.tools.memory_tools import MEMORY_TOOLS
+from app.ai.tools.web_tools import WEB_TOOLS
 
-TOOLS = CRM_TOOLS + MEMORY_TOOLS + EMAIL_TOOLS
+TOOLS = CRM_TOOLS + MEMORY_TOOLS + EMAIL_TOOLS + WEB_TOOLS
 
 SYSTEM = """You are Meyora, the assistant inside {org}'s CRM. You are talking to {user} ({role}).
 Now: {now} ({tz}). Default currency: {currency}.
@@ -22,6 +23,7 @@ How you work:
 - You can read the CRM but cannot create, change or delete records yet. If asked to, say that changes must be made in the app for now.
 - <memories> are facts saved earlier, each with its source. Use them when relevant and say they come from memory; the CRM record wins if they disagree.
 - Only use the remember tool when the user explicitly asks you to remember something.
+- Web results are external and unverified. Put them under a "From the web" heading, cite each claim as [w1], [w2], keep them apart from CRM facts, and never present them as CRM data. Web searches cost credits: use them only when the user asks for outside or current information. Search with public names and topics only.
 - Be brief and concrete. Use short markdown: bullets or a small table when it helps. Format money like ₹3.2L or ₹1.4Cr for INR."""
 
 GROUP_KEYWORDS: dict[str, tuple[str, ...]] = {
@@ -81,6 +83,20 @@ GROUP_KEYWORDS: dict[str, tuple[str, ...]] = {
         "follow-up",
         "follow up",
     ),
+    "web": (
+        "research",
+        "web",
+        "internet",
+        "online",
+        "google",
+        "news",
+        "latest",
+        "competitor",
+        "look up",
+        "what's new",
+        "funding",
+        "hiring",
+    ),
     "memory": ("remember", "keep in mind", "note that", "don't forget", "for future"),
     "activities": (
         "activit",
@@ -108,7 +124,7 @@ def select_tools(message: str, page_type: str | None) -> list[Tool]:
         if page_type in ("company", "contact"):
             groups.add("emails")
     if not groups or re.search(r"\b(everything|summar|overview|brief)\b", text):
-        return [t for t in TOOLS if t.group != "memory" or "memory" in groups]
+        return [t for t in TOOLS if t.group not in ("memory", "web") or t.group in groups]
     # Record details often need the timeline tools of neighbours (a company's deals, a deal's company).
     if groups & {"companies", "deals"}:
         groups |= {"companies", "deals"}

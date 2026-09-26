@@ -34,10 +34,14 @@ async def complete(
     user_id: uuid.UUID | None = None,
     json_mode: bool = False,
     max_tokens: int = 1500,
+    data_class: registry.DataClass = "crm",
 ) -> LLMResult:
-    """Run one fast-model call on CRM data, logging usage. Defers the job if no provider can take it."""
+    """Run one fast-model call, logging usage. Defers the job if no provider can take it.
+
+    `data_class` decides which providers may see the prompt (see registry.route).
+    """
     try:
-        candidates = registry.route("crm")
+        candidates = registry.route(data_class)
     except registry.NoProviderAvailable as exc:
         raise JobDeferred("no AI provider configured") from exc
 

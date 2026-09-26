@@ -278,4 +278,7 @@ RLS_TABLES = [
     "mail_accounts",
     "email_threads",
     "email_messages",
+    "web_search_cache",
+    "web_search_logs",
+    "research_briefs",
 ]

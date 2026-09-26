@@ -23,11 +23,15 @@ from app.models.identity import (
     User,
 )
 from app.models.memory import AIConversationSummary, AIMemory, Job, KnowledgeChunk
+from app.models.research import ResearchBrief, WebSearchCache, WebSearchLog
 
 __all__ = [
     "AIConversation",
     "AIMessage",
     "AIUsageLog",
+    "ResearchBrief",
+    "WebSearchCache",
+    "WebSearchLog",
     "EmailMessage",
     "EmailThread",
     "MailAccount",

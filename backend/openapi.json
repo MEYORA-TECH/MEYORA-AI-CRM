@@ -5052,6 +5052,203 @@
      }
     }
    }
+  },
+  "/api/web/status": {
+   "get": {
+    "tags": [
+     "research"
+    ],
+    "summary": "Web Status",
+    "operationId": "web_status_api_web_status_get",
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/WebStatus"
+        }
+       }
+      }
+     }
+    },
+    "security": [
+     {
+      "HTTPBearer": []
+     }
+    ]
+   }
+  },
+  "/api/research/{kind}/{entity_id}": {
+   "get": {
+    "tags": [
+     "research"
+    ],
+    "summary": "List Briefs",
+    "operationId": "list_briefs_api_research__kind___entity_id__get",
+    "security": [
+     {
+      "HTTPBearer": []
+     }
+    ],
+    "parameters": [
+     {
+      "name": "kind",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "enum": [
+        "companies",
+        "leads"
+       ],
+       "type": "string",
+       "title": "Kind"
+      }
+     },
+     {
+      "name": "entity_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Entity Id"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "array",
+         "items": {
+          "$ref": "#/components/schemas/BriefOut"
+         },
+         "title": "Response List Briefs Api Research  Kind   Entity Id  Get"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   },
+   "post": {
+    "tags": [
+     "research"
+    ],
+    "summary": "Create Brief",
+    "operationId": "create_brief_api_research__kind___entity_id__post",
+    "security": [
+     {
+      "HTTPBearer": []
+     }
+    ],
+    "parameters": [
+     {
+      "name": "kind",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "enum": [
+        "companies",
+        "leads"
+       ],
+       "type": "string",
+       "title": "Kind"
+      }
+     },
+     {
+      "name": "entity_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Entity Id"
+      }
+     }
+    ],
+    "responses": {
+     "201": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/BriefOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/research/briefs/{brief_id}/save-note": {
+   "post": {
+    "tags": [
+     "research"
+    ],
+    "summary": "Save Brief As Note",
+    "description": "A person decides this web research belongs in the CRM; it becomes a note with its sources.",
+    "operationId": "save_brief_as_note_api_research_briefs__brief_id__save_note_post",
+    "security": [
+     {
+      "HTTPBearer": []
+     }
+    ],
+    "parameters": [
+     {
+      "name": "brief_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Brief Id"
+      }
+     }
+    ],
+    "responses": {
+     "201": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
   }
  },
  "components": {
@@ -5689,6 +5886,74 @@
      "columns"
     ],
     "title": "BoardOut"
+   },
+   "BriefOut": {
+    "properties": {
+     "id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Id"
+     },
+     "entity_type": {
+      "type": "string",
+      "title": "Entity Type"
+     },
+     "entity_id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Entity Id"
+     },
+     "content": {
+      "type": "string",
+      "title": "Content"
+     },
+     "sources": {
+      "items": {
+       "additionalProperties": true,
+       "type": "object"
+      },
+      "type": "array",
+      "title": "Sources"
+     },
+     "provider": {
+      "type": "string",
+      "title": "Provider"
+     },
+     "model": {
+      "type": "string",
+      "title": "Model"
+     },
+     "created_by_id": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "uuid"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Created By Id"
+     },
+     "created_at": {
+      "type": "string",
+      "format": "date-time",
+      "title": "Created At"
+     }
+    },
+    "type": "object",
+    "required": [
+     "id",
+     "entity_type",
+     "entity_id",
+     "content",
+     "sources",
+     "provider",
+     "model",
+     "created_by_id",
+     "created_at"
+    ],
+    "title": "BriefOut"
    },
    "ChatIn": {
     "properties": {
@@ -10916,6 +11181,29 @@
      "type"
     ],
     "title": "ValidationError"
+   },
+   "WebStatus": {
+    "properties": {
+     "enabled": {
+      "type": "boolean",
+      "title": "Enabled"
+     },
+     "used_this_month": {
+      "type": "integer",
+      "title": "Used This Month"
+     },
+     "monthly_limit": {
+      "type": "integer",
+      "title": "Monthly Limit"
+     }
+    },
+    "type": "object",
+    "required": [
+     "enabled",
+     "used_this_month",
+     "monthly_limit"
+    ],
+    "title": "WebStatus"
    },
    "app__api__ai__MessageOut": {
     "properties": {

@@ -92,6 +92,25 @@ def _build_pool() -> list[ProviderEntry]:
             )
         )
 
+    if gemini_key := _secret(s.gemini_api_key):
+        # Free tier may use prompts to improve Google's products: public data only, by design.
+        pool.append(
+            ProviderEntry(
+                id="gemini",
+                label="Gemini",
+                privacy="public_only",
+                priority=5,
+                chat_model=s.gemini_model,
+                fast_model=s.gemini_model,
+                context_window=1_000_000,
+                provider=OpenAICompatibleProvider(
+                    id="gemini",
+                    base_url="https://generativelanguage.googleapis.com/v1beta/openai",
+                    api_key=gemini_key,
+                ),
+            )
+        )
+
     for raw in json.loads(s.ai_extra_providers or "[]"):
         pool.append(_from_config(raw))
 

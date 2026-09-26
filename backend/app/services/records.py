@@ -151,10 +151,12 @@ def _check_note_owner(ctx: TenantContext, note: Note) -> None:
         raise Forbidden("Only the author or a manager can change this note")
 
 
-async def create_note(ctx: TenantContext, data: dict[str, Any]) -> Note:
+async def create_note(ctx: TenantContext, data: dict[str, Any], *, extract_memories: bool = True) -> Note:
     await check_refs(ctx, data)
     note = await notes(ctx).create({**data, "author_id": ctx.user_id})
-    if len(note.body.strip()) >= 40:  # notes are where requirements and preferences get written down
+    if (
+        extract_memories and len(note.body.strip()) >= 40
+    ):  # notes are where requirements and preferences get written down
         await enqueue(
             ctx.session,
             "extract_memories",

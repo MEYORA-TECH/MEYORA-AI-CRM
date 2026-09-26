@@ -47,6 +47,15 @@ class Settings(BaseSettings):
     memory_dedup_similarity: float = 0.92
     jobs_worker_enabled: bool = True
 
+    # --- Web research ------------------------------------------------------
+    tavily_api_key: SecretStr | None = None
+    web_search_monthly_limit: int = 900  # per organization; Tavily's free plan is ~1,000 credits
+    web_search_daily_user_limit: int = 40
+    web_cache_hours: int = 24
+    # Optional public-only model for research briefs (Gemini free tier trains on prompts).
+    gemini_api_key: SecretStr | None = None
+    gemini_model: str = "gemini-3.8-flash"
+
     # --- Google sign-in & Gmail (toggle layers; off by default) -------------------
     google_auth_enabled: bool = False
     gmail_enabled: bool = False
