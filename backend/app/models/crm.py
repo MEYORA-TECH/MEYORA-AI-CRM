@@ -291,5 +291,5 @@ class AuditLog(UUIDPk, TenantOwned, Base):
 RLS_TABLES = [
     t.__tablename__
     for t in (Company, Contact, Lead, Pipeline, PipelineStage, Deal, Activity, Task, Note, AuditLog)
-]
+] + ["ai_conversations", "ai_messages", "ai_usage_logs"]
 

@@ -27,6 +27,19 @@ class Settings(BaseSettings):
     login_rate_limit: int = 10  # attempts per window per IP+email
     login_rate_window_seconds: int = 900
 
+    # --- AI -----------------------------------------------------------------
+    # Keys are optional: without one the provider is simply not in the pool.
+    groq_api_key: SecretStr | None = None
+    groq_chat_model: str = "openai/gpt-oss-120b"
+    groq_fast_model: str = "openai/gpt-oss-20b"
+    openrouter_api_key: SecretStr | None = None
+    openrouter_chat_model: str | None = None  # e.g. a ":free" model id you have checked
+    # Extra providers as JSON (see docs/ai-providers.md), for any OpenAI-compatible API.
+    ai_extra_providers: str | None = None
+    ai_daily_token_quota: int = 60_000  # per user
+    ai_max_model_calls: int = 3  # per chat turn
+    ai_request_token_budget: int = 6_000  # prompt tokens per call on the free tier
+
     @property
     def is_production(self) -> bool:
         return self.app_env == "production"

@@ -3889,6 +3889,322 @@
      }
     }
    }
+  },
+  "/api/ai/status": {
+   "get": {
+    "tags": [
+     "ai"
+    ],
+    "summary": "Ai Status",
+    "operationId": "ai_status_api_ai_status_get",
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/StatusOut"
+        }
+       }
+      }
+     }
+    },
+    "security": [
+     {
+      "HTTPBearer": []
+     }
+    ]
+   }
+  },
+  "/api/ai/chat": {
+   "post": {
+    "tags": [
+     "ai"
+    ],
+    "summary": "Chat",
+    "operationId": "chat_api_ai_chat_post",
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ChatIn"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    },
+    "security": [
+     {
+      "HTTPBearer": []
+     }
+    ]
+   }
+  },
+  "/api/ai/conversations": {
+   "get": {
+    "tags": [
+     "ai"
+    ],
+    "summary": "List Conversations",
+    "operationId": "list_conversations_api_ai_conversations_get",
+    "security": [
+     {
+      "HTTPBearer": []
+     }
+    ],
+    "parameters": [
+     {
+      "name": "page",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "type": "integer",
+       "maximum": 10000,
+       "minimum": 1,
+       "default": 1,
+       "title": "Page"
+      }
+     },
+     {
+      "name": "page_size",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "type": "integer",
+       "maximum": 100,
+       "minimum": 1,
+       "default": 25,
+       "title": "Page Size"
+      }
+     },
+     {
+      "name": "q",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string",
+         "maxLength": 200
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Q"
+      }
+     },
+     {
+      "name": "sort",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string",
+         "maxLength": 50,
+         "pattern": "^-?[a-z_]+$"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Sort"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Page_ConversationOut_"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/ai/conversations/{conversation_id}/messages": {
+   "get": {
+    "tags": [
+     "ai"
+    ],
+    "summary": "Conversation Messages",
+    "operationId": "conversation_messages_api_ai_conversations__conversation_id__messages_get",
+    "security": [
+     {
+      "HTTPBearer": []
+     }
+    ],
+    "parameters": [
+     {
+      "name": "conversation_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Conversation Id"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "array",
+         "items": {
+          "$ref": "#/components/schemas/MessageOut"
+         },
+         "title": "Response Conversation Messages Api Ai Conversations  Conversation Id  Messages Get"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/ai/conversations/{conversation_id}": {
+   "patch": {
+    "tags": [
+     "ai"
+    ],
+    "summary": "Rename Conversation",
+    "operationId": "rename_conversation_api_ai_conversations__conversation_id__patch",
+    "security": [
+     {
+      "HTTPBearer": []
+     }
+    ],
+    "parameters": [
+     {
+      "name": "conversation_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Conversation Id"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ConversationUpdate"
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ConversationOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   },
+   "delete": {
+    "tags": [
+     "ai"
+    ],
+    "summary": "Delete Conversation",
+    "operationId": "delete_conversation_api_ai_conversations__conversation_id__delete",
+    "security": [
+     {
+      "HTTPBearer": []
+     }
+    ],
+    "parameters": [
+     {
+      "name": "conversation_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Conversation Id"
+      }
+     }
+    ],
+    "responses": {
+     "204": {
+      "description": "Successful Response"
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
   }
  },
  "components": {
@@ -4526,6 +4842,50 @@
      "columns"
     ],
     "title": "BoardOut"
+   },
+   "ChatIn": {
+    "properties": {
+     "message": {
+      "type": "string",
+      "maxLength": 4000,
+      "minLength": 1,
+      "title": "Message"
+     },
+     "conversation_id": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "uuid"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Conversation Id"
+     },
+     "page": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/PageContext"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "timezone": {
+      "type": "string",
+      "maxLength": 64,
+      "title": "Timezone",
+      "default": "Asia/Kolkata"
+     }
+    },
+    "additionalProperties": false,
+    "type": "object",
+    "required": [
+     "message"
+    ],
+    "title": "ChatIn"
    },
    "CompanyCreate": {
     "properties": {
@@ -5750,6 +6110,77 @@
     "additionalProperties": false,
     "type": "object",
     "title": "ContactUpdate"
+   },
+   "ConversationOut": {
+    "properties": {
+     "id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Id"
+     },
+     "title": {
+      "type": "string",
+      "title": "Title"
+     },
+     "provider": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Provider"
+     },
+     "model": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Model"
+     },
+     "created_at": {
+      "type": "string",
+      "format": "date-time",
+      "title": "Created At"
+     },
+     "last_message_at": {
+      "type": "string",
+      "format": "date-time",
+      "title": "Last Message At"
+     }
+    },
+    "type": "object",
+    "required": [
+     "id",
+     "title",
+     "provider",
+     "model",
+     "created_at",
+     "last_message_at"
+    ],
+    "title": "ConversationOut"
+   },
+   "ConversationUpdate": {
+    "properties": {
+     "title": {
+      "type": "string",
+      "maxLength": 200,
+      "minLength": 1,
+      "title": "Title"
+     }
+    },
+    "additionalProperties": false,
+    "type": "object",
+    "required": [
+     "title"
+    ],
+    "title": "ConversationUpdate"
    },
    "DashboardOut": {
     "properties": {
@@ -7411,6 +7842,92 @@
     ],
     "title": "MembershipOut"
    },
+   "MessageOut": {
+    "properties": {
+     "id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Id"
+     },
+     "role": {
+      "type": "string",
+      "title": "Role"
+     },
+     "content": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Content"
+     },
+     "tool_name": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Tool Name"
+     },
+     "tool_call_id": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Tool Call Id"
+     },
+     "ui": {
+      "anyOf": [
+       {
+        "additionalProperties": true,
+        "type": "object"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Ui"
+     },
+     "provider": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Provider"
+     },
+     "created_at": {
+      "type": "string",
+      "format": "date-time",
+      "title": "Created At"
+     }
+    },
+    "type": "object",
+    "required": [
+     "id",
+     "role",
+     "content",
+     "tool_name",
+     "tool_call_id",
+     "ui",
+     "provider",
+     "created_at"
+    ],
+    "title": "MessageOut"
+   },
    "NoteCreate": {
     "properties": {
      "company_id": {
@@ -7673,6 +8190,32 @@
     "type": "object",
     "title": "OrganizationUpdate"
    },
+   "PageContext": {
+    "properties": {
+     "type": {
+      "type": "string",
+      "enum": [
+       "company",
+       "contact",
+       "lead",
+       "deal"
+      ],
+      "title": "Type"
+     },
+     "id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Id"
+     }
+    },
+    "additionalProperties": false,
+    "type": "object",
+    "required": [
+     "type",
+     "id"
+    ],
+    "title": "PageContext"
+   },
    "Page_ActivityOut_": {
     "properties": {
      "items": {
@@ -7796,6 +8339,37 @@
      "page_size"
     ],
     "title": "Page[ContactOut]"
+   },
+   "Page_ConversationOut_": {
+    "properties": {
+     "items": {
+      "items": {
+       "$ref": "#/components/schemas/ConversationOut"
+      },
+      "type": "array",
+      "title": "Items"
+     },
+     "total": {
+      "type": "integer",
+      "title": "Total"
+     },
+     "page": {
+      "type": "integer",
+      "title": "Page"
+     },
+     "page_size": {
+      "type": "integer",
+      "title": "Page Size"
+     }
+    },
+    "type": "object",
+    "required": [
+     "items",
+     "total",
+     "page",
+     "page_size"
+    ],
+    "title": "Page[ConversationOut]"
    },
    "Page_DealOut_": {
     "properties": {
@@ -8315,6 +8889,37 @@
      "amount"
     ],
     "title": "StageSummary"
+   },
+   "StatusOut": {
+    "properties": {
+     "configured": {
+      "type": "boolean",
+      "title": "Configured"
+     },
+     "providers": {
+      "items": {
+       "type": "string"
+      },
+      "type": "array",
+      "title": "Providers"
+     },
+     "used_today": {
+      "type": "integer",
+      "title": "Used Today"
+     },
+     "quota": {
+      "type": "integer",
+      "title": "Quota"
+     }
+    },
+    "type": "object",
+    "required": [
+     "configured",
+     "providers",
+     "used_today",
+     "quota"
+    ],
+    "title": "StatusOut"
    },
    "SwitchOrganizationIn": {
     "properties": {

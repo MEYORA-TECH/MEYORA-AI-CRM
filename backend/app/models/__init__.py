@@ -1,3 +1,4 @@
+from app.models.ai import AIConversation, AIMessage, AIUsageLog
 from app.models.base import Base
 from app.models.crm import (
     RLS_TABLES,
@@ -22,6 +23,9 @@ from app.models.identity import (
 )
 
 __all__ = [
+    "AIConversation",
+    "AIMessage",
+    "AIUsageLog",
     "RLS_TABLES",
     "Activity",
     "AuditLog",
