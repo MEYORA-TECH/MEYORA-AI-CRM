@@ -35,6 +35,8 @@ class ProviderEntry:
     context_window: int
     provider: AIProvider
     priority: int = 100
+    # Request options for background work (e.g. less reasoning so JSON fits the output limit).
+    background_extra: dict[str, Any] = field(default_factory=dict)
     environments: set[str] = field(default_factory=lambda: {"development", "test", "production"})
 
     def model_for(self, purpose: Purpose) -> str:
@@ -63,6 +65,7 @@ def _build_pool() -> list[ProviderEntry]:
                 chat_model=s.groq_chat_model,
                 fast_model=s.groq_fast_model,
                 context_window=131_072,
+                background_extra={"reasoning_effort": "low"},  # gpt-oss reasons before answering
                 provider=OpenAICompatibleProvider(
                     id="groq", base_url="https://api.groq.com/openai/v1", api_key=groq_key
                 ),

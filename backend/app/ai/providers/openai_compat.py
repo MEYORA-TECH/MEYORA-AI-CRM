@@ -82,6 +82,7 @@ class OpenAICompatibleProvider:
         max_tokens: int,
         temperature: float = 0.2,
         json_mode: bool = False,
+        extra: dict[str, Any] | None = None,
     ) -> AsyncIterator[ProviderEvent]:
         body: dict[str, Any] = {
             "model": model,
@@ -91,6 +92,7 @@ class OpenAICompatibleProvider:
             "temperature": temperature,
             "stream_options": {"include_usage": True},
             **self._extra_body,
+            **(extra or {}),
         }
         if json_mode:
             body["response_format"] = {"type": "json_object"}

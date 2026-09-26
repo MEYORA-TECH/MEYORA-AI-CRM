@@ -35,7 +35,7 @@ class ScriptedProvider:
         self.turns = list(turns)
         self.requests: list[dict] = []
 
-    async def stream_chat(self, *, model, messages, tools, max_tokens, temperature=0.2, json_mode=False):
+    async def stream_chat(self, *, model, messages, tools, max_tokens, temperature=0.2, json_mode=False, extra=None):
         self.requests.append({"messages": list(messages), "tools": [t.name for t in tools]})
         turn = self.turns.pop(0)
         if isinstance(turn, Exception):

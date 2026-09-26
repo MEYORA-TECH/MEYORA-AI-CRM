@@ -73,7 +73,6 @@ async def summarize(session: AsyncSession, organization_id: uuid.UUID, conversat
         ],
         purpose="summary",
         user_id=conv.user_id,
-        max_tokens=300,
     )
     text = result.text.strip()[:2000]
     if not text:

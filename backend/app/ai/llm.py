@@ -10,8 +10,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.ai import registry
 from app.ai.providers.base import ChatMessage, Completion, ProviderError, TextDelta
+from app.core.logging import get_logger
 from app.jobs.queue import JobDeferred
 from app.models import AIUsageLog
+
+log = get_logger("ai.llm")
 
 
 @dataclass
@@ -30,7 +33,7 @@ async def complete(
     purpose: str,
     user_id: uuid.UUID | None = None,
     json_mode: bool = False,
-    max_tokens: int = 600,
+    max_tokens: int = 1500,
 ) -> LLMResult:
     """Run one fast-model call on CRM data, logging usage. Defers the job if no provider can take it."""
     try:
@@ -45,13 +48,21 @@ async def complete(
         try:
             parts, final = [], None
             async for ev in entry.provider.stream_chat(
-                model=model, messages=messages, tools=[], max_tokens=max_tokens, temperature=0.1, json_mode=json_mode
+                model=model,
+                messages=messages,
+                tools=[],
+                max_tokens=max_tokens,
+                temperature=0.1,
+                json_mode=json_mode,
+                extra=entry.background_extra,
             ):
                 if isinstance(ev, TextDelta):
                     parts.append(ev.text)
                 elif isinstance(ev, Completion):
                     final = ev
             usage = final.usage if final else None
+            if final and final.finish_reason == "length":
+                log.warning("llm_output_truncated", provider=entry.id, model=model, purpose=purpose)
             session.add(
                 AIUsageLog(
                     organization_id=organization_id,

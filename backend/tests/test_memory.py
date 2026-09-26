@@ -140,7 +140,9 @@ async def test_note_extraction_saves_links_and_supersedes(owner, use_pool):
         rows = {m.content: m for m in await session.scalars(select(AIMemory))}
     assert rows[old.memory.content].status == "superseded"
     onprem = rows["ABC Manufacturing now wants a private on-premise deployment."]
-    assert onprem.scope == "organization" and onprem.source_type == "note" and onprem.created_by == "ai"
+    # Labelled "organization" by the model, but it names the note's company, so it stays linked to it.
+    assert onprem.scope == "company" and onprem.company_id == uuid.UUID(company["id"])
+    assert onprem.source_type == "note" and onprem.created_by == "ai"
     ravi = rows["Ravi is the decision maker at ABC Manufacturing."]
     assert ravi.status == "pending_review" and ravi.company_id == uuid.UUID(company["id"])  # default link from the note
 

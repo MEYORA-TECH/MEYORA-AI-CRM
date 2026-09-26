@@ -82,4 +82,5 @@ class AIProvider(Protocol):
         max_tokens: int,
         temperature: float = 0.2,
         json_mode: bool = False,
+        extra: dict[str, Any] | None = None,
     ) -> AsyncIterator[ProviderEvent]: ...

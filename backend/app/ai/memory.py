@@ -207,7 +207,7 @@ Rules:
 - Only facts stated in the text. No guesses, no advice, nothing about the assistant.
 - Skip questions, greetings, requests, and details the CRM already stores as fields (emails, phone numbers, deal stages or amounts already recorded).
 - Each memory is one standalone sentence that names its subject, e.g. "ABC Manufacturing prefers private (on-premise) deployment."
-- "about": a record ref from the list, "organization" for company-wide knowledge, or "me" for the speaker's personal preferences.
+- "about": the ref of the record the fact is about (from Known records); "organization" only for facts about our own business, never about a customer; "me" for the speaker's personal preferences.
 - If a new fact contradicts or updates an existing memory, list that memory's number in "replaces".
 - At most 5. Return {"memories": []} when nothing qualifies.
 
@@ -262,7 +262,6 @@ async def extract(
         purpose="memory_extract",
         user_id=user_id,
         json_mode=True,
-        max_tokens=500,
     )
     try:
         items = parse_json(result.text).get("memories") or []
@@ -279,7 +278,7 @@ async def extract(
         links, user_scope = dict(default_links), about == "me"
         if about in refs and refs[about]["type"] in ("company", "contact", "deal"):
             links = {f: None for f in LINK_FIELDS} | {f"{refs[about]['type']}_id": uuid.UUID(refs[about]["id"])}
-        elif about == "organization":
+        elif about == "organization" and not _names_linked_record(str(item["content"]), refs):
             links = {f: None for f in LINK_FIELDS}
         confidence = _number(item.get("confidence"), 0.7)
         if result.fallback:
@@ -305,6 +304,12 @@ async def extract(
         ]
         superseded += await supersede(session, replaces, s.memory)
     return Extracted(saved, superseded)
+
+
+def _names_linked_record(content: str, refs: dict[str, dict[str, str]]) -> bool:
+    """Models sometimes label a customer fact "organization"; if it names a linked record, keep the link."""
+    text = content.lower()
+    return any(v["name"].lower() in text for v in refs.values() if v.get("name"))
 
 
 def _number(value: Any, default: float) -> float:

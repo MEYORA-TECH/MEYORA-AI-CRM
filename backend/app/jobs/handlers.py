@@ -8,8 +8,9 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.ai import knowledge, memory, summaries
+from app.ai.tools.base import WorkingSet
 from app.jobs.queue import handler
-from app.models import AIConversation, AIMessage, Note
+from app.models import AIConversation, AIMessage, Company, Contact, Deal, Note
 
 # Questions and commands rarely contain durable facts; skipping them saves free-tier tokens.
 _QUESTION = re.compile(
@@ -20,6 +21,15 @@ _QUESTION = re.compile(
 def worth_extracting(text: str) -> bool:
     text = text.strip()
     return len(text) >= 25 and not text.endswith("?") and not _QUESTION.match(text)
+
+
+async def _refs_for(session: AsyncSession, links: dict[str, uuid.UUID | None]) -> dict[str, dict[str, str]]:
+    """Short refs for the records a note is attached to, so the extractor can say what a fact is about."""
+    ws = WorkingSet()
+    for field, model in (("company_id", Company), ("contact_id", Contact), ("deal_id", Deal)):
+        if links.get(field) and (obj := await session.get(model, links[field])):
+            ws.ref_for(field.removesuffix("_id"), obj.id, obj.full_name if model is Contact else obj.name)
+    return ws.refs
 
 
 @handler("index_record")
@@ -64,7 +74,7 @@ async def extract_memories(session: AsyncSession, org_id: uuid.UUID, payload: di
             org_id,
             text=note.body,
             speaker="a CRM note written by a teammate",
-            refs={},
+            refs=await _refs_for(session, links),
             default_links=links,
             source_type="note",
             source_id=note.id,

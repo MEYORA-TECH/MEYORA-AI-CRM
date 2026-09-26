@@ -99,10 +99,11 @@ class Job(UUIDPk, Base):
 
     kind: Mapped[str] = mapped_column(String(40))
     organization_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("organizations.id", ondelete="CASCADE"))
-    payload: Mapped[dict[str, Any]] = mapped_column(JSONB, default=dict)
+    payload: Mapped[dict[str, Any]] = mapped_column(JSONB, default=dict, server_default="{}")
     dedupe_key: Mapped[str | None] = mapped_column(String(200))
-    status: Mapped[str] = mapped_column(String(12), default="queued")  # queued | running | done | failed
-    attempts: Mapped[int] = mapped_column(Integer, default=0)
+    # queued | running | done | failed
+    status: Mapped[str] = mapped_column(String(12), default="queued", server_default="queued")
+    attempts: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
     run_after: Mapped[datetime] = mapped_column(server_default=text("now()"))
     locked_at: Mapped[datetime | None]
     error: Mapped[str | None] = mapped_column(String(500))
