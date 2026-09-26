@@ -167,7 +167,8 @@ function UsedMemories({ items }: { items: NonNullable<ChatItem["memories"]> }) {
 }
 
 function withCitations(text: string, sources: Map<string, string>) {
-  return text.replace(/\[(w\d+)\]/g, (m, ref) => (sources.has(ref) ? `[[${ref}]](${sources.get(ref)})` : m));
+  // Some models write 【w1】 instead of [w1]; accept both.
+  return text.replace(/[[【](w\d+)[\]】]/g, (m, ref) => (sources.has(ref) ? `[[${ref}]](${sources.get(ref)})` : m));
 }
 
 function AssistantText({ item, sources }: { item: ChatItem; sources: Map<string, string> }) {
