@@ -140,6 +140,57 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/auth/providers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Auth Providers */
+        get: operations["auth_providers_api_auth_providers_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/auth/google/start": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Google Start */
+        get: operations["google_start_api_auth_google_start_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/auth/google/callback": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Google Callback */
+        get: operations["google_callback_api_auth_google_callback_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/organization": {
         parameters: {
             query?: never;
@@ -744,6 +795,125 @@ export interface paths {
         head?: never;
         /** Update Memory */
         patch: operations["update_memory_api_memories__memory_id__patch"];
+        trace?: never;
+    };
+    "/api/integrations/gmail": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Gmail Status */
+        get: operations["gmail_status_api_integrations_gmail_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/integrations/gmail/connect": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Gmail Connect */
+        post: operations["gmail_connect_api_integrations_gmail_connect_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/integrations/gmail/callback": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Gmail Callback */
+        get: operations["gmail_callback_api_integrations_gmail_callback_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/integrations/gmail/{account_id}/sync": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Gmail Sync Now */
+        post: operations["gmail_sync_now_api_integrations_gmail__account_id__sync_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/integrations/gmail/{account_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Gmail Disconnect */
+        delete: operations["gmail_disconnect_api_integrations_gmail__account_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/emails/threads": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Threads */
+        get: operations["list_threads_api_emails_threads_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/emails/threads/{thread_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Thread */
+        get: operations["get_thread_api_emails_threads__thread_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
 }
@@ -1392,6 +1562,13 @@ export interface components {
             /** Description */
             description?: string | null;
         };
+        /** GmailStatus */
+        GmailStatus: {
+            /** Enabled */
+            enabled: boolean;
+            /** Accounts */
+            accounts: components["schemas"]["MailAccountOut"][];
+        };
         /** HTTPValidationError */
         HTTPValidationError: {
             /** Detail */
@@ -1636,6 +1813,36 @@ export interface components {
             /** Password */
             password: string;
         };
+        /** MailAccountOut */
+        MailAccountOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * User Id
+             * Format: uuid
+             */
+            user_id: string;
+            /** Email Address */
+            email_address: string;
+            /** Status */
+            status: string;
+            /** Last Sync At */
+            last_sync_at: string | null;
+            /** Next Sync At */
+            next_sync_at: string | null;
+            /** Last Error */
+            last_error: string | null;
+            /** Messages Synced */
+            messages_synced: number;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+        };
         /** MeOut */
         MeOut: {
             /**
@@ -1763,33 +1970,6 @@ export interface components {
              * @description Approve a memory waiting for review
              */
             status?: "active" | null;
-        };
-        /** MessageOut */
-        MessageOut: {
-            /**
-             * Id
-             * Format: uuid
-             */
-            id: string;
-            /** Role */
-            role: string;
-            /** Content */
-            content: string | null;
-            /** Tool Name */
-            tool_name: string | null;
-            /** Tool Call Id */
-            tool_call_id: string | null;
-            /** Ui */
-            ui: {
-                [key: string]: unknown;
-            } | null;
-            /** Provider */
-            provider: string | null;
-            /**
-             * Created At
-             * Format: date-time
-             */
-            created_at: string;
         };
         /** NoteCreate */
         NoteCreate: {
@@ -1980,6 +2160,17 @@ export interface components {
         Page_TaskOut_: {
             /** Items */
             items: components["schemas"]["TaskOut"][];
+            /** Total */
+            total: number;
+            /** Page */
+            page: number;
+            /** Page Size */
+            page_size: number;
+        };
+        /** Page[ThreadOut] */
+        Page_ThreadOut_: {
+            /** Items */
+            items: components["schemas"]["ThreadOut"][];
             /** Total */
             total: number;
             /** Page */
@@ -2251,6 +2442,62 @@ export interface components {
             /** Assignee Id */
             assignee_id?: string | null;
         };
+        /** ThreadDetail */
+        ThreadDetail: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Subject */
+            subject: string;
+            /** Snippet */
+            snippet: string;
+            /** Participants */
+            participants: {
+                [key: string]: unknown;
+            }[];
+            /** Contact Ids */
+            contact_ids: string[];
+            /** Company Ids */
+            company_ids: string[];
+            /** Message Count */
+            message_count: number;
+            /**
+             * Last Message At
+             * Format: date-time
+             */
+            last_message_at: string;
+            /** Messages */
+            messages: components["schemas"]["app__api__emails__MessageOut"][];
+        };
+        /** ThreadOut */
+        ThreadOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Subject */
+            subject: string;
+            /** Snippet */
+            snippet: string;
+            /** Participants */
+            participants: {
+                [key: string]: unknown;
+            }[];
+            /** Contact Ids */
+            contact_ids: string[];
+            /** Company Ids */
+            company_ids: string[];
+            /** Message Count */
+            message_count: number;
+            /**
+             * Last Message At
+             * Format: date-time
+             */
+            last_message_at: string;
+        };
         /** TimelineItem */
         TimelineItem: {
             /** Kind */
@@ -2315,6 +2562,66 @@ export interface components {
             input?: unknown;
             /** Context */
             ctx?: Record<string, never>;
+        };
+        /** MessageOut */
+        app__api__ai__MessageOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Role */
+            role: string;
+            /** Content */
+            content: string | null;
+            /** Tool Name */
+            tool_name: string | null;
+            /** Tool Call Id */
+            tool_call_id: string | null;
+            /** Ui */
+            ui: {
+                [key: string]: unknown;
+            } | null;
+            /** Provider */
+            provider: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+        };
+        /** MessageOut */
+        app__api__emails__MessageOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Direction */
+            direction: string;
+            /** From Email */
+            from_email: string;
+            /** From Name */
+            from_name: string | null;
+            /** To */
+            to: {
+                [key: string]: unknown;
+            }[];
+            /** Cc */
+            cc: {
+                [key: string]: unknown;
+            }[];
+            /** Subject */
+            subject: string;
+            /** Body Text */
+            body_text: string;
+            /** Has Attachments */
+            has_attachments: boolean;
+            /**
+             * Sent At
+             * Format: date-time
+             */
+            sent_at: string;
         };
     };
     responses: never;
@@ -2522,6 +2829,79 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["TokenOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    auth_providers_api_auth_providers_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+        };
+    };
+    google_start_api_auth_google_start_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+        };
+    };
+    google_callback_api_auth_google_callback_get: {
+        parameters: {
+            query?: {
+                code?: string | null;
+                state?: string | null;
+                error?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
                 };
             };
             /** @description Validation Error */
@@ -4325,7 +4705,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["MessageOut"][];
+                    "application/json": components["schemas"]["app__api__ai__MessageOut"][];
                 };
             };
             /** @description Validation Error */
@@ -4526,6 +4906,206 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["MemoryOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    gmail_status_api_integrations_gmail_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GmailStatus"];
+                };
+            };
+        };
+    };
+    gmail_connect_api_integrations_gmail_connect_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+        };
+    };
+    gmail_callback_api_integrations_gmail_callback_get: {
+        parameters: {
+            query?: {
+                code?: string | null;
+                state?: string | null;
+                error?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    gmail_sync_now_api_integrations_gmail__account_id__sync_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                account_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MailAccountOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    gmail_disconnect_api_integrations_gmail__account_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                account_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_threads_api_emails_threads_get: {
+        parameters: {
+            query?: {
+                contact_id?: string | null;
+                company_id?: string | null;
+                page?: number;
+                page_size?: number;
+                q?: string | null;
+                sort?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Page_ThreadOut_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_thread_api_emails_threads__thread_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                thread_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ThreadDetail"];
                 };
             };
             /** @description Validation Error */

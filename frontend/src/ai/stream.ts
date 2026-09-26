@@ -11,7 +11,7 @@ export type ChatEvent =
 
 export interface RecordsUi {
   kind: "records";
-  entity: "company" | "contact" | "lead" | "deal" | "task" | "activity" | "note";
+  entity: "company" | "contact" | "lead" | "deal" | "task" | "activity" | "note" | "email";
   title: string;
   total: number;
   rows: { id: string; title: string; subtitle?: string; badge?: string; value?: string; href?: string | null }[];

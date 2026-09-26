@@ -24,6 +24,7 @@ const ActivitiesPage = named(() => import("@/pages/WorkPages"), "ActivitiesPage"
 const TasksPage = named(() => import("@/pages/WorkPages"), "TasksPage");
 const AssistantPage = named(() => import("@/pages/AssistantPage"), "AssistantPage");
 const MemoryPage = named(() => import("@/pages/MemoryPage"), "MemoryPage");
+const EmailsPage = named(() => import("@/pages/EmailsPage"), "EmailsPage");
 import { useAuth } from "@/stores/auth";
 
 function NoWorkspace() {
@@ -90,6 +91,8 @@ export function App() {
         <Route path="assistant" element={<AssistantPage />} />
         <Route path="assistant/:id" element={<AssistantPage />} />
         <Route path="memory" element={<MemoryPage />} />
+        <Route path="emails" element={<EmailsPage />} />
+        <Route path="emails/:id" element={<EmailsPage />} />
       </Route>
       <Route path="/login" element={<Navigate to="/" replace />} />
       <Route path="/register" element={<Navigate to="/" replace />} />

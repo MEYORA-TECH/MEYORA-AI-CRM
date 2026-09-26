@@ -10,7 +10,7 @@ import { useAiStatus, useChat } from "./useChat";
 
 /** Right-side glass drawer: the assistant, aware of the record on screen. Ctrl+J toggles it. */
 export function AIPanel() {
-  const { panelOpen, setPanelOpen, page, panelConversationId, setPanelConversationId } = useAiUi();
+  const { panelOpen, setPanelOpen, page, panelConversationId, setPanelConversationId, pendingPrompt, takePendingPrompt } = useAiUi();
   const chat = useChat(panelConversationId, setPanelConversationId);
   const status = useAiStatus();
   const navigate = useNavigate();
@@ -25,6 +25,16 @@ export function AIPanel() {
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [setPanelOpen]);
+
+  useEffect(() => {
+    if (!pendingPrompt || chat.streaming) return;
+    const prompt = takePendingPrompt();
+    if (prompt) {
+      chat.reset();
+      chat.send(prompt, page);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pendingPrompt]);
 
   const newChat = () => {
     chat.reset();

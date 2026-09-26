@@ -1,4 +1,4 @@
-import { ArrowUp, Brain, Building2, CheckSquare, ChevronDown, Handshake, Loader2, Magnet, Square, StickyNote, UserRound, CalendarRange, Sparkles } from "lucide-react";
+import { ArrowUp, Brain, Mail, Building2, CheckSquare, ChevronDown, Handshake, Loader2, Magnet, Square, StickyNote, UserRound, CalendarRange, Sparkles } from "lucide-react";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import Markdown from "react-markdown";
 import { Link } from "react-router-dom";
@@ -24,6 +24,8 @@ const TOOL_LABEL: Record<string, [string, string]> = {
   pipeline_summary: ["Totalling the pipeline", "Totalled the pipeline"],
   search_knowledge: ["Searching notes and call logs", "Searched notes and call logs"],
   remember: ["Saving to memory", "Saved to memory"],
+  search_emails: ["Searching emails", "Searched emails"],
+  get_email_thread: ["Reading the email thread", "Read the email thread"],
 };
 
 const ENTITY: Record<RecordsUi["entity"], { icon: ReactNode; path?: string }> = {
@@ -34,6 +36,7 @@ const ENTITY: Record<RecordsUi["entity"], { icon: ReactNode; path?: string }> = 
   task: { icon: <CheckSquare className="size-3.5" />, path: "/tasks" },
   activity: { icon: <CalendarRange className="size-3.5" />, path: "/activities" },
   note: { icon: <StickyNote className="size-3.5" /> },
+  email: { icon: <Mail className="size-3.5" /> },
 };
 
 export function Spark({ className }: { className?: string }) {

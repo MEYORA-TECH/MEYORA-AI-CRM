@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { ArrowRightLeft, CalendarClock, CheckSquare, Mail, MessageSquareText, Phone, Sparkles, StickyNote, Users } from "lucide-react";
 import type { ReactNode } from "react";
 
@@ -19,12 +20,14 @@ const ICONS: Record<string, ReactNode> = {
 };
 
 function iconFor(item: TimelineItem) {
+  if (item.kind === "email") return ICONS.email;
   if (item.kind === "note") return ICONS.note;
   if (item.kind === "task") return ICONS.task;
   return ICONS[item.type ?? ""] ?? <MessageSquareText className="size-3.5" />;
 }
 
 function caption(item: TimelineItem) {
+  if (item.kind === "email") return item.type === "sent" ? "Email sent" : "Email received";
   if (item.kind === "task") return `Task · ${label(item.status)}`;
   if (item.kind === "note") return "Note";
   return item.status === "planned" ? `${label(item.type)} · planned` : label(item.type);
@@ -62,14 +65,18 @@ export function Timeline({ entity, id }: { entity: "companies" | "contacts" | "l
           <span
             className={cn(
               "relative z-10 mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-full border border-[var(--glass-edge)]",
-              item.type === "stage_change" ? "bg-tint-violet" : item.kind === "note" ? "bg-tint-amber" : item.kind === "task" ? "bg-tint-sky" : "bg-jade-soft text-jade",
+              item.type === "stage_change" ? "bg-tint-violet" : item.kind === "email" ? "bg-tint-sky" : item.kind === "note" ? "bg-tint-amber" : item.kind === "task" ? "bg-tint-sky" : "bg-jade-soft text-jade",
             )}
           >
             {iconFor(item)}
           </span>
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-baseline justify-between gap-x-3">
-              <p className="text-sm font-semibold text-ink">{item.title}</p>
+              {item.kind === "email" ? (
+                <Link to={`/emails/${item.id}`} className="text-sm font-semibold text-ink hover:text-jade hover:underline">{item.title}</Link>
+              ) : (
+                <p className="text-sm font-semibold text-ink">{item.title}</p>
+              )}
               <time className="font-mono text-[11px] text-ink-3" dateTime={item.at} title={dateTime(item.at)}>
                 {relative(item.at)}
               </time>
