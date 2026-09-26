@@ -25,7 +25,13 @@ export interface MemoryUi {
   scope: string;
 }
 
-export type ToolUi = RecordsUi | MemoryUi;
+export interface WebUi {
+  kind: "web";
+  title: string;
+  rows: { ref: string; title: string; url: string; domain: string; snippet: string; published?: string | null }[];
+}
+
+export type ToolUi = RecordsUi | MemoryUi | WebUi;
 
 export interface UsedMemory {
   id: string;

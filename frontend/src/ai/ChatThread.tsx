@@ -1,4 +1,4 @@
-import { ArrowUp, Brain, Mail, Building2, CheckSquare, ChevronDown, Handshake, Loader2, Magnet, Square, StickyNote, UserRound, CalendarRange, Sparkles } from "lucide-react";
+import { ArrowUp, Brain, ExternalLink, Globe, Mail, Building2, CheckSquare, ChevronDown, Handshake, Loader2, Magnet, Square, StickyNote, UserRound, CalendarRange, Sparkles } from "lucide-react";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import Markdown from "react-markdown";
 import { Link } from "react-router-dom";
@@ -26,6 +26,9 @@ const TOOL_LABEL: Record<string, [string, string]> = {
   remember: ["Saving to memory", "Saved to memory"],
   search_emails: ["Searching emails", "Searched emails"],
   get_email_thread: ["Reading the email thread", "Read the email thread"],
+  web_search: ["Searching the web", "Searched the web"],
+  research_company: ["Researching on the web", "Researched on the web"],
+  research_lead: ["Researching on the web", "Researched on the web"],
 };
 
 const ENTITY: Record<RecordsUi["entity"], { icon: ReactNode; path?: string }> = {
@@ -51,6 +54,35 @@ export function Spark({ className }: { className?: string }) {
 
 function ToolStep({ item, compact }: { item: ChatItem; compact?: boolean }) {
   const [label, done] = TOOL_LABEL[item.toolName ?? ""] ?? ["Looking up the CRM", "Looked up the CRM"];
+  if (item.ui?.kind === "web") {
+    const w = item.ui;
+    return (
+      <div className="text-xs">
+        <div className="flex items-center gap-2 text-ink-3">
+          <Globe className="size-3.5" />
+          <span className="font-semibold">{done}</span>
+          <span className="num">· {w.rows.length} source{w.rows.length === 1 ? "" : "s"}</span>
+          <Badge tint="amber" className="h-5 px-2 text-[10px]">Web · unverified</Badge>
+        </div>
+        {w.rows.length ? (
+          <ul className={cn("glass-dense mt-1.5 divide-y divide-[var(--line)] overflow-hidden rounded-xl", compact && "max-h-56 overflow-y-auto")}>
+            {w.rows.map((r) => (
+              <li key={r.ref}>
+                <a href={r.url} target="_blank" rel="noreferrer noopener" className="focus-ring flex items-start gap-2.5 px-3 py-2 hover:bg-[var(--glass-2)]">
+                  <span className="num mt-0.5 w-6 shrink-0 font-mono text-[10px] text-ink-3">{r.ref}</span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-[13px] font-semibold text-ink">{r.title}</span>
+                    <span className="block truncate text-[11px] text-ink-3">{r.domain}{r.published ? ` · ${r.published.slice(0, 10)}` : ""} · {r.snippet}</span>
+                  </span>
+                  <ExternalLink className="mt-0.5 size-3 shrink-0 text-ink-3" />
+                </a>
+              </li>
+            ))}
+          </ul>
+        ) : null}
+      </div>
+    );
+  }
   if (item.ui?.kind === "memory") {
     const m = item.ui;
     return (
@@ -134,7 +166,11 @@ function UsedMemories({ items }: { items: NonNullable<ChatItem["memories"]> }) {
   );
 }
 
-function AssistantText({ item }: { item: ChatItem }) {
+function withCitations(text: string, sources: Map<string, string>) {
+  return text.replace(/\[(w\d+)\]/g, (m, ref) => (sources.has(ref) ? `[[${ref}]](${sources.get(ref)})` : m));
+}
+
+function AssistantText({ item, sources }: { item: ChatItem; sources: Map<string, string> }) {
   if (item.error) {
     return <p role="alert" className="rounded-xl bg-danger-soft px-3 py-2 text-sm font-medium text-danger">{item.error}</p>;
   }
@@ -153,7 +189,7 @@ function AssistantText({ item }: { item: ChatItem }) {
             : <span>{children}</span>,
         }}
       >
-        {item.content}
+        {withCitations(item.content, sources)}
       </Markdown>
       {item.pending ? <span className="ml-0.5 inline-block h-4 w-1.5 animate-pulse rounded-sm bg-jade align-middle" /> : null}
     </div>
@@ -162,6 +198,8 @@ function AssistantText({ item }: { item: ChatItem }) {
 
 export function Messages({ items, compact }: { items: ChatItem[]; compact?: boolean }) {
   const end = useRef<HTMLDivElement>(null);
+  const sources = new Map<string, string>();
+  for (const i of items) if (i.ui?.kind === "web") for (const r of i.ui.rows) sources.set(r.ref, r.url);
   useEffect(() => end.current?.scrollIntoView({ block: "end" }), [items]);
   return (
     <div className="flex flex-col gap-4" aria-live="polite">
@@ -177,7 +215,7 @@ export function Messages({ items, compact }: { items: ChatItem[]; compact?: bool
             <Spark className="mt-0.5 size-6 shrink-0" />
             <div className="min-w-0 flex-1">
               {item.memories?.length ? <UsedMemories items={item.memories} /> : null}
-              <AssistantText item={item} />
+              <AssistantText item={item} sources={sources} />
             </div>
           </div>
         ),

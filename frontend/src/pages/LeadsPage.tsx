@@ -8,6 +8,7 @@ import { ListPage } from "@/components/data/ListPage";
 import { Facts, RecordPage } from "@/components/data/RecordPage";
 import { LogActivityButton, NotesPanel, TasksPanel } from "@/components/data/Related";
 import { Timeline } from "@/components/data/Timeline";
+import { WebResearchPanel } from "@/research/WebResearchPanel";
 import { Modal } from "@/components/ui/overlay";
 import { Badge, Button, Field, Input, Select } from "@/components/ui/primitives";
 import { leads, useConvertLead, usePipelines } from "@/hooks/resources";
@@ -218,6 +219,7 @@ export function LeadDetailPage() {
         { value: "timeline", label: "Timeline", content: <Timeline entity="leads" id={l.id} /> },
         { value: "tasks", label: "Tasks", content: <TasksPanel field="lead_id" id={l.id} /> },
         { value: "notes", label: "Notes", content: <NotesPanel field="lead_id" id={l.id} /> },
+        { value: "web", label: "Web research", content: <WebResearchPanel kind="leads" id={l.id} /> },
       ]}
     />
   );

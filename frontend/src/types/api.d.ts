@@ -916,6 +916,61 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/web/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Web Status */
+        get: operations["web_status_api_web_status_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/research/{kind}/{entity_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Briefs */
+        get: operations["list_briefs_api_research__kind___entity_id__get"];
+        put?: never;
+        /** Create Brief */
+        post: operations["create_brief_api_research__kind___entity_id__post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/research/briefs/{brief_id}/save-note": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Save Brief As Note
+         * @description A person decides this web research belongs in the CRM; it becomes a note with its sources.
+         */
+        post: operations["save_brief_as_note_api_research_briefs__brief_id__save_note_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -1094,6 +1149,38 @@ export interface components {
             pipeline_id: string;
             /** Columns */
             columns: components["schemas"]["BoardColumn"][];
+        };
+        /** BriefOut */
+        BriefOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Entity Type */
+            entity_type: string;
+            /**
+             * Entity Id
+             * Format: uuid
+             */
+            entity_id: string;
+            /** Content */
+            content: string;
+            /** Sources */
+            sources: {
+                [key: string]: unknown;
+            }[];
+            /** Provider */
+            provider: string;
+            /** Model */
+            model: string;
+            /** Created By Id */
+            created_by_id: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
         };
         /** ChatIn */
         ChatIn: {
@@ -2562,6 +2649,15 @@ export interface components {
             input?: unknown;
             /** Context */
             ctx?: Record<string, never>;
+        };
+        /** WebStatus */
+        WebStatus: {
+            /** Enabled */
+            enabled: boolean;
+            /** Used This Month */
+            used_this_month: number;
+            /** Monthly Limit */
+            monthly_limit: number;
         };
         /** MessageOut */
         app__api__ai__MessageOut: {
@@ -5106,6 +5202,121 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ThreadDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    web_status_api_web_status_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WebStatus"];
+                };
+            };
+        };
+    };
+    list_briefs_api_research__kind___entity_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                kind: "companies" | "leads";
+                entity_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BriefOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_brief_api_research__kind___entity_id__post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                kind: "companies" | "leads";
+                entity_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BriefOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    save_brief_as_note_api_research_briefs__brief_id__save_note_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                brief_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
                 };
             };
             /** @description Validation Error */
