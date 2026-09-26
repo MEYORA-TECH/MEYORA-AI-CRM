@@ -15,6 +15,7 @@ from app.ai.providers.base import (
     Completion,
     ProviderError,
     ProviderRateLimited,
+    ProviderToolCallInvalid,
     TextDelta,
     ToolCall,
     Usage,
@@ -27,7 +28,9 @@ log = get_logger("ai.agent")
 
 # Short provider waits (e.g. Groq "retry in 4s") are absorbed instead of failing the answer.
 MAX_SHORT_WAITS = 2
-MAX_WAIT_SECONDS = 15.0
+MAX_WAIT_SECONDS = 35.0  # Groq free tier: 8K tokens/minute; one multi-step answer can need a pause
+# The provider sometimes rejects the model's own tool call (missing argument); one retry usually fixes it.
+MAX_TOOL_CALL_RETRIES = 1
 
 
 @dataclass
@@ -80,13 +83,15 @@ async def run_turn(
         pool = [record.provider] if record.provider else candidates
         for entry in pool:
             failure: ProviderError | None = None
-            for attempt in range(MAX_SHORT_WAITS + 1):
+            hint: ChatMessage | None = None
+            waits = tool_retries = 0
+            while True:
                 started = time.perf_counter()
                 call_streamed = False
                 try:
                     async for event in entry.provider.stream_chat(
                         model=entry.chat_model,
-                        messages=messages,
+                        messages=messages + [hint] if hint else messages,
                         tools=specs,
                         tool_choice="none" if last_call else "auto",
                         max_tokens=max_output_tokens,
@@ -112,6 +117,18 @@ async def run_turn(
                         )
                     )
                     log.warning("ai_provider_failed", provider=entry.id, status=exc.status, error=exc.message)
+                    if (
+                        isinstance(exc, ProviderToolCallInvalid)
+                        and not call_streamed
+                        and tool_retries < MAX_TOOL_CALL_RETRIES
+                    ):
+                        tool_retries += 1
+                        hint = ChatMessage(
+                            role="system",
+                            content=f"Your last tool call was rejected: {exc.detail[:200]}. "
+                            "Call the tool again with every required argument filled in.",
+                        )
+                        continue
                     # Free tiers limit tokens per minute; a short pause mid-answer is better than failing it.
                     wait = exc.retry_after if isinstance(exc, ProviderRateLimited) else None
                     # Only wait if there's nobody better: a pinned provider mid-answer, or the last candidate.
@@ -121,8 +138,9 @@ async def run_turn(
                         and wait <= MAX_WAIT_SECONDS
                         and no_alternative
                         and not call_streamed
-                        and attempt < MAX_SHORT_WAITS
+                        and waits < MAX_SHORT_WAITS
                     ):
+                        waits += 1
                         yield {
                             "type": "status",
                             "message": f"Waiting {int(wait) + 1}s for the AI provider's free-tier limit…",

@@ -12,6 +12,7 @@ from app.ai.providers.base import (
     ChatMessage,
     Completion,
     ProviderRateLimited,
+    ProviderToolCallInvalid,
     TextDelta,
     ToolCall,
     Usage,
@@ -222,10 +223,10 @@ async def test_fails_over_before_any_text_is_shown(owner, use_pool):
 
 
 async def test_rate_limit_with_no_backup_reports_clearly(owner, use_pool):
-    use_pool(entry(ScriptedProvider("groq", [ProviderRateLimited(30)])))
+    use_pool(entry(ScriptedProvider("groq", [ProviderRateLimited(60)])))  # too long to wait out
     events = await chat(owner, "hello")
     error = next(d for k, d in events if k == "error")
-    assert "free-tier limit" in error["message"] and "31s" in error["message"]
+    assert "free-tier limit" in error["message"] and "61s" in error["message"]
 
 
 async def test_not_configured_and_quota(owner, use_pool, monkeypatch):
@@ -281,6 +282,34 @@ async def test_short_rate_limit_mid_answer_is_waited_out(owner, use_pool):
     assert status and "free-tier limit" in status[0]["message"]
     assert events[-1][0] == "done" and not any(k == "error" for k, _ in events)
     assert "".join(d["text"] for k, d in events if k == "token") == "Done after waiting."
+
+
+async def test_rejected_tool_call_is_retried_with_a_hint(owner, use_pool):
+    await owner.post("/api/deals", {"name": "ABC deal"})
+    rejected = ProviderToolCallInvalid("parameters for tool create_task did not match schema: missing properties: 'title'")
+    provider = ScriptedProvider("groq", [tool_turn("search_deals", {}), rejected,
+                                         tool_turn("create_task", {"title": "Call Ravi", "about_ref": "d1"}), text_turn("Proposed.")])
+    use_pool(entry(provider))
+    events = await chat(owner, "Create a task to call Ravi about the ABC deal")
+    assert not any(k == "error" for k, _ in events)
+    assert any(k == "tool_result" and d["ui"] and d["ui"].get("kind") == "action" for k, d in events)
+    hint = provider.requests[2]["messages"][-1]
+    assert hint.role == "system" and "'title'" in hint.content
+    assert all(m.role != "system" or "rejected" not in (m.content or "") for m in provider.requests[3]["messages"])
+
+
+async def test_groq_tool_rejection_is_recognised():
+    def in_stream(_):
+        return httpx.Response(200, text='data: {"error": {"message": "tool call validation failed: missing title", "code": "tool_use_failed"}}\n\n')
+
+    def as_400(_):
+        return httpx.Response(400, json={"error": {"message": "Failed to call a function.", "code": "tool_use_failed"}})
+
+    for handler in (in_stream, as_400):
+        p = OpenAICompatibleProvider(id="t", base_url="https://x.test/v1", api_key="k", transport=httpx.MockTransport(handler))
+        with pytest.raises(ProviderToolCallInvalid):
+            async for _ in p.stream_chat(model="m", messages=[], tools=[], max_tokens=10):
+                pass
 
 
 async def test_unexpected_error_mid_turn_is_reported_not_crashed(owner, use_pool):

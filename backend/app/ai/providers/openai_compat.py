@@ -13,10 +13,12 @@ from app.ai.providers.base import (
     ProviderError,
     ProviderEvent,
     ProviderRateLimited,
+    ProviderToolCallInvalid,
     TextDelta,
     ToolCall,
     ToolSpec,
     Usage,
+    _is_tool_call_rejection,
 )
 
 
@@ -44,6 +46,13 @@ def _seconds(value: str) -> float | None:
         return None
     minutes, seconds = match.groups()
     return float(minutes or 0) * 60 + float(seconds or 0)
+
+
+def _error_message(body: str) -> str:
+    try:
+        return str(json.loads(body)["error"]["message"])
+    except (ValueError, KeyError, TypeError):
+        return body[:300]
 
 
 def _retry_after(resp: httpx.Response) -> float | None:
@@ -125,7 +134,9 @@ class OpenAICompatibleProvider:
                     if resp.status_code == 429:
                         raise ProviderRateLimited(_retry_after(resp))
                     if resp.status_code >= 400:
-                        detail = (await resp.aread()).decode(errors="replace")[:300]
+                        detail = (await resp.aread()).decode(errors="replace")[:600]
+                        if _is_tool_call_rejection(None, detail):
+                            raise ProviderToolCallInvalid(_error_message(detail))
                         raise ProviderError(
                             f"The AI provider returned an error ({resp.status_code}).", status=resp.status_code
                         ) from RuntimeError(detail)
@@ -145,6 +156,8 @@ class OpenAICompatibleProvider:
                             # Errors can arrive inside a 200 stream (e.g. a malformed tool call).
                             detail = err.get("message") if isinstance(err, dict) else str(err)
                             code = err.get("code") if isinstance(err, dict) else None
+                            if _is_tool_call_rejection(code, detail or ""):
+                                raise ProviderToolCallInvalid(detail or "invalid tool call")
                             raise ProviderError(
                                 f"The AI provider stopped with an error: {detail}"[:300]
                             ) from RuntimeError(code)

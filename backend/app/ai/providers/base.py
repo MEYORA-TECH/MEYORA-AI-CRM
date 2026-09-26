@@ -70,6 +70,22 @@ class ProviderRateLimited(ProviderError):
         self.retry_after = retry_after
 
 
+class ProviderToolCallInvalid(ProviderError):
+    """The provider rejected the model's own tool call (e.g. a required argument was missing).
+
+    Sampling differs per attempt, so asking again usually works.
+    """
+
+    def __init__(self, detail: str):
+        super().__init__(f"The AI provider stopped with an error: {detail}"[:300], status=400)
+        self.detail = detail
+
+
+def _is_tool_call_rejection(code: str | None, detail: str) -> bool:
+    text = detail.lower()
+    return code == "tool_use_failed" or "tool_use_failed" in text or "tool call validation failed" in text
+
+
 class AIProvider(Protocol):
     id: str
 
