@@ -282,4 +282,5 @@ RLS_TABLES = [
     "web_search_logs",
     "research_briefs",
     "ai_actions",
+    "organization_api_keys",
 ]

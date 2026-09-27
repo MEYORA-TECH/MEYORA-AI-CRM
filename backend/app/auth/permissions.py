@@ -19,13 +19,14 @@ class Perm(StrEnum):
     MEMBERS_MANAGE = "members:manage"
     ORG_MANAGE = "org:manage"
     ORG_DELETE = "org:delete"
+    ORG_SECRETS = "org:secrets"  # API keys: owner only
     AUDIT_READ = "audit:read"
 
 
 _MEMBER = {Perm.CRM_READ, Perm.CRM_WRITE, Perm.MEMBERS_READ}
 _MANAGER = _MEMBER | {Perm.CRM_DELETE, Perm.PIPELINES_MANAGE}
 _ADMIN = _MANAGER | {Perm.MEMBERS_MANAGE, Perm.ORG_MANAGE, Perm.AUDIT_READ}
-_OWNER = _ADMIN | {Perm.ORG_DELETE}
+_OWNER = _ADMIN | {Perm.ORG_DELETE, Perm.ORG_SECRETS}
 
 ROLE_PERMISSIONS: dict[Role, frozenset[Perm]] = {
     Role.MEMBER: frozenset(_MEMBER),

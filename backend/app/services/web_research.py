@@ -28,13 +28,16 @@ class WebBudgetExceeded(AppError):
     code = "web_budget"
 
 
-def provider():
-    key = get_settings().tavily_api_key
-    return TavilyProvider(key.get_secret_value()) if key and key.get_secret_value().strip() else None
+async def provider(session: AsyncSession, organization_id: uuid.UUID) -> TavilyProvider | None:
+    """The organisation's own Tavily key, else the server's."""
+    from app.services import api_keys
+
+    key = await api_keys.resolve(session, organization_id, "tavily")
+    return TavilyProvider(key) if key else None
 
 
-def is_enabled() -> bool:
-    return provider() is not None
+async def is_enabled(session: AsyncSession, organization_id: uuid.UUID) -> bool:
+    return await provider(session, organization_id) is not None
 
 
 def _month_start() -> datetime:
@@ -68,9 +71,9 @@ async def search(
 ) -> tuple[list[WebResult], bool]:
     """Returns (results, cached). Raises WebUnavailable / WebBudgetExceeded with a user-facing message."""
     s = get_settings()
-    engine = provider()
+    engine = await provider(session, organization_id)
     if engine is None:
-        raise WebUnavailable("Web search isn't set up. An admin needs to add a TAVILY_API_KEY.")
+        raise WebUnavailable("Web search isn't set up. The workspace owner can add a Tavily key in Settings → API keys.")
     query = " ".join(query.split())[:400]
     if len(query) < 2:
         raise ValidationFailed("Search for at least two characters.")

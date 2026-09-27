@@ -164,11 +164,13 @@ async def chat_stream(req: ChatRequest) -> AsyncIterator[str]:
             permissions=permissions_for(membership.role),
         )
 
-        if not registry.is_configured():
+        providers = await registry.pool_for(session, req.organization_id)
+        if not registry.is_configured(providers):
             yield sse(
                 "error",
                 {
-                    "message": "The assistant isn't set up yet. An admin needs to add an AI provider key.",
+                    "message": "The assistant isn't set up yet. "
+                    "The workspace owner can add a Groq key in Settings → API keys.",
                     "code": "not_configured",
                 },
             )
@@ -246,7 +248,7 @@ async def chat_stream(req: ChatRequest) -> AsyncIterator[str]:
         messages = _fit(system, history, current, tool_tokens, settings.ai_request_token_budget)
 
         try:
-            candidates = registry.route("crm", prefer=conv.provider)
+            candidates = registry.route("crm", prefer=conv.provider, entries=providers)
         except registry.NoProviderAvailable as exc:
             yield sse("error", {"message": str(exc), "code": "not_configured"})
             return

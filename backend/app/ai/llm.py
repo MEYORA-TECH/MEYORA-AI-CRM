@@ -41,7 +41,7 @@ async def complete(
     `data_class` decides which providers may see the prompt (see registry.route).
     """
     try:
-        candidates = registry.route(data_class)
+        candidates = registry.route(data_class, entries=await registry.pool_for(session, organization_id))
     except registry.NoProviderAvailable as exc:
         raise JobDeferred("no AI provider configured") from exc
 

@@ -45,7 +45,7 @@ async def _entity(ctx: TenantContext, kind: Kind, entity_id: uuid.UUID):
 @router.get("/web/status", response_model=WebStatus)
 async def web_status(ctx: TenantContext = Depends(require(Perm.CRM_READ))):
     return WebStatus(
-        enabled=web_research.is_enabled(),
+        enabled=await web_research.is_enabled(ctx.session, ctx.organization_id),
         used_this_month=await web_research.usage(ctx.session, ctx.organization_id),
         monthly_limit=get_settings().web_search_monthly_limit,
     )

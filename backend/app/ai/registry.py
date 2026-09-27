@@ -7,11 +7,15 @@ Every AI request declares what it carries:
 `route()` is the only way to obtain a provider, so the guardrail cannot be bypassed.
 """
 
+import hashlib
 import json
 import os
+import uuid
 from dataclasses import dataclass, field
 from functools import lru_cache
 from typing import Any, Literal
+
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.ai.providers.base import AIProvider
 from app.ai.providers.openai_compat import OpenAICompatibleProvider
@@ -51,11 +55,13 @@ def _secret(value) -> str:
     return value.get_secret_value().strip() if value else ""
 
 
-def _build_pool() -> list[ProviderEntry]:
+def _build_pool(keys: dict[str, str] | None = None) -> list[ProviderEntry]:
+    """Providers from an organisation's own keys, falling back to the server's."""
     s = get_settings()
+    keys = keys or {}
     pool: list[ProviderEntry] = []
 
-    if groq_key := _secret(s.groq_api_key):
+    if groq_key := keys.get("groq") or _secret(s.groq_api_key):
         pool.append(
             ProviderEntry(
                 id="groq",
@@ -72,7 +78,7 @@ def _build_pool() -> list[ProviderEntry]:
             )
         )
 
-    if (openrouter_key := _secret(s.openrouter_api_key)) and s.openrouter_chat_model:
+    if (openrouter_key := keys.get("openrouter") or _secret(s.openrouter_api_key)) and s.openrouter_chat_model:
         # Only providers that don't collect prompts, so CRM data may use it.
         pool.append(
             ProviderEntry(
@@ -92,7 +98,7 @@ def _build_pool() -> list[ProviderEntry]:
             )
         )
 
-    if gemini_key := _secret(s.gemini_api_key):
+    if gemini_key := keys.get("gemini") or _secret(s.gemini_api_key):
         # Free tier may use prompts to improve Google's products: public data only, by design.
         pool.append(
             ProviderEntry(
@@ -143,6 +149,25 @@ def pool() -> list[ProviderEntry]:
     return entries
 
 
+_org_pools: dict[tuple[uuid.UUID, str], list[ProviderEntry]] = {}
+
+
+async def pool_for(session: AsyncSession, organization_id: uuid.UUID) -> list[ProviderEntry]:
+    """The pool for one organisation: its own keys where set, the server's otherwise."""
+    from app.services import api_keys  # avoid an import cycle
+
+    keys = {k: v for k, v in (await api_keys.load(session, organization_id)).items() if k != "tavily"}
+    if not keys:
+        return pool()
+    fingerprint = hashlib.sha256(json.dumps(keys, sort_keys=True).encode()).hexdigest()
+    cached = _org_pools.get((organization_id, fingerprint))
+    if cached is None:
+        for stale in [k for k in _org_pools if k[0] == organization_id]:
+            del _org_pools[stale]
+        cached = _org_pools[(organization_id, fingerprint)] = _build_pool(keys)
+    return cached
+
+
 def route(
     data_class: DataClass, *, prefer: str | None = None, entries: list[ProviderEntry] | None = None
 ) -> list[ProviderEntry]:
@@ -157,5 +182,5 @@ def route(
     return allowed
 
 
-def is_configured() -> bool:
-    return any(p.privacy == "trusted" for p in pool())
+def is_configured(entries: list[ProviderEntry] | None = None) -> bool:
+    return any(p.privacy == "trusted" for p in (entries if entries is not None else pool()))

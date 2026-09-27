@@ -68,9 +68,10 @@ class StatusOut(OutputModel):
 
 @router.get("/status", response_model=StatusOut)
 async def ai_status(ctx: TenantContext = Depends(use_ai)):
+    providers = await registry.pool_for(ctx.session, ctx.organization_id)
     return StatusOut(
-        configured=registry.is_configured(),
-        providers=[p.label for p in registry.pool() if p.privacy == "trusted"],
+        configured=registry.is_configured(providers),
+        providers=[p.label for p in providers if p.privacy == "trusted"],
         used_today=await tokens_used_today(ctx.session, ctx.organization_id, ctx.user_id),
         quota=get_settings().ai_daily_token_quota,
     )
