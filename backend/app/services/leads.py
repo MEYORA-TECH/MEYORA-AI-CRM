@@ -1,13 +1,39 @@
+import uuid
 from datetime import UTC, datetime
+
+from sqlalchemy import func, select
 
 from app.auth.deps import TenantContext
 from app.core.errors import Conflict, ValidationFailed
-from app.models import Activity, Lead
+from app.models import Activity, Company, Contact, Lead
 from app.models.enums import ActivityType, LeadStatus
 from app.schemas.crm import LeadConvertIn
 from app.services import deals, records
 from app.services.audit import audit
 from app.services.crud import check_refs
+
+
+async def _existing_company(ctx: TenantContext, name: str) -> uuid.UUID | None:
+    """A live company with this exact name (case-insensitive), so converting doesn't duplicate it."""
+    return await ctx.session.scalar(
+        select(Company.id)
+        .where(Company.organization_id == ctx.organization_id, Company.deleted_at.is_(None),
+               func.lower(Company.name) == name.strip().lower())
+        .order_by(Company.created_at)
+        .limit(1)
+    )
+
+
+async def _existing_contact(ctx: TenantContext, email: str | None) -> uuid.UUID | None:
+    if not email:
+        return None
+    return await ctx.session.scalar(
+        select(Contact.id)
+        .where(Contact.organization_id == ctx.organization_id, Contact.deleted_at.is_(None),
+               func.lower(Contact.email) == email.strip().lower())
+        .order_by(Contact.created_at)
+        .limit(1)
+    )
 
 
 def _split_name(name: str) -> tuple[str, str | None]:
@@ -26,6 +52,8 @@ async def convert(ctx: TenantContext, lead: Lead, opts: LeadConvertIn) -> tuple[
     if company_id:
         await check_refs(ctx, {"company_id": company_id})
     elif opts.create_company and lead.company_name:
+        company_id = await _existing_company(ctx, lead.company_name)
+    if opts.create_company and lead.company_name and company_id is None:
         company = await records.companies(ctx).create(
             {
                 "name": lead.company_name,
@@ -37,7 +65,11 @@ async def convert(ctx: TenantContext, lead: Lead, opts: LeadConvertIn) -> tuple[
         company_id = company.id
 
     contact_id = None
-    if opts.create_contact:
+    # A lead named after its company has no person to turn into a contact.
+    has_person = lead.name.strip().lower() != (lead.company_name or "").strip().lower()
+    if opts.create_contact and has_person:
+        contact_id = await _existing_contact(ctx, lead.email)
+    if opts.create_contact and has_person and contact_id is None:
         first, last = _split_name(lead.name)
         contact = await records.contacts(ctx).create(
             {

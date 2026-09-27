@@ -66,6 +66,22 @@ async def test_lead_conversion(owner):
     assert (await owner.patch(f"/api/leads/{other['id']}", {"status": "converted"})).status_code == 422
 
 
+async def test_conversion_reuses_existing_company_and_contact(owner):
+    company = (await owner.post("/api/companies", {"name": "Flow Well Castings"})).json()
+    contact = (await owner.post("/api/contacts", {"first_name": "Anand", "email": "anand@flowwell.in", "company_id": company["id"]})).json()
+    lead = (await owner.post("/api/leads", {"name": "Anand R", "company_name": "flow well castings", "email": "Anand@flowwell.in"})).json()
+    result = (await owner.post(f"/api/leads/{lead['id']}/convert", {"create_deal": False})).json()
+    assert (result["company_id"], result["contact_id"]) == (company["id"], contact["id"])
+    assert (await owner.get("/api/companies")).json()["total"] == 1
+    assert (await owner.get("/api/contacts")).json()["total"] == 1
+
+    # A company-only lead (imported prospect) links the company and creates no contact.
+    only = (await owner.post("/api/leads", {"name": "Flow Well Castings", "company_name": "Flow Well Castings"})).json()
+    result = (await owner.post(f"/api/leads/{only['id']}/convert", {})).json()
+    assert result["company_id"] == company["id"] and result["contact_id"] is None and result["deal_id"]
+    assert (await owner.get("/api/contacts")).json()["total"] == 1
+
+
 async def test_deal_stage_changes(owner):
     stages = await _stages(owner)
     deal = (await owner.post("/api/deals", {"name": "Fleet tracking", "amount": 150000})).json()

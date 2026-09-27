@@ -83,6 +83,8 @@ function ConvertDialog({ lead, open, onOpenChange }: { lead: Lead; open: boolean
   const openStages = pipeline?.stages.filter((s) => s.kind === "open") ?? [];
   const [createCompany, setCreateCompany] = useState(Boolean(lead.company_name));
   const [createDeal, setCreateDeal] = useState(true);
+  // Imported prospects are named after their company: there's no person to add yet.
+  const companyOnly = lead.name.trim().toLowerCase() === (lead.company_name ?? "").trim().toLowerCase();
   const [dealName, setDealName] = useState(`${lead.company_name || lead.name} deal`);
   const [amount, setAmount] = useState("");
   const [stageId, setStageId] = useState("");
@@ -102,7 +104,7 @@ function ConvertDialog({ lead, open, onOpenChange }: { lead: Lead; open: boolean
       open={open}
       onOpenChange={onOpenChange}
       title={`Convert ${lead.name}`}
-      description="Creates the records below and marks this lead as converted."
+      description="Links or creates the records below and marks this lead as converted."
       footer={
         <>
           <Button variant="ghost" onClick={() => onOpenChange(false)}>Cancel</Button>
@@ -130,8 +132,9 @@ function ConvertDialog({ lead, open, onOpenChange }: { lead: Lead; open: boolean
       }
     >
       <div className="flex flex-col gap-2.5">
-        {toggle(createCompany, setCreateCompany, "Company", lead.company_name ? `Create “${lead.company_name}”` : "This lead has no company name", !lead.company_name)}
-        {toggle(true, () => undefined, "Contact", `Create ${lead.name} as a contact`, true)}
+        {toggle(createCompany, setCreateCompany, "Company",
+          lead.company_name ? `Link “${lead.company_name}”, or create it if it doesn't exist yet` : "This lead has no company name", !lead.company_name)}
+        {companyOnly ? null : toggle(true, () => undefined, "Contact", `Add ${lead.name} as a contact (reuses one with the same email)`, true)}
         {toggle(createDeal, setCreateDeal, "Deal", "Open a deal in your pipeline")}
         {createDeal ? (
           <div className="grid grid-cols-2 gap-3 pt-2">

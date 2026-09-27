@@ -112,7 +112,10 @@ export function RecordPage<T extends Record<string, any>>({
           </div>
 
           <div className="grid gap-4 lg:grid-cols-[320px_minmax(0,1fr)]">
-            <Card className="h-fit p-5">{summary(row)}</Card>
+            <div className="flex h-fit flex-col gap-4">
+              <Card className="p-5">{summary(row)}</Card>
+              <CustomFields values={row.custom_fields as Record<string, unknown> | undefined} />
+            </div>
             <RecordTabs tabs={tabs(row)} />
           </div>
 
@@ -169,6 +172,30 @@ function RecordTabs({ tabs }: { tabs: RecordTab[] }) {
         </Tabs.Content>
       ))}
     </Tabs.Root>
+  );
+}
+
+/** Extra fields kept with the record (e.g. from a spreadsheet import). */
+function CustomFields({ values }: { values?: Record<string, unknown> }) {
+  const items = Object.entries(values ?? {}).filter(([, v]) => v !== null && v !== undefined && v !== "");
+  if (!items.length) return null;
+  return (
+    <Card className="p-5">
+      <h2 className="mb-3 text-[13px] font-semibold tracking-wide text-ink-3 uppercase">Details</h2>
+      <Facts
+        items={items.map(([label, v]) => {
+          const text = typeof v === "object" ? JSON.stringify(v) : String(v);
+          return {
+            label,
+            value: /^https?:\/\//.test(text) ? (
+              <a href={text} target="_blank" rel="noopener noreferrer" className="text-jade hover:underline">
+                {text.replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, "")}
+              </a>
+            ) : text,
+          };
+        })}
+      />
+    </Card>
   );
 }
 
