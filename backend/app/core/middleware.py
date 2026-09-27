@@ -6,6 +6,7 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 
 from app.core.logging import get_logger
+from app.database.metrics import DbStats, current
 
 log = get_logger("http")
 
@@ -34,9 +35,18 @@ class RequestContextMiddleware(BaseHTTPMiddleware):
         structlog.contextvars.clear_contextvars()
         structlog.contextvars.bind_contextvars(request_id=request_id)
 
+        stats = DbStats()
+        token = current.set(stats)
         start = time.perf_counter()
-        response = await call_next(request)
+        try:
+            response = await call_next(request)
+        finally:
+            current.reset(token)
         elapsed_ms = round((time.perf_counter() - start) * 1000, 1)
+        # Visible in the browser's network panel (Timing tab).
+        response.headers["Server-Timing"] = (
+            f'db;desc="{stats.queries} queries";dur={stats.ms:.1f}, total;dur={elapsed_ms}'
+        )
 
         response.headers["X-Request-ID"] = request_id
         for key, value in SECURITY_HEADERS.items():
@@ -50,5 +60,7 @@ class RequestContextMiddleware(BaseHTTPMiddleware):
             path=request.url.path,
             status=response.status_code,
             duration_ms=elapsed_ms,
+            db_queries=stats.queries,
+            db_ms=round(stats.ms, 1),
         )
         return response

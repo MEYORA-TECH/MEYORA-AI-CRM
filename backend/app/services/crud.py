@@ -11,7 +11,7 @@ from typing import Any, Generic, TypeVar
 
 from fastapi import Query
 from sqlalchemy import Select, func, or_, select
-from sqlalchemy.orm import InstrumentedAttribute, selectinload
+from sqlalchemy.orm import InstrumentedAttribute, RelationshipDirection, joinedload, selectinload
 
 from app.auth.deps import TenantContext
 from app.core.errors import NotFound, ValidationFailed
@@ -71,7 +71,11 @@ class Repo(Generic[M]):
     def base(self) -> Select:
         stmt = select(self.model).where(self.model.organization_id == self.ctx.organization_id)
         for rel in self.load:
-            stmt = stmt.options(selectinload(getattr(self.model, rel)))
+            attr = getattr(self.model, rel)
+            # A single related record (a contact's company, a deal's stage) comes in the same query
+            # via a join; collections need their own query so LIMIT still counts parent rows.
+            many_to_one = attr.property.direction is RelationshipDirection.MANYTOONE
+            stmt = stmt.options(joinedload(attr) if many_to_one else selectinload(attr))
         if self.soft:
             stmt = stmt.where(self.model.deleted_at.is_(None))
         return stmt
@@ -100,11 +104,21 @@ class Repo(Generic[M]):
             pattern = like_pattern(query.q)
             stmt = stmt.where(or_(*[col.ilike(pattern, escape="\\") for col in self.search]))
 
-        total = await self.ctx.session.scalar(select(func.count()).select_from(stmt.subquery()))
-        rows = await self.ctx.session.scalars(
-            stmt.order_by(*self._order(query.sort)).limit(query.page_size).offset((query.page - 1) * query.page_size)
+        # The page and the total in one round trip: count(*) OVER () is computed before LIMIT.
+        paged = (
+            stmt.add_columns(func.count().over().label("_total"))
+            .order_by(*self._order(query.sort))
+            .limit(query.page_size)
+            .offset((query.page - 1) * query.page_size)
         )
-        return list(rows), total or 0
+        rows = (await self.ctx.session.execute(paged)).all()
+        if rows:
+            return [r[0] for r in rows], rows[0][1]
+        if query.page == 1:
+            return [], 0
+        # Past the last page: nothing to show, but the caller still needs the real total.
+        total = await self.ctx.session.scalar(select(func.count()).select_from(stmt.subquery()))
+        return [], total or 0
 
     async def create(self, data: dict[str, Any]) -> M:
         obj = self.model(organization_id=self.ctx.organization_id, **data)

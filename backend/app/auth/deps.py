@@ -4,13 +4,13 @@ from dataclasses import dataclass, field
 import jwt
 from fastapi import Depends, Request
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.auth.permissions import Perm, Role, permissions_for
 from app.auth.security import decode_access_token
 from app.core.errors import Forbidden, Unauthorized
-from app.database.session import get_session, set_tenant
+from app.database.session import get_session
 from app.models import Membership, User
 
 _bearer = HTTPBearer(auto_error=False)
@@ -80,7 +80,6 @@ async def get_current_user(
 async def get_tenant(
     request: Request,
     payload: dict = Depends(token_payload),
-    user: User = Depends(get_current_user),
     session: AsyncSession = Depends(get_session),
 ) -> TenantContext:
     org_claim = payload.get("org")
@@ -88,15 +87,31 @@ async def get_tenant(
         raise Forbidden("Select an organization first")
     organization_id = uuid.UUID(org_claim)
 
-    # Membership is re-checked on every request, so removing a member or
-    # changing a role takes effect immediately, not when the token expires.
-    membership = await session.scalar(
-        select(Membership).where(Membership.organization_id == organization_id, Membership.user_id == user.id)
-    )
-    if membership is None:
-        raise Forbidden("You are not a member of this organization")
+    # Bind the tenant before the first query, so the transaction starts with it set
+    # (one round trip instead of two). Users and memberships aren't RLS tables, and
+    # nothing tenant-scoped is read before membership is confirmed below.
+    session.info["organization_id"] = organization_id
 
-    await set_tenant(session, organization_id)
+    # User, membership and the transaction's tenant setting in one query. Membership is
+    # re-checked on every request, so removing a member or changing a role takes effect
+    # immediately. set_config only runs when a membership row exists.
+    session.info["tenant_set_by_first_query"] = True
+    row = (
+        await session.execute(
+            select(User, Membership, func.set_config("app.org_id", str(organization_id), True))
+            .join(Membership, Membership.user_id == User.id)
+            .where(User.id == uuid.UUID(payload["sub"]), Membership.organization_id == organization_id)
+        )
+    ).first()
+    if row is None:
+        user = await session.get(User, uuid.UUID(payload["sub"]))
+        if user is None or not user.is_active:
+            raise Unauthorized("Invalid or expired token")
+        raise Forbidden("You are not a member of this organization")
+    user, membership, _ = row
+    if not user.is_active:
+        raise Unauthorized("Invalid or expired token")
+
     return TenantContext(
         session=session,
         user=user,
