@@ -25,11 +25,13 @@ from app.models.identity import (
     User,
 )
 from app.models.memory import AIConversationSummary, AIMemory, Job, KnowledgeChunk
+from app.models.platform import PlatformSetting
 from app.models.research import ResearchBrief, WebSearchCache, WebSearchLog
 
 __all__ = [
     "AIAction",
     "OrganizationApiKey",
+    "PlatformSetting",
     "AIConversation",
     "AIMessage",
     "AIUsageLog",

@@ -384,6 +384,75 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/platform/overview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Overview */
+        get: operations["overview_api_platform_overview_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/platform/settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Platform Settings */
+        get: operations["get_platform_settings_api_platform_settings_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/platform/google": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Update Google */
+        put: operations["update_google_api_platform_google_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/platform/keys/{provider}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Set Shared Key */
+        put: operations["set_shared_key_api_platform_keys__provider__put"];
+        post?: never;
+        /** Remove Shared Key */
+        delete: operations["remove_shared_key_api_platform_keys__provider__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/companies": {
         parameters: {
             query?: never;
@@ -1713,6 +1782,16 @@ export interface components {
             upcoming_activities: components["schemas"]["ActivityOut"][];
             insights: components["schemas"]["Insights"];
         };
+        /** DayTokens */
+        DayTokens: {
+            /**
+             * Day
+             * Format: date
+             */
+            day: string;
+            /** Tokens */
+            tokens: number;
+        };
         /** DealCreate */
         DealCreate: {
             /** Tags */
@@ -1873,10 +1952,70 @@ export interface components {
             /** Accounts */
             accounts: components["schemas"]["MailAccountOut"][];
         };
+        /**
+         * GoogleIn
+         * @description Only the fields sent are changed. null clears a saved value (back to the server's).
+         */
+        GoogleIn: {
+            /** Client Id */
+            client_id?: string | null;
+            /** Client Secret */
+            client_secret?: string | null;
+            /** Sign In Enabled */
+            sign_in_enabled?: boolean | null;
+            /** Gmail Enabled */
+            gmail_enabled?: boolean | null;
+        };
+        /** GoogleOut */
+        GoogleOut: {
+            /** Client Id */
+            client_id: string | null;
+            /** Client Id Source */
+            client_id_source: ("saved" | "server") | null;
+            /** Secret Set */
+            secret_set: boolean;
+            /** Secret Last4 */
+            secret_last4: string | null;
+            /** Secret Source */
+            secret_source: ("saved" | "server") | null;
+            /** Sign In Switch */
+            sign_in_switch: boolean;
+            /** Sign In Source */
+            sign_in_source: ("saved" | "server") | null;
+            /** Gmail Switch */
+            gmail_switch: boolean;
+            /** Gmail Source */
+            gmail_source: ("saved" | "server") | null;
+            /** Ready */
+            ready: boolean;
+            /** Sign In Live */
+            sign_in_live: boolean;
+            /** Gmail Live */
+            gmail_live: boolean;
+            /** Redirect Uris */
+            redirect_uris: {
+                [key: string]: string;
+            };
+            /** Javascript Origin */
+            javascript_origin: string;
+        };
         /** HTTPValidationError */
         HTTPValidationError: {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
+        };
+        /** Health */
+        Health: {
+            /** Google Ready */
+            google_ready: boolean;
+            /** Sign In Live */
+            sign_in_live: boolean;
+            /** Gmail Live */
+            gmail_live: boolean;
+            /** Shared Keys */
+            shared_keys: {
+                [key: string]: boolean;
+            };
         };
         /** Insights */
         Insights: {
@@ -1955,6 +2094,11 @@ export interface components {
              * Format: date-time
              */
             created_at: string;
+        };
+        /** KeyIn */
+        KeyIn: {
+            /** Value */
+            value: string;
         };
         /** LeadConvertIn */
         LeadConvertIn: {
@@ -2213,6 +2357,11 @@ export interface components {
             full_name: string;
             /** Avatar Url */
             avatar_url: string | null;
+            /**
+             * Is Platform Admin
+             * @default false
+             */
+            is_platform_admin: boolean;
             /** Memberships */
             memberships: components["schemas"]["MembershipOut"][];
             /** Current Organization Id */
@@ -2419,6 +2568,53 @@ export interface components {
             /** About */
             about?: string | null;
         };
+        /** OverviewOut */
+        OverviewOut: {
+            /**
+             * Generated At
+             * Format: date-time
+             */
+            generated_at: string;
+            /** Environment */
+            environment: string;
+            /** Db Latency Ms */
+            db_latency_ms: number;
+            /** Workspaces */
+            workspaces: number;
+            /** Users */
+            users: number;
+            /** Active Users 7D */
+            active_users_7d: number;
+            /** New Users 30D */
+            new_users_30d: number;
+            /** Ai Tokens Today */
+            ai_tokens_today: number;
+            /** Ai Tokens 30D */
+            ai_tokens_30d: number;
+            /** Ai Daily Quota Per User */
+            ai_daily_quota_per_user: number;
+            /** Web Searches Month */
+            web_searches_month: number;
+            /** Web Monthly Limit Per Workspace */
+            web_monthly_limit_per_workspace: number;
+            /** Mailboxes */
+            mailboxes: number;
+            /** Jobs */
+            jobs: {
+                [key: string]: number;
+            };
+            /** Failed Jobs 24H */
+            failed_jobs_24h: number;
+            /** Daily Tokens */
+            daily_tokens: components["schemas"]["DayTokens"][];
+            /** Providers */
+            providers: components["schemas"]["ProviderTokens"][];
+            /** Workspace List */
+            workspace_list: components["schemas"]["WorkspaceRow"][];
+            /** Recent Users */
+            recent_users: components["schemas"]["RecentUser"][];
+            health: components["schemas"]["Health"];
+        };
         /** PageContext */
         PageContext: {
             /**
@@ -2616,6 +2812,27 @@ export interface components {
             /** Stages */
             stages?: components["schemas"]["StageInput"][] | null;
         };
+        /** ProviderTokens */
+        ProviderTokens: {
+            /** Provider */
+            provider: string;
+            /** Tokens */
+            tokens: number;
+        };
+        /** RecentUser */
+        RecentUser: {
+            /** Email */
+            email: string;
+            /** Full Name */
+            full_name: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Last Login At */
+            last_login_at: string | null;
+        };
         /** RegisterIn */
         RegisterIn: {
             /**
@@ -2640,6 +2857,30 @@ export interface components {
         /** RoleUpdate */
         RoleUpdate: {
             role: components["schemas"]["Role"];
+        };
+        /** SettingsOut */
+        SettingsOut: {
+            google: components["schemas"]["GoogleOut"];
+            /** Keys */
+            keys: components["schemas"]["SharedKeyOut"][];
+        };
+        /** SharedKeyOut */
+        SharedKeyOut: {
+            /**
+             * Provider
+             * @enum {string}
+             */
+            provider: "groq" | "openrouter" | "gemini" | "tavily";
+            /** Label */
+            label: string;
+            /** Used For */
+            used_for: string;
+            /** Get Key Url */
+            get_key_url: string;
+            /** Source */
+            source: ("saved" | "server") | null;
+            /** Last4 */
+            last4: string | null;
         };
         /** StageInput */
         StageInput: {
@@ -2962,6 +3203,41 @@ export interface components {
             meetings: number;
             /** Other */
             other: number;
+        };
+        /** WorkspaceRow */
+        WorkspaceRow: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Name */
+            name: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Members */
+            members: number;
+            /** Companies */
+            companies: number;
+            /** Contacts */
+            contacts: number;
+            /** Leads */
+            leads: number;
+            /** Deals Open */
+            deals_open: number;
+            /** Ai Tokens Today */
+            ai_tokens_today: number;
+            /** Ai Tokens 30D */
+            ai_tokens_30d: number;
+            /** Web Searches Month */
+            web_searches_month: number;
+            /** Mailboxes */
+            mailboxes: number;
+            /** Last Activity At */
+            last_activity_at: string | null;
         };
         /** MessageOut */
         app__api__ai__MessageOut: {
@@ -3775,6 +4051,154 @@ export interface operations {
         };
     };
     remove_key_api_organization_api_keys__provider__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                provider: "groq" | "openrouter" | "gemini" | "tavily";
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    overview_api_platform_overview_get: {
+        parameters: {
+            query?: {
+                tz?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OverviewOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_platform_settings_api_platform_settings_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SettingsOut"];
+                };
+            };
+        };
+    };
+    update_google_api_platform_google_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GoogleIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SettingsOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    set_shared_key_api_platform_keys__provider__put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                provider: "groq" | "openrouter" | "gemini" | "tavily";
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["KeyIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SettingsOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    remove_shared_key_api_platform_keys__provider__delete: {
         parameters: {
             query?: never;
             header?: never;

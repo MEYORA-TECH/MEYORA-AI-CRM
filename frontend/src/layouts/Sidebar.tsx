@@ -2,6 +2,7 @@ import { LayoutGroup, motion } from "motion/react";
 import { NavLink, useLocation } from "react-router-dom";
 
 import { usePrefetchRoute } from "@/hooks/resources";
+import { useAuth } from "@/stores/auth";
 import { cn } from "@/lib/format";
 import { isActive, PRIMARY_NAV, SECONDARY_NAV, type NavItem } from "./nav";
 
@@ -13,6 +14,8 @@ import { isActive, PRIMARY_NAV, SECONDARY_NAV, type NavItem } from "./nav";
 export function Sidebar() {
   const { pathname } = useLocation();
   const prefetch = usePrefetchRoute();
+  const isPlatformAdmin = useAuth((s) => Boolean(s.me?.is_platform_admin));
+  const secondary = SECONDARY_NAV.filter((i) => !i.platformAdmin || isPlatformAdmin);
 
   const renderItem = (item: NavItem) => {
     const active = isActive(pathname, item.to);
@@ -61,7 +64,7 @@ export function Sidebar() {
         <LayoutGroup id="rail">
           <ul className="flex flex-col gap-1">{PRIMARY_NAV.map(renderItem)}</ul>
           <div className="mx-2 my-2 h-px bg-white/10" />
-          <ul className="flex flex-col gap-1">{SECONDARY_NAV.map(renderItem)}</ul>
+          <ul className="flex flex-col gap-1">{secondary.map(renderItem)}</ul>
         </LayoutGroup>
       </nav>
 

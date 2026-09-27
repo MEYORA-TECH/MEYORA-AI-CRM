@@ -1193,6 +1193,234 @@
     }
    }
   },
+  "/api/platform/overview": {
+   "get": {
+    "tags": [
+     "platform"
+    ],
+    "summary": "Overview",
+    "operationId": "overview_api_platform_overview_get",
+    "security": [
+     {
+      "HTTPBearer": []
+     }
+    ],
+    "parameters": [
+     {
+      "name": "tz",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "type": "string",
+       "maxLength": 64,
+       "default": "Asia/Kolkata",
+       "title": "Tz"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/OverviewOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/platform/settings": {
+   "get": {
+    "tags": [
+     "platform"
+    ],
+    "summary": "Get Platform Settings",
+    "operationId": "get_platform_settings_api_platform_settings_get",
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/SettingsOut"
+        }
+       }
+      }
+     }
+    },
+    "security": [
+     {
+      "HTTPBearer": []
+     }
+    ]
+   }
+  },
+  "/api/platform/google": {
+   "put": {
+    "tags": [
+     "platform"
+    ],
+    "summary": "Update Google",
+    "operationId": "update_google_api_platform_google_put",
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/GoogleIn"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/SettingsOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    },
+    "security": [
+     {
+      "HTTPBearer": []
+     }
+    ]
+   }
+  },
+  "/api/platform/keys/{provider}": {
+   "put": {
+    "tags": [
+     "platform"
+    ],
+    "summary": "Set Shared Key",
+    "operationId": "set_shared_key_api_platform_keys__provider__put",
+    "security": [
+     {
+      "HTTPBearer": []
+     }
+    ],
+    "parameters": [
+     {
+      "name": "provider",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "enum": [
+        "groq",
+        "openrouter",
+        "gemini",
+        "tavily"
+       ],
+       "type": "string",
+       "title": "Provider"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/KeyIn"
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/SettingsOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   },
+   "delete": {
+    "tags": [
+     "platform"
+    ],
+    "summary": "Remove Shared Key",
+    "operationId": "remove_shared_key_api_platform_keys__provider__delete",
+    "security": [
+     {
+      "HTTPBearer": []
+     }
+    ],
+    "parameters": [
+     {
+      "name": "provider",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "enum": [
+        "groq",
+        "openrouter",
+        "gemini",
+        "tavily"
+       ],
+       "type": "string",
+       "title": "Provider"
+      }
+     }
+    ],
+    "responses": {
+     "204": {
+      "description": "Successful Response"
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
   "/api/companies": {
    "get": {
     "tags": [
@@ -8021,6 +8249,25 @@
     ],
     "title": "DashboardOut"
    },
+   "DayTokens": {
+    "properties": {
+     "day": {
+      "type": "string",
+      "format": "date",
+      "title": "Day"
+     },
+     "tokens": {
+      "type": "integer",
+      "title": "Tokens"
+     }
+    },
+    "type": "object",
+    "required": [
+     "day",
+     "tokens"
+    ],
+    "title": "DayTokens"
+   },
    "DealCreate": {
     "properties": {
      "tags": {
@@ -8653,6 +8900,199 @@
     ],
     "title": "GmailStatus"
    },
+   "GoogleIn": {
+    "properties": {
+     "client_id": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 200
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Client Id"
+     },
+     "client_secret": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 200
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Client Secret"
+     },
+     "sign_in_enabled": {
+      "anyOf": [
+       {
+        "type": "boolean"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Sign In Enabled"
+     },
+     "gmail_enabled": {
+      "anyOf": [
+       {
+        "type": "boolean"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Gmail Enabled"
+     }
+    },
+    "additionalProperties": false,
+    "type": "object",
+    "title": "GoogleIn",
+    "description": "Only the fields sent are changed. null clears a saved value (back to the server's)."
+   },
+   "GoogleOut": {
+    "properties": {
+     "client_id": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Client Id"
+     },
+     "client_id_source": {
+      "anyOf": [
+       {
+        "type": "string",
+        "enum": [
+         "saved",
+         "server"
+        ]
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Client Id Source"
+     },
+     "secret_set": {
+      "type": "boolean",
+      "title": "Secret Set"
+     },
+     "secret_last4": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Secret Last4"
+     },
+     "secret_source": {
+      "anyOf": [
+       {
+        "type": "string",
+        "enum": [
+         "saved",
+         "server"
+        ]
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Secret Source"
+     },
+     "sign_in_switch": {
+      "type": "boolean",
+      "title": "Sign In Switch"
+     },
+     "sign_in_source": {
+      "anyOf": [
+       {
+        "type": "string",
+        "enum": [
+         "saved",
+         "server"
+        ]
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Sign In Source"
+     },
+     "gmail_switch": {
+      "type": "boolean",
+      "title": "Gmail Switch"
+     },
+     "gmail_source": {
+      "anyOf": [
+       {
+        "type": "string",
+        "enum": [
+         "saved",
+         "server"
+        ]
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Gmail Source"
+     },
+     "ready": {
+      "type": "boolean",
+      "title": "Ready"
+     },
+     "sign_in_live": {
+      "type": "boolean",
+      "title": "Sign In Live"
+     },
+     "gmail_live": {
+      "type": "boolean",
+      "title": "Gmail Live"
+     },
+     "redirect_uris": {
+      "additionalProperties": {
+       "type": "string"
+      },
+      "type": "object",
+      "title": "Redirect Uris"
+     },
+     "javascript_origin": {
+      "type": "string",
+      "title": "Javascript Origin"
+     }
+    },
+    "type": "object",
+    "required": [
+     "client_id",
+     "client_id_source",
+     "secret_set",
+     "secret_last4",
+     "secret_source",
+     "sign_in_switch",
+     "sign_in_source",
+     "gmail_switch",
+     "gmail_source",
+     "ready",
+     "sign_in_live",
+     "gmail_live",
+     "redirect_uris",
+     "javascript_origin"
+    ],
+    "title": "GoogleOut"
+   },
    "HTTPValidationError": {
     "properties": {
      "detail": {
@@ -8665,6 +9105,37 @@
     },
     "type": "object",
     "title": "HTTPValidationError"
+   },
+   "Health": {
+    "properties": {
+     "google_ready": {
+      "type": "boolean",
+      "title": "Google Ready"
+     },
+     "sign_in_live": {
+      "type": "boolean",
+      "title": "Sign In Live"
+     },
+     "gmail_live": {
+      "type": "boolean",
+      "title": "Gmail Live"
+     },
+     "shared_keys": {
+      "additionalProperties": {
+       "type": "boolean"
+      },
+      "type": "object",
+      "title": "Shared Keys"
+     }
+    },
+    "type": "object",
+    "required": [
+     "google_ready",
+     "sign_in_live",
+     "gmail_live",
+     "shared_keys"
+    ],
+    "title": "Health"
    },
    "Insights": {
     "properties": {
@@ -8852,6 +9323,22 @@
      "created_at"
     ],
     "title": "InvitationOut"
+   },
+   "KeyIn": {
+    "properties": {
+     "value": {
+      "type": "string",
+      "maxLength": 400,
+      "minLength": 16,
+      "title": "Value"
+     }
+    },
+    "additionalProperties": false,
+    "type": "object",
+    "required": [
+     "value"
+    ],
+    "title": "KeyIn"
    },
    "LeadConvertIn": {
     "properties": {
@@ -9746,6 +10233,11 @@
       ],
       "title": "Avatar Url"
      },
+     "is_platform_admin": {
+      "type": "boolean",
+      "title": "Is Platform Admin",
+      "default": false
+     },
      "memberships": {
       "items": {
        "$ref": "#/components/schemas/MembershipOut"
@@ -10451,6 +10943,129 @@
     "type": "object",
     "title": "OrganizationUpdate"
    },
+   "OverviewOut": {
+    "properties": {
+     "generated_at": {
+      "type": "string",
+      "format": "date-time",
+      "title": "Generated At"
+     },
+     "environment": {
+      "type": "string",
+      "title": "Environment"
+     },
+     "db_latency_ms": {
+      "type": "integer",
+      "title": "Db Latency Ms"
+     },
+     "workspaces": {
+      "type": "integer",
+      "title": "Workspaces"
+     },
+     "users": {
+      "type": "integer",
+      "title": "Users"
+     },
+     "active_users_7d": {
+      "type": "integer",
+      "title": "Active Users 7D"
+     },
+     "new_users_30d": {
+      "type": "integer",
+      "title": "New Users 30D"
+     },
+     "ai_tokens_today": {
+      "type": "integer",
+      "title": "Ai Tokens Today"
+     },
+     "ai_tokens_30d": {
+      "type": "integer",
+      "title": "Ai Tokens 30D"
+     },
+     "ai_daily_quota_per_user": {
+      "type": "integer",
+      "title": "Ai Daily Quota Per User"
+     },
+     "web_searches_month": {
+      "type": "integer",
+      "title": "Web Searches Month"
+     },
+     "web_monthly_limit_per_workspace": {
+      "type": "integer",
+      "title": "Web Monthly Limit Per Workspace"
+     },
+     "mailboxes": {
+      "type": "integer",
+      "title": "Mailboxes"
+     },
+     "jobs": {
+      "additionalProperties": {
+       "type": "integer"
+      },
+      "type": "object",
+      "title": "Jobs"
+     },
+     "failed_jobs_24h": {
+      "type": "integer",
+      "title": "Failed Jobs 24H"
+     },
+     "daily_tokens": {
+      "items": {
+       "$ref": "#/components/schemas/DayTokens"
+      },
+      "type": "array",
+      "title": "Daily Tokens"
+     },
+     "providers": {
+      "items": {
+       "$ref": "#/components/schemas/ProviderTokens"
+      },
+      "type": "array",
+      "title": "Providers"
+     },
+     "workspace_list": {
+      "items": {
+       "$ref": "#/components/schemas/WorkspaceRow"
+      },
+      "type": "array",
+      "title": "Workspace List"
+     },
+     "recent_users": {
+      "items": {
+       "$ref": "#/components/schemas/RecentUser"
+      },
+      "type": "array",
+      "title": "Recent Users"
+     },
+     "health": {
+      "$ref": "#/components/schemas/Health"
+     }
+    },
+    "type": "object",
+    "required": [
+     "generated_at",
+     "environment",
+     "db_latency_ms",
+     "workspaces",
+     "users",
+     "active_users_7d",
+     "new_users_30d",
+     "ai_tokens_today",
+     "ai_tokens_30d",
+     "ai_daily_quota_per_user",
+     "web_searches_month",
+     "web_monthly_limit_per_workspace",
+     "mailboxes",
+     "jobs",
+     "failed_jobs_24h",
+     "daily_tokens",
+     "providers",
+     "workspace_list",
+     "recent_users",
+     "health"
+    ],
+    "title": "OverviewOut"
+   },
    "PageContext": {
     "properties": {
      "type": {
@@ -11005,6 +11620,61 @@
     "type": "object",
     "title": "PipelineUpdate"
    },
+   "ProviderTokens": {
+    "properties": {
+     "provider": {
+      "type": "string",
+      "title": "Provider"
+     },
+     "tokens": {
+      "type": "integer",
+      "title": "Tokens"
+     }
+    },
+    "type": "object",
+    "required": [
+     "provider",
+     "tokens"
+    ],
+    "title": "ProviderTokens"
+   },
+   "RecentUser": {
+    "properties": {
+     "email": {
+      "type": "string",
+      "title": "Email"
+     },
+     "full_name": {
+      "type": "string",
+      "title": "Full Name"
+     },
+     "created_at": {
+      "type": "string",
+      "format": "date-time",
+      "title": "Created At"
+     },
+     "last_login_at": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "date-time"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Last Login At"
+     }
+    },
+    "type": "object",
+    "required": [
+     "email",
+     "full_name",
+     "created_at",
+     "last_login_at"
+    ],
+    "title": "RecentUser"
+   },
    "RegisterIn": {
     "properties": {
      "email": {
@@ -11081,6 +11751,88 @@
      "role"
     ],
     "title": "RoleUpdate"
+   },
+   "SettingsOut": {
+    "properties": {
+     "google": {
+      "$ref": "#/components/schemas/GoogleOut"
+     },
+     "keys": {
+      "items": {
+       "$ref": "#/components/schemas/SharedKeyOut"
+      },
+      "type": "array",
+      "title": "Keys"
+     }
+    },
+    "type": "object",
+    "required": [
+     "google",
+     "keys"
+    ],
+    "title": "SettingsOut"
+   },
+   "SharedKeyOut": {
+    "properties": {
+     "provider": {
+      "type": "string",
+      "enum": [
+       "groq",
+       "openrouter",
+       "gemini",
+       "tavily"
+      ],
+      "title": "Provider"
+     },
+     "label": {
+      "type": "string",
+      "title": "Label"
+     },
+     "used_for": {
+      "type": "string",
+      "title": "Used For"
+     },
+     "get_key_url": {
+      "type": "string",
+      "title": "Get Key Url"
+     },
+     "source": {
+      "anyOf": [
+       {
+        "type": "string",
+        "enum": [
+         "saved",
+         "server"
+        ]
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Source"
+     },
+     "last4": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Last4"
+     }
+    },
+    "type": "object",
+    "required": [
+     "provider",
+     "label",
+     "used_for",
+     "get_key_url",
+     "source",
+     "last4"
+    ],
+    "title": "SharedKeyOut"
    },
    "StageInput": {
     "properties": {
@@ -12072,6 +12824,89 @@
      "other"
     ],
     "title": "WeekActivity"
+   },
+   "WorkspaceRow": {
+    "properties": {
+     "id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Id"
+     },
+     "name": {
+      "type": "string",
+      "title": "Name"
+     },
+     "created_at": {
+      "type": "string",
+      "format": "date-time",
+      "title": "Created At"
+     },
+     "members": {
+      "type": "integer",
+      "title": "Members"
+     },
+     "companies": {
+      "type": "integer",
+      "title": "Companies"
+     },
+     "contacts": {
+      "type": "integer",
+      "title": "Contacts"
+     },
+     "leads": {
+      "type": "integer",
+      "title": "Leads"
+     },
+     "deals_open": {
+      "type": "integer",
+      "title": "Deals Open"
+     },
+     "ai_tokens_today": {
+      "type": "integer",
+      "title": "Ai Tokens Today"
+     },
+     "ai_tokens_30d": {
+      "type": "integer",
+      "title": "Ai Tokens 30D"
+     },
+     "web_searches_month": {
+      "type": "integer",
+      "title": "Web Searches Month"
+     },
+     "mailboxes": {
+      "type": "integer",
+      "title": "Mailboxes"
+     },
+     "last_activity_at": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "date-time"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Last Activity At"
+     }
+    },
+    "type": "object",
+    "required": [
+     "id",
+     "name",
+     "created_at",
+     "members",
+     "companies",
+     "contacts",
+     "leads",
+     "deals_open",
+     "ai_tokens_today",
+     "ai_tokens_30d",
+     "web_searches_month",
+     "mailboxes",
+     "last_activity_at"
+    ],
+    "title": "WorkspaceRow"
    },
    "app__api__ai__MessageOut": {
     "properties": {

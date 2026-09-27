@@ -22,6 +22,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.config import get_settings
 from app.core.errors import AppError
 from app.models import OAuthState
+from app.services import platform
 
 AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth"
 TOKEN_URL = "https://oauth2.googleapis.com/token"
@@ -77,9 +78,8 @@ async def begin(
     login_hint: str | None = None,
 ) -> str:
     """Store a pending handshake and return the Google URL to send the browser to."""
-    s = get_settings()
-    if not s.google_ready:
-        raise GoogleError("Google isn't configured on this server.")
+    if not platform.google_ready():
+        raise GoogleError("Google isn't set up yet. A platform admin can add it in Platform admin → Google & Gmail.")
     state, verifier, nonce = secrets.token_urlsafe(32), secrets.token_urlsafe(64), secrets.token_urlsafe(16)
     session.add(
         OAuthState(
@@ -93,7 +93,7 @@ async def begin(
         )
     )
     params = {
-        "client_id": s.google_client_id,
+        "client_id": platform.google_client_id(),
         "redirect_uri": redirect_uri(purpose),
         "response_type": "code",
         "scope": " ".join(SCOPES[purpose]),
@@ -124,14 +124,13 @@ async def consume_state(session: AsyncSession, raw_state: str | None, purpose: P
 
 
 async def exchange_code(code: str, state: OAuthState) -> dict[str, Any]:
-    s = get_settings()
     async with _client() as client:
         resp = await client.post(
             TOKEN_URL,
             data={
                 "code": code,
-                "client_id": s.google_client_id,
-                "client_secret": s.google_client_secret.get_secret_value() if s.google_client_secret else "",
+                "client_id": platform.google_client_id(),
+                "client_secret": platform.google_client_secret(),
                 "redirect_uri": redirect_uri(state.purpose),  # type: ignore[arg-type]
                 "grant_type": "authorization_code",
                 "code_verifier": state.code_verifier,
@@ -162,7 +161,7 @@ async def verify_id_token(id_token: str, nonce: str) -> dict[str, Any]:
             id_token,
             await _signing_key(kid),
             algorithms=["RS256"],
-            audience=get_settings().google_client_id,
+            audience=platform.google_client_id(),
             options={"require": ["iss", "sub", "aud", "exp", "iat"]},
             leeway=30,
         )
@@ -176,13 +175,12 @@ async def verify_id_token(id_token: str, nonce: str) -> dict[str, Any]:
 
 
 async def refresh_access_token(refresh_token: str) -> str:
-    s = get_settings()
     async with _client() as client:
         resp = await client.post(
             TOKEN_URL,
             data={
-                "client_id": s.google_client_id,
-                "client_secret": s.google_client_secret.get_secret_value() if s.google_client_secret else "",
+                "client_id": platform.google_client_id(),
+                "client_secret": platform.google_client_secret(),
                 "refresh_token": refresh_token,
                 "grant_type": "refresh_token",
             },

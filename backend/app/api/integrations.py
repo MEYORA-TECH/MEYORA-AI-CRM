@@ -17,6 +17,7 @@ from app.integrations.gmail import sync
 from app.integrations.google import oauth as google_oauth
 from app.models import MailAccount
 from app.schemas.common import OutputModel
+from app.services import platform
 from app.services.audit import add_audit, audit
 
 router = APIRouter(prefix="/integrations/gmail", tags=["integrations"])
@@ -41,8 +42,7 @@ class GmailStatus(OutputModel):
 
 
 def _enabled() -> bool:
-    s = get_settings()
-    return s.gmail_enabled and s.google_ready
+    return platform.gmail_enabled()
 
 
 def _back(path: str) -> str:

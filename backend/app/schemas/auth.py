@@ -47,6 +47,7 @@ class MembershipOut(OutputModel):
 
 
 class MeOut(UserOut):
+    is_platform_admin: bool = False
     memberships: list[MembershipOut]
     current_organization_id: uuid.UUID | None
     role: Role | None

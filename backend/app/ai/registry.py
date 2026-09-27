@@ -12,7 +12,6 @@ import json
 import os
 import uuid
 from dataclasses import dataclass, field
-from functools import lru_cache
 from typing import Any, Literal
 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -21,6 +20,7 @@ from app.ai.providers.base import AIProvider
 from app.ai.providers.openai_compat import OpenAICompatibleProvider
 from app.core.config import get_settings
 from app.core.logging import get_logger
+from app.services import platform
 
 log = get_logger(__name__)
 
@@ -61,7 +61,7 @@ def _build_pool(keys: dict[str, str] | None = None) -> list[ProviderEntry]:
     keys = keys or {}
     pool: list[ProviderEntry] = []
 
-    if groq_key := keys.get("groq") or _secret(s.groq_api_key):
+    if groq_key := keys.get("groq") or platform.shared_key("groq"):
         pool.append(
             ProviderEntry(
                 id="groq",
@@ -78,7 +78,7 @@ def _build_pool(keys: dict[str, str] | None = None) -> list[ProviderEntry]:
             )
         )
 
-    if (openrouter_key := keys.get("openrouter") or _secret(s.openrouter_api_key)) and s.openrouter_chat_model:
+    if (openrouter_key := keys.get("openrouter") or platform.shared_key("openrouter")) and s.openrouter_chat_model:
         # Only providers that don't collect prompts, so CRM data may use it.
         pool.append(
             ProviderEntry(
@@ -98,7 +98,7 @@ def _build_pool(keys: dict[str, str] | None = None) -> list[ProviderEntry]:
             )
         )
 
-    if gemini_key := keys.get("gemini") or _secret(s.gemini_api_key):
+    if gemini_key := keys.get("gemini") or platform.shared_key("gemini"):
         # Free tier may use prompts to improve Google's products: public data only, by design.
         pool.append(
             ProviderEntry(
@@ -142,11 +142,27 @@ def _from_config(raw: dict[str, Any]) -> ProviderEntry:
     )
 
 
-@lru_cache
+_shared_pools: dict[str, list[ProviderEntry]] = {}
+
+
+def _fingerprint(keys: dict[str, str]) -> str:
+    return hashlib.sha256(json.dumps(keys, sort_keys=True).encode()).hexdigest()
+
+
 def pool() -> list[ProviderEntry]:
-    entries = _build_pool()
-    log.info("ai_provider_pool", providers=[(p.id, p.privacy) for p in entries])
-    return entries
+    """Providers from the shared keys (platform settings, else the environment)."""
+    fp = _fingerprint({p: platform.shared_key(p) for p in ("groq", "openrouter", "gemini")})
+    if fp not in _shared_pools:
+        _shared_pools.clear()
+        _shared_pools[fp] = _build_pool()
+        log.info("ai_provider_pool", providers=[(p.id, p.privacy) for p in _shared_pools[fp]])
+    return _shared_pools[fp]
+
+
+def invalidate() -> None:
+    """Forget built pools, e.g. after shared keys change."""
+    _shared_pools.clear()
+    _org_pools.clear()
 
 
 _org_pools: dict[tuple[uuid.UUID, str], list[ProviderEntry]] = {}
@@ -159,7 +175,8 @@ async def pool_for(session: AsyncSession, organization_id: uuid.UUID) -> list[Pr
     keys = {k: v for k, v in (await api_keys.load(session, organization_id)).items() if k != "tavily"}
     if not keys:
         return pool()
-    fingerprint = hashlib.sha256(json.dumps(keys, sort_keys=True).encode()).hexdigest()
+    shared = {p: platform.shared_key(p) for p in ("groq", "openrouter", "gemini")}
+    fingerprint = _fingerprint({"org": keys, "shared": shared})
     cached = _org_pools.get((organization_id, fingerprint))
     if cached is None:
         for stale in [k for k in _org_pools if k[0] == organization_id]:

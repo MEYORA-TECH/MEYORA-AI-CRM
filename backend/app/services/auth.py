@@ -61,6 +61,7 @@ async def build_me(session: AsyncSession, user: User, organization_id: uuid.UUID
         email=user.email,
         full_name=user.full_name,
         avatar_url=user.avatar_url,
+        is_platform_admin=user.is_platform_admin,
         memberships=[
             MembershipOut(organization=OrganizationOut.model_validate(m.organization), role=m.role) for m in memberships
         ],

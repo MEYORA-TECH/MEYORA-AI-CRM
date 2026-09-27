@@ -8,6 +8,7 @@ import {
   Magnet,
   Mail,
   Settings,
+  ShieldCheck,
   Sparkles,
   UsersRound,
   type Icon,
@@ -17,6 +18,8 @@ export interface NavItem {
   to: string;
   label: string;
   icon: Icon;
+  /** Only platform admins see it. */
+  platformAdmin?: boolean;
 }
 
 export const PRIMARY_NAV: NavItem[] = [
@@ -32,7 +35,10 @@ export const PRIMARY_NAV: NavItem[] = [
   { to: "/memory", label: "Memory", icon: Brain },
 ];
 
-export const SECONDARY_NAV: NavItem[] = [{ to: "/settings", label: "Settings", icon: Settings }];
+export const SECONDARY_NAV: NavItem[] = [
+  { to: "/settings", label: "Settings", icon: Settings },
+  { to: "/admin", label: "Platform", icon: ShieldCheck, platformAdmin: true },
+];
 
 export function isActive(pathname: string, to: string) {
   return to === "/" ? pathname === "/" : pathname === to || pathname.startsWith(`${to}/`);

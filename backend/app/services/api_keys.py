@@ -16,7 +16,6 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.auth.deps import TenantContext
-from app.core.config import get_settings
 from app.core.crypto import decrypt, encrypt
 from app.core.errors import NotFound, ValidationFailed
 from app.core.logging import get_logger
@@ -63,8 +62,10 @@ def _spec(provider: str) -> KeySpec:
 
 
 def server_key(provider: str) -> str:
-    value = getattr(get_settings(), PROVIDERS[provider].settings_field, None)
-    return value.get_secret_value().strip() if value else ""
+    """Meyora's shared key for this provider (Platform admin → Shared keys, else the environment)."""
+    from app.services import platform
+
+    return platform.shared_key(provider)
 
 
 async def load(session: AsyncSession, organization_id: uuid.UUID) -> dict[str, str]:

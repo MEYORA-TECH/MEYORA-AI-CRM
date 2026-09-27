@@ -35,6 +35,10 @@ class RequestContextMiddleware(BaseHTTPMiddleware):
         structlog.contextvars.clear_contextvars()
         structlog.contextvars.bind_contextvars(request_id=request_id)
 
+        # Platform settings (Google, shared keys) are cached; this reads them at most every 30s.
+        from app.services import platform
+
+        await platform.refresh()
         stats = DbStats()
         token = current.set(stats)
         start = time.perf_counter()

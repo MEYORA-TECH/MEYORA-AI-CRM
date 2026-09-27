@@ -20,7 +20,7 @@ from app.schemas.auth import (
     TokenOut,
 )
 from app.services import auth as auth_service
-from app.services import rate_limit
+from app.services import platform, rate_limit
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 log = get_logger("auth")
@@ -143,16 +143,15 @@ async def accept_invitation(
     return await _token_response(session, response, user, tokens)
 
 
-# --- Google sign-in (toggle: GOOGLE_AUTH_ENABLED) -------------------------------
+# --- Google sign-in (switch: Platform admin, else GOOGLE_AUTH_ENABLED) -------------------------------
 
 
 @router.get("/providers")
 async def auth_providers():
-    s = get_settings()
     return {
         "password": True,
-        "google": s.google_auth_enabled and s.google_ready,
-        "gmail": s.gmail_enabled and s.google_ready,
+        "google": platform.google_auth_enabled(),
+        "gmail": platform.gmail_enabled(),
     }
 
 
@@ -162,8 +161,7 @@ def _frontend(path: str) -> str:
 
 @router.get("/google/start")
 async def google_start(request: Request, session: AsyncSession = Depends(get_session)):
-    s = get_settings()
-    if not (s.google_auth_enabled and s.google_ready):
+    if not platform.google_auth_enabled():
         return RedirectResponse(_frontend("/login?error=google_disabled"), status_code=303)
     await rate_limit.hit(f"google-start:{request_meta(request).ip}", limit=30, window_seconds=900)
     url = await google_oauth.begin(session, "login")
@@ -179,8 +177,7 @@ async def google_callback(
     error: str | None = None,
     session: AsyncSession = Depends(get_session),
 ):
-    s = get_settings()
-    if not (s.google_auth_enabled and s.google_ready):
+    if not platform.google_auth_enabled():
         return RedirectResponse(_frontend("/login?error=google_disabled"), status_code=303)
     if error or not code:
         return RedirectResponse(_frontend("/login?error=google_cancelled"), status_code=303)

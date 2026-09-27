@@ -54,7 +54,7 @@ export function EmailsPage() {
                 title={q ? "No matching emails" : "No emails yet"}
                 body={q ? "Try other words." : gmail.data?.enabled
                   ? "Connect Gmail in Settings. Only emails with your CRM contacts and companies are stored."
-                  : "Gmail sync is turned off on this server."}
+                  : "Gmail sync is turned off. A platform admin can turn it on in Platform → Google & Gmail."}
               />
             )}
           </div>

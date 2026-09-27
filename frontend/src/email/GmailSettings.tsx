@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Mail, RefreshCw, Unplug } from "@/components/icons";
 import { useEffect, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 
 import { ConfirmDialog } from "@/components/ui/overlay";
@@ -16,7 +16,7 @@ const RETURN_MESSAGES: Record<string, [string, "success" | "error"]> = {
   cancelled: ["Gmail connection was cancelled.", "error"],
   failed: ["Couldn't connect Gmail. Allow read access to your mail and try again.", "error"],
   taken: ["That mailbox is already connected by a teammate.", "error"],
-  disabled: ["Gmail is turned off on this server.", "error"],
+  disabled: ["Gmail sync is turned off. A platform admin can turn it on in Platform → Google & Gmail.", "error"],
 };
 
 const STATUS: Record<string, { label: string; tint: "emerald" | "amber" | "slate" }> = {
@@ -28,6 +28,7 @@ const STATUS: Record<string, { label: string; tint: "emerald" | "amber" | "slate
 export function GmailSettings() {
   const qc = useQueryClient();
   const me = useAuth((s) => s.me);
+  const isPlatformAdmin = Boolean(me?.is_platform_admin);
   const canWrite = useCan("crm:write");
   const gmail = useGmail();
   const [params, setParams] = useSearchParams();
@@ -83,7 +84,10 @@ export function GmailSettings() {
       />
       {!gmail.data?.enabled ? (
         <EmptyState icon={<Mail className="size-5" />} title="Gmail sync is turned off"
-          body="An admin can enable it on the server with GMAIL_ENABLED and a Google OAuth client." />
+          body={isPlatformAdmin
+            ? "Add a Google OAuth client and turn Gmail sync on for this installation."
+            : "A platform admin can turn it on for this installation."}
+          action={isPlatformAdmin ? <Link to="/admin?tab=google"><Button size="sm">Open Platform → Google &amp; Gmail</Button></Link> : undefined} />
       ) : accounts.length === 0 ? (
         <EmptyState icon={<Mail className="size-5" />} title="No mailboxes connected"
           body="Connect Gmail to see conversations on contact and company pages and let the assistant use them." />

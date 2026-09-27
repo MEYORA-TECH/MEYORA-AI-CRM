@@ -32,6 +32,9 @@ class User(UUIDPk, Timestamps, Base):
     is_active: Mapped[bool] = mapped_column(default=True, server_default="true")
     last_login_at: Mapped[datetime | None]
     google_sub: Mapped[str | None] = mapped_column(String(255), unique=True)
+    # Runs the whole installation (Platform admin). Granted only from the server:
+    # `python -m scripts.platform_admin grant <email>`, never through the app.
+    is_platform_admin: Mapped[bool] = mapped_column(default=False, server_default="false")
 
 
 class Membership(UUIDPk, Timestamps, Base):
