@@ -88,8 +88,9 @@ export function App() {
         <Route path="activities" element={<ActivitiesPage />} />
         <Route path="tasks" element={<TasksPage />} />
         <Route path="settings" element={<SettingsPage />} />
-        <Route path="assistant" element={<AssistantPage />} />
-        <Route path="assistant/:id" element={<AssistantPage />} />
+        {/* One route with an optional id: starting a chat moves to /assistant/:id without remounting
+            the page, which would cancel the answer that is still streaming. */}
+        <Route path="assistant/:id?" element={<AssistantPage />} />
         <Route path="memory" element={<MemoryPage />} />
         <Route path="emails" element={<EmailsPage />} />
         <Route path="emails/:id" element={<EmailsPage />} />
