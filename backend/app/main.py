@@ -22,6 +22,11 @@ async def lifespan(_: FastAPI):
         from app.jobs.worker import worker_loop
 
         task = asyncio.create_task(worker_loop(stop))
+    if settings.embedding_warmup:
+        from app.ai.embeddings import warm_up
+
+        # In a thread: loading the model is CPU work and must not block requests.
+        asyncio.get_running_loop().run_in_executor(None, warm_up)
     yield
     stop.set()
     if task:
@@ -56,9 +61,15 @@ def create_app() -> FastAPI:
 
     @api.get("/health", tags=["health"])
     async def health():
+        """Liveness for container probes. Doesn't touch the database, so probes never keep a
+        serverless database (Neon) awake."""
+        return {"status": "ok"}
+
+    @api.get("/health/db", tags=["health"])
+    async def health_db():
         async with engine.connect() as conn:
             await conn.execute(text("SELECT 1"))
-        return {"status": "ok"}
+        return {"status": "ok", "database": "ok"}
 
     api.include_router(auth.router)
     api.include_router(organizations.router)

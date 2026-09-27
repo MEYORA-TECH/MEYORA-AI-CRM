@@ -22,8 +22,9 @@ class EmbeddingProvider(Protocol):
 class FastEmbedProvider:
     """bge-small-en-v1.5 via ONNX on CPU. Loaded on first use (~200 MB RAM, a few seconds)."""
 
-    def __init__(self, model: str):
+    def __init__(self, model: str, cache_dir: str | None = None):
         self.model = model
+        self.cache_dir = cache_dir
         self._engine = None
         self._lock = threading.Lock()
 
@@ -32,7 +33,7 @@ class FastEmbedProvider:
             if self._engine is None:
                 from fastembed import TextEmbedding
 
-                self._engine = TextEmbedding(self.model, threads=1)
+                self._engine = TextEmbedding(self.model, threads=1, cache_dir=self.cache_dir)
         return self._engine
 
     def embed(self, texts: list[str]) -> list[list[float]]:
@@ -61,7 +62,16 @@ class HashEmbedder:
 @lru_cache
 def embedder() -> EmbeddingProvider:
     s = get_settings()
-    return HashEmbedder() if s.embedding_backend == "hash" else FastEmbedProvider(s.embedding_model)
+    if s.embedding_backend == "hash":
+        return HashEmbedder()
+    return FastEmbedProvider(s.embedding_model, s.embedding_cache_dir)
+
+
+def warm_up() -> None:
+    """Load the model now (call from a thread) so the first real request doesn't wait for it."""
+    engine = embedder()
+    if isinstance(engine, FastEmbedProvider):
+        engine.embed(["warm up"])
 
 
 async def embed(texts: list[str]) -> list[list[float]]:

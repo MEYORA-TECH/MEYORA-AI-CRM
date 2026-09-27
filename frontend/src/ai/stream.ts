@@ -1,4 +1,4 @@
-import { ApiError, getAccessToken, refreshSession } from "@/services/api";
+import { ApiError, apiUrl, getAccessToken, refreshSession } from "@/services/api";
 import type { ActionUi } from "./actions";
 
 export type ChatEvent =
@@ -51,7 +51,7 @@ export interface ChatBody {
 
 /** POSTs a chat turn and yields server-sent events as they arrive. */
 export async function* streamChat(body: ChatBody, signal: AbortSignal, retried = false): AsyncGenerator<ChatEvent> {
-  const res = await fetch("/api/ai/chat", {
+  const res = await fetch(apiUrl("/ai/chat"), {
     method: "POST",
     signal,
     credentials: "include",

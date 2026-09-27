@@ -3,7 +3,7 @@ import { Link, useSearchParams } from "react-router-dom";
 
 import { useAuthProviders } from "@/email/api";
 import { Button, Field, Input } from "@/components/ui/primitives";
-import { describeError } from "@/services/api";
+import { describeError, apiUrl } from "@/services/api";
 import { useAuth } from "@/stores/auth";
 import { AuthLayout } from "./AuthLayout";
 
@@ -35,7 +35,7 @@ export function LoginPage() {
     >
       {providers.data?.google ? (
         <>
-          <a href="/api/auth/google/start"
+          <a href={apiUrl("/auth/google/start")}
             className="focus-ring glass-dense flex h-11 items-center justify-center gap-2.5 rounded-[var(--radius-control)] text-sm font-semibold transition hover:bg-[var(--glass-2)]">
             <GoogleMark /> Continue with Google
           </a>

@@ -4,7 +4,18 @@
  * The access token lives only in memory. The refresh token is an httpOnly
  * cookie the browser sends to /api/auth/refresh; a 401 triggers one silent
  * refresh (shared between concurrent requests), then the request is retried.
+ *
+ * The API may live on its own domain (VITE_API_URL, e.g. https://api.meyora.in). It must be
+ * a sibling of the web app's domain (app.meyora.in / api.meyora.in): the refresh cookie is
+ * SameSite=Strict, so browsers only send it between subdomains of the same site.
  */
+
+const API_BASE = (import.meta.env.VITE_API_URL ?? "").trim().replace(/\/+$/, "");
+
+/** Absolute URL of an API path, e.g. apiUrl("/auth/google/start"). */
+export function apiUrl(path: string): string {
+  return `${API_BASE}/api${path}`;
+}
 
 export class ApiError extends Error {
   constructor(
@@ -39,7 +50,7 @@ export function configureSession(opts: {
 }
 
 function buildUrl(path: string, query?: Query) {
-  const url = new URL(`/api${path}`, window.location.origin);
+  const url = new URL(apiUrl(path), window.location.origin);
   for (const [key, value] of Object.entries(query ?? {})) {
     if (value === undefined || value === null || value === "") continue;
     if (Array.isArray(value)) value.forEach((v) => url.searchParams.append(key, v));
@@ -62,7 +73,7 @@ export async function refreshSession(): Promise<boolean> {
   if (!refreshing) {
     refreshing = (async () => {
       try {
-        const res = await fetch("/api/auth/refresh", {
+        const res = await fetch(apiUrl("/auth/refresh"), {
           method: "POST",
           credentials: "include",
           headers: { "X-Requested-With": "XMLHttpRequest" },

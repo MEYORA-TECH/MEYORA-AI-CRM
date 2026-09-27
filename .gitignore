@@ -25,3 +25,6 @@ dist/
 .idea/
 .DS_Store
 Thumbs.db
+
+# Embedding model files (baked into the Docker image; downloaded locally on first use)
+backend/models/

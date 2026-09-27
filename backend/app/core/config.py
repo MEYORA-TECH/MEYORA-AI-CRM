@@ -1,7 +1,7 @@
 from functools import lru_cache
 from typing import Literal
 
-from pydantic import SecretStr
+from pydantic import SecretStr, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -43,9 +43,18 @@ class Settings(BaseSettings):
     # --- Memory & knowledge -----------------------------------------------
     embedding_backend: Literal["fastembed", "hash"] = "fastembed"  # "hash" is for tests only
     embedding_model: str = "BAAI/bge-small-en-v1.5"
+    # Where the model files live. The Docker image pre-downloads them here so a fresh
+    # container never fetches ~90 MB on its first chat.
+    embedding_cache_dir: str | None = None
+    # Load the model in the background at startup (production), so the first chat after a
+    # cold start doesn't wait for it.
+    embedding_warmup: bool = False
     memory_min_similarity: float = 0.55
     memory_dedup_similarity: float = 0.92
     jobs_worker_enabled: bool = True
+    # When no job is due the worker sleeps up to this long (it wakes at once when work is
+    # queued in this process). Long enough for a serverless database to suspend while idle.
+    jobs_idle_max_seconds: float = 600.0
 
     # --- Web research ------------------------------------------------------
     tavily_api_key: SecretStr | None = None
@@ -61,13 +70,41 @@ class Settings(BaseSettings):
     gmail_enabled: bool = False
     google_client_id: str | None = None
     google_client_secret: SecretStr | None = None
-    # Public URL of this app as the browser sees it; OAuth redirect URIs are built from it.
+    # Public URL of the web app as the browser sees it (where people are sent back to).
     public_url: str = "http://localhost:5173"
+    # Public URL of this API, when it has its own domain (e.g. https://api.meyora.in).
+    # Google redirect URIs point here. Defaults to public_url (API served under /api there).
+    api_public_url: str | None = None
     gmail_sync_interval_minutes: int = 5
     gmail_initial_sync_days: int = 90
     gmail_initial_sync_max_messages: int = 500
     # 32-byte key, base64. Encrypts stored OAuth tokens. Required in production.
     encryption_key: SecretStr | None = None
+
+    @property
+    def api_url(self) -> str:
+        return (self.api_public_url or self.public_url).rstrip("/")
+
+    @model_validator(mode="after")
+    def _production_safety(self) -> "Settings":
+        """Refuse to start in production with settings that would be unsafe or lose data."""
+        if self.app_env != "production":
+            return self
+        problems = []
+        if not (self.encryption_key and self.encryption_key.get_secret_value().strip()):
+            problems.append(
+                "ENCRYPTION_KEY is required (it decrypts saved keys and tokens; keep it identical across deploys)"
+            )
+        if len(self.jwt_secret.get_secret_value()) < 32:
+            problems.append("JWT_SECRET must be at least 32 characters")
+        if any("localhost" in o or "127.0.0.1" in o for o in self.cors_origins):
+            problems.append("CORS_ORIGINS must list the real web app origin, not localhost")
+        if not self.public_url.startswith("https://"):
+            problems.append("PUBLIC_URL must be the https address of the web app")
+        if problems:
+            raise ValueError("Production settings are incomplete: " + "; ".join(problems))
+        self.cookie_secure = True  # the refresh cookie only travels over HTTPS in production
+        return self
 
     @property
     def google_ready(self) -> bool:

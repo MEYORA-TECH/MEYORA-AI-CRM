@@ -29,6 +29,13 @@ npm run dev                      # http://localhost:5173, proxies /api to :8000
 
 API docs (development only): http://localhost:8000/api/docs
 
+## Deploy
+
+Vercel (web app) + Azure Container Apps (API) + Neon (database): step by step in
+[docs/deploy/azure-vercel-neon.md](docs/deploy/azure-vercel-neon.md). Production settings are listed in
+`backend/.env.production.example` and `frontend/.env.production.example`. The API image runs on any container
+host; the data stays in Neon.
+
 ## Tests
 
 ```bash

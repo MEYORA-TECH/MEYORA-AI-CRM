@@ -58,7 +58,7 @@ def _client() -> httpx.AsyncClient:
 
 
 def redirect_uri(purpose: Purpose) -> str:
-    return get_settings().public_url.rstrip("/") + CALLBACK_PATH[purpose]
+    return get_settings().api_url + CALLBACK_PATH[purpose]
 
 
 def _hash(value: str) -> str:

@@ -5,14 +5,16 @@ only if the change committed. Workers claim with FOR UPDATE SKIP LOCKED, so any
 number of app instances can run them without double work.
 """
 
+import asyncio
 import uuid
 from collections.abc import Awaitable, Callable
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
-from sqlalchemy import text
+from sqlalchemy import event, text
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import Session
 
 from app.core.logging import get_logger
 from app.database.session import SessionLocal, set_tenant
@@ -41,6 +43,31 @@ def handler(kind: str):
     return register
 
 
+# Set after a transaction that queued jobs commits, so the worker starts at once instead of
+# waiting out its idle sleep. (Set after commit: before it, the job isn't visible yet.)
+wakeup = asyncio.Event()
+
+
+@event.listens_for(Session, "after_commit")
+def _wake_worker(session: Session) -> None:
+    if session.info.pop("jobs_enqueued", False):
+        wakeup.set()
+
+
+@event.listens_for(Session, "after_rollback")
+def _forget_enqueued(session: Session) -> None:
+    session.info.pop("jobs_enqueued", None)
+
+
+async def seconds_until_next_job() -> float | None:
+    """When the next queued job becomes due (0 if one is due now), or None if none are queued."""
+    async with SessionLocal() as session:
+        due = await session.scalar(
+            text("SELECT extract(epoch FROM min(run_after) - now()) FROM jobs WHERE status = 'queued'")
+        )
+    return None if due is None else max(0.0, float(due))
+
+
 async def enqueue(
     session: AsyncSession,
     kind: str,
@@ -62,6 +89,7 @@ async def enqueue(
     if dedupe_key:
         stmt = stmt.on_conflict_do_nothing(index_elements=["kind", "dedupe_key"], index_where=text("status = 'queued'"))
     await session.execute(stmt)
+    session.sync_session.info["jobs_enqueued"] = True
 
 
 _CLAIM = text(
