@@ -1,4 +1,9 @@
+import uuid
 from datetime import UTC, datetime, timedelta
+
+from sqlalchemy import text
+
+from app.database.session import SessionLocal, set_tenant
 
 
 async def _stages(account) -> dict[str, str]:
@@ -159,7 +164,8 @@ async def test_dashboard_reflects_real_data(owner):
     assert p["revenue_total"] == 50000 and p["revenue_this_month"] == 50000
     assert p["other_currency_deals"] == 1
     assert d["tasks"]["due_today"] == 1
-    assert len(d["recent_deals"]) == 3
+    assert d["insights"]["funnel"]["new"] == 1 and d["insights"]["funnel"]["qualified"] == 1
+    assert len(d["insights"]["weeks"]) == 8
 
     assert (await owner.get("/api/dashboard", params={"tz": "Mars/Base"})).status_code == 422
 
@@ -173,3 +179,43 @@ async def test_manual_system_activities_are_rejected(owner):
         "type": "meeting", "subject": "Demo", "occurred_at": (datetime.now(UTC) + timedelta(days=1)).isoformat(),
     })
     assert planned.json()["status"] == "planned"
+
+
+async def test_dashboard_insights_for_prospecting(owner):
+    abc = (await owner.post("/api/companies", {"name": "ABC Castings", "city": "Chennai", "industry": "Foundry"})).json()
+    await owner.post("/api/companies", {"name": "Hosur Gears", "city": "Hosur", "industry": "Auto Components",
+                                        "email": "info@hosurgears.in"})
+    await owner.post("/api/companies", {"name": "Guindy Estate", "city": "Chennai", "tags": ["Outreach partner"]})
+    await owner.post("/api/contacts", {"first_name": "Anand", "company_id": abc["id"], "tags": ["Decision maker"]})
+
+    top = (await owner.post("/api/leads", {"name": "Top lead", "company_name": "ABC Castings", "score": 94,
+                                           "custom_fields": {"Priority": "High"}, "email": "a@abc.in"})).json()
+    called = (await owner.post("/api/leads", {"name": "Called lead", "score": 91})).json()
+    await owner.post("/api/leads", {"name": "Mid lead", "score": 75})
+    await owner.post("/api/leads", {"name": "Qualified lead", "score": 60, "status": "qualified"})
+    await owner.post("/api/activities", {"type": "call", "subject": "Intro", "lead_id": called["id"]})
+    await owner.post("/api/activities", {"type": "email", "subject": "Follow-up", "lead_id": called["id"]})
+    await owner.post("/api/deals", {"name": "Quiet deal", "amount": 100000})
+
+    i = (await owner.get("/api/dashboard", params={"tz": "Asia/Kolkata"})).json()["insights"]
+    assert i["funnel"]["new"] == 3 and i["funnel"]["qualified"] == 1
+    assert i["fit"] == {"top": 2, "high": 0, "medium": 1, "low": 1}
+    assert i["coverage"] == {"companies": 2, "partners": 1, "with_contacts": 1, "with_decision_maker": 1, "with_email": 1}
+    assert i["cities"][0] == {"label": "Chennai", "count": 1} or {"label": "Chennai", "count": 1} in i["cities"]
+    assert {b["label"] for b in i["industries"]} == {"Foundry", "Auto Components"}
+    # Contacted today, so not in "contact next"; best fit first.
+    assert [c["name"] for c in i["contact_next"]] == ["Top lead", "Mid lead"] and i["to_contact"] == 2
+    assert i["contact_next"][0]["priority"] == "High" and i["contact_next"][0]["has_email"] is True
+    this_week = i["weeks"][-1]
+    assert (this_week["calls"], this_week["emails"]) == (1, 1) and len(i["weeks"]) == 8
+    assert i["stale_deals"] == 0 and i["stale_days"] == 14  # just opened: not stale yet
+    assert top["id"] == i["contact_next"][0]["id"]
+
+    # Three weeks old with nothing since: now it needs attention.
+    async with SessionLocal() as session:
+        await set_tenant(session, uuid.UUID(owner.org_id))
+        await session.execute(text("UPDATE deals SET created_at = now() - interval '21 days'"))
+        await session.execute(text("UPDATE activities SET occurred_at = now() - interval '21 days' WHERE deal_id IS NOT NULL"))
+        await session.commit()
+    i = (await owner.get("/api/dashboard", params={"tz": "Asia/Kolkata"})).json()["insights"]
+    assert i["stale_deals"] == 1

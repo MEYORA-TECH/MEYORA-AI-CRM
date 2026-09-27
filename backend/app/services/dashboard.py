@@ -7,11 +7,11 @@ from zoneinfo import ZoneInfo
 from sqlalchemy import and_, case, func, select, true
 
 from app.auth.deps import TenantContext
-from app.models import Activity, Company, Contact, Deal, Lead, Organization, Task
+from app.models import Activity, Deal, Lead, Organization, Task
 from app.models.enums import ActivityStatus, DealStatus, LeadStatus, TaskStatus
-from app.schemas.crm import ActivityOut, CompanyOut, ContactOut, DealOut, TaskOut
+from app.schemas.crm import ActivityOut, TaskOut
 from app.schemas.dashboard import DashboardOut, LeadStats, PipelineStats, StageSummary, TaskStats
-from app.services import pipelines, records
+from app.services import insights, pipelines
 
 _OPEN_TASK = Task.status.in_([TaskStatus.TODO, TaskStatus.IN_PROGRESS])
 
@@ -98,18 +98,8 @@ async def build(ctx: TenantContext, tz_name: str) -> DashboardOut:
         .order_by(Activity.occurred_at.asc())
         .limit(6)
     )
-    recent_activity = await s.scalars(
-        select(Activity)
-        .where(
-            Activity.organization_id == org_id, Activity.status == ActivityStatus.COMPLETED, Activity.occurred_at <= now
-        )
-        .order_by(Activity.occurred_at.desc())
-        .limit(8)
-    )
 
-    recent_companies = await s.scalars(records.companies(ctx).base().order_by(Company.created_at.desc()).limit(5))
-    recent_contacts = await s.scalars(records.contacts(ctx).base().order_by(Contact.created_at.desc()).limit(5))
-    recent_deals = await s.scalars(records.deals(ctx).base().order_by(Deal.created_at.desc()).limit(5))
+    insight = await insights.build(s, org_id, tz_name, local_today - timedelta(days=local_today.weekday()))
 
     stages: list[StageSummary] = []
     pipeline_list = await pipelines.list_pipelines(ctx)
@@ -166,8 +156,5 @@ async def build(ctx: TenantContext, tz_name: str) -> DashboardOut:
         tasks=TaskStats(due_today=figures.t_today, overdue=figures.t_overdue, open=figures.t_open),
         my_tasks=[TaskOut.model_validate(t) for t in due_today],
         upcoming_activities=[ActivityOut.model_validate(a) for a in upcoming],
-        recent_activities=[ActivityOut.model_validate(a) for a in recent_activity],
-        recent_companies=[CompanyOut.model_validate(c) for c in recent_companies],
-        recent_contacts=[ContactOut.model_validate(c) for c in recent_contacts],
-        recent_deals=[DealOut.model_validate(d) for d in recent_deals],
+        insights=insight,
     )

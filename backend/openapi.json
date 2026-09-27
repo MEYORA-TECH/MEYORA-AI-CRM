@@ -6452,6 +6452,24 @@
     ],
     "title": "BriefOut"
    },
+   "Bucket": {
+    "properties": {
+     "label": {
+      "type": "string",
+      "title": "Label"
+     },
+     "count": {
+      "type": "integer",
+      "title": "Count"
+     }
+    },
+    "type": "object",
+    "required": [
+     "label",
+     "count"
+    ],
+    "title": "Bucket"
+   },
    "ChatIn": {
     "properties": {
      "message": {
@@ -7360,6 +7378,94 @@
     ],
     "title": "ContactCreate"
    },
+   "ContactNext": {
+    "properties": {
+     "id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Id"
+     },
+     "name": {
+      "type": "string",
+      "title": "Name"
+     },
+     "company_name": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Company Name"
+     },
+     "score": {
+      "type": "integer",
+      "title": "Score"
+     },
+     "status": {
+      "type": "string",
+      "title": "Status"
+     },
+     "industry": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Industry"
+     },
+     "priority": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Priority"
+     },
+     "has_email": {
+      "type": "boolean",
+      "title": "Has Email"
+     },
+     "has_phone": {
+      "type": "boolean",
+      "title": "Has Phone"
+     },
+     "last_contact_at": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "date-time"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Last Contact At"
+     }
+    },
+    "type": "object",
+    "required": [
+     "id",
+     "name",
+     "company_name",
+     "score",
+     "status",
+     "industry",
+     "priority",
+     "has_email",
+     "has_phone",
+     "last_contact_at"
+    ],
+    "title": "ContactNext"
+   },
    "ContactOut": {
     "properties": {
      "id": {
@@ -7830,6 +7936,40 @@
     ],
     "title": "ConversationUpdate"
    },
+   "Coverage": {
+    "properties": {
+     "companies": {
+      "type": "integer",
+      "title": "Companies"
+     },
+     "partners": {
+      "type": "integer",
+      "title": "Partners"
+     },
+     "with_contacts": {
+      "type": "integer",
+      "title": "With Contacts"
+     },
+     "with_decision_maker": {
+      "type": "integer",
+      "title": "With Decision Maker"
+     },
+     "with_email": {
+      "type": "integer",
+      "title": "With Email"
+     }
+    },
+    "type": "object",
+    "required": [
+     "companies",
+     "partners",
+     "with_contacts",
+     "with_decision_maker",
+     "with_email"
+    ],
+    "title": "Coverage",
+    "description": "How reachable the prospect companies are. Outreach partners are counted separately."
+   },
    "DashboardOut": {
     "properties": {
      "currency": {
@@ -7864,33 +8004,8 @@
       "type": "array",
       "title": "Upcoming Activities"
      },
-     "recent_activities": {
-      "items": {
-       "$ref": "#/components/schemas/ActivityOut"
-      },
-      "type": "array",
-      "title": "Recent Activities"
-     },
-     "recent_companies": {
-      "items": {
-       "$ref": "#/components/schemas/CompanyOut"
-      },
-      "type": "array",
-      "title": "Recent Companies"
-     },
-     "recent_contacts": {
-      "items": {
-       "$ref": "#/components/schemas/ContactOut"
-      },
-      "type": "array",
-      "title": "Recent Contacts"
-     },
-     "recent_deals": {
-      "items": {
-       "$ref": "#/components/schemas/DealOut"
-      },
-      "type": "array",
-      "title": "Recent Deals"
+     "insights": {
+      "$ref": "#/components/schemas/Insights"
      }
     },
     "type": "object",
@@ -7902,10 +8017,7 @@
      "tasks",
      "my_tasks",
      "upcoming_activities",
-     "recent_activities",
-     "recent_companies",
-     "recent_contacts",
-     "recent_deals"
+     "insights"
     ],
     "title": "DashboardOut"
    },
@@ -8491,6 +8603,35 @@
     "type": "object",
     "title": "DealUpdate"
    },
+   "FitBands": {
+    "properties": {
+     "top": {
+      "type": "integer",
+      "title": "Top"
+     },
+     "high": {
+      "type": "integer",
+      "title": "High"
+     },
+     "medium": {
+      "type": "integer",
+      "title": "Medium"
+     },
+     "low": {
+      "type": "integer",
+      "title": "Low"
+     }
+    },
+    "type": "object",
+    "required": [
+     "top",
+     "high",
+     "medium",
+     "low"
+    ],
+    "title": "FitBands",
+    "description": "Open leads (new, contacted, qualified) by fit score: 90+, 80-89, 70-79, below 70."
+   },
    "GmailStatus": {
     "properties": {
      "enabled": {
@@ -8524,6 +8665,73 @@
     },
     "type": "object",
     "title": "HTTPValidationError"
+   },
+   "Insights": {
+    "properties": {
+     "funnel": {
+      "$ref": "#/components/schemas/LeadFunnel"
+     },
+     "fit": {
+      "$ref": "#/components/schemas/FitBands"
+     },
+     "coverage": {
+      "$ref": "#/components/schemas/Coverage"
+     },
+     "cities": {
+      "items": {
+       "$ref": "#/components/schemas/Bucket"
+      },
+      "type": "array",
+      "title": "Cities"
+     },
+     "industries": {
+      "items": {
+       "$ref": "#/components/schemas/Bucket"
+      },
+      "type": "array",
+      "title": "Industries"
+     },
+     "weeks": {
+      "items": {
+       "$ref": "#/components/schemas/WeekActivity"
+      },
+      "type": "array",
+      "title": "Weeks"
+     },
+     "contact_next": {
+      "items": {
+       "$ref": "#/components/schemas/ContactNext"
+      },
+      "type": "array",
+      "title": "Contact Next"
+     },
+     "to_contact": {
+      "type": "integer",
+      "title": "To Contact"
+     },
+     "stale_deals": {
+      "type": "integer",
+      "title": "Stale Deals"
+     },
+     "stale_days": {
+      "type": "integer",
+      "title": "Stale Days"
+     }
+    },
+    "type": "object",
+    "required": [
+     "funnel",
+     "fit",
+     "coverage",
+     "cities",
+     "industries",
+     "weeks",
+     "contact_next",
+     "to_contact",
+     "stale_deals",
+     "stale_days"
+    ],
+    "title": "Insights"
    },
    "InvitationCreate": {
     "properties": {
@@ -8958,6 +9166,42 @@
      "name"
     ],
     "title": "LeadCreate"
+   },
+   "LeadFunnel": {
+    "properties": {
+     "new": {
+      "type": "integer",
+      "title": "New",
+      "default": 0
+     },
+     "contacted": {
+      "type": "integer",
+      "title": "Contacted",
+      "default": 0
+     },
+     "qualified": {
+      "type": "integer",
+      "title": "Qualified",
+      "default": 0
+     },
+     "unqualified": {
+      "type": "integer",
+      "title": "Unqualified",
+      "default": 0
+     },
+     "converted": {
+      "type": "integer",
+      "title": "Converted",
+      "default": 0
+     },
+     "lost": {
+      "type": "integer",
+      "title": "Lost",
+      "default": 0
+     }
+    },
+    "type": "object",
+    "title": "LeadFunnel"
    },
    "LeadOut": {
     "properties": {
@@ -11794,6 +12038,40 @@
      "monthly_limit"
     ],
     "title": "WebStatus"
+   },
+   "WeekActivity": {
+    "properties": {
+     "week_start": {
+      "type": "string",
+      "format": "date",
+      "title": "Week Start"
+     },
+     "calls": {
+      "type": "integer",
+      "title": "Calls"
+     },
+     "emails": {
+      "type": "integer",
+      "title": "Emails"
+     },
+     "meetings": {
+      "type": "integer",
+      "title": "Meetings"
+     },
+     "other": {
+      "type": "integer",
+      "title": "Other"
+     }
+    },
+    "type": "object",
+    "required": [
+     "week_start",
+     "calls",
+     "emails",
+     "meetings",
+     "other"
+    ],
+    "title": "WeekActivity"
    },
    "app__api__ai__MessageOut": {
     "properties": {

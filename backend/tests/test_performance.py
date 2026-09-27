@@ -26,7 +26,7 @@ BUDGETS = {
     "/api/deals": 2,
     "/api/tasks?assignee=any": 2,
     "/api/organization": 2,
-    "/api/dashboard": 11,
+    "/api/dashboard": 8,
 }
 
 

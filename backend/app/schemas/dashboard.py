@@ -1,8 +1,8 @@
 import uuid
-from datetime import datetime
+from datetime import date, datetime
 
 from app.schemas.common import Money, OutputModel
-from app.schemas.crm import ActivityOut, CompanyOut, ContactOut, DealOut, TaskOut
+from app.schemas.crm import ActivityOut, TaskOut
 
 
 class LeadStats(OutputModel):
@@ -42,6 +42,73 @@ class TaskStats(OutputModel):
     open: int
 
 
+class LeadFunnel(OutputModel):
+    new: int = 0
+    contacted: int = 0
+    qualified: int = 0
+    unqualified: int = 0
+    converted: int = 0
+    lost: int = 0
+
+
+class FitBands(OutputModel):
+    """Open leads (new, contacted, qualified) by fit score: 90+, 80-89, 70-79, below 70."""
+
+    top: int
+    high: int
+    medium: int
+    low: int
+
+
+class Coverage(OutputModel):
+    """How reachable the prospect companies are. Outreach partners are counted separately."""
+
+    companies: int
+    partners: int
+    with_contacts: int
+    with_decision_maker: int
+    with_email: int
+
+
+class Bucket(OutputModel):
+    label: str
+    count: int
+
+
+class WeekActivity(OutputModel):
+    week_start: date
+    calls: int
+    emails: int
+    meetings: int
+    other: int
+
+
+class ContactNext(OutputModel):
+    id: uuid.UUID
+    name: str
+    company_name: str | None
+    score: int
+    status: str
+    industry: str | None
+    priority: str | None
+    has_email: bool
+    has_phone: bool
+    last_contact_at: datetime | None
+
+
+class Insights(OutputModel):
+    funnel: LeadFunnel
+    fit: FitBands
+    coverage: Coverage
+    cities: list[Bucket]
+    industries: list[Bucket]
+    weeks: list[WeekActivity]
+    contact_next: list[ContactNext]
+    to_contact: int  # open leads with no completed activity in `stale_days`
+    stale_deals: int  # open deals with no completed activity in `stale_days`
+    stale_days: int
+
+
 class DashboardOut(OutputModel):
     currency: str
     generated_at: datetime
@@ -50,7 +117,4 @@ class DashboardOut(OutputModel):
     tasks: TaskStats
     my_tasks: list[TaskOut]
     upcoming_activities: list[ActivityOut]
-    recent_activities: list[ActivityOut]
-    recent_companies: list[CompanyOut]
-    recent_contacts: list[ContactOut]
-    recent_deals: list[DealOut]
+    insights: Insights

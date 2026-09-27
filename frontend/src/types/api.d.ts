@@ -1331,6 +1331,13 @@ export interface components {
              */
             created_at: string;
         };
+        /** Bucket */
+        Bucket: {
+            /** Label */
+            label: string;
+            /** Count */
+            count: number;
+        };
         /** ChatIn */
         ChatIn: {
             /** Message */
@@ -1529,6 +1536,32 @@ export interface components {
             /** Owner Id */
             owner_id?: string | null;
         };
+        /** ContactNext */
+        ContactNext: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Name */
+            name: string;
+            /** Company Name */
+            company_name: string | null;
+            /** Score */
+            score: number;
+            /** Status */
+            status: string;
+            /** Industry */
+            industry: string | null;
+            /** Priority */
+            priority: string | null;
+            /** Has Email */
+            has_email: boolean;
+            /** Has Phone */
+            has_phone: boolean;
+            /** Last Contact At */
+            last_contact_at: string | null;
+        };
         /** ContactOut */
         ContactOut: {
             /**
@@ -1646,6 +1679,22 @@ export interface components {
             /** Title */
             title: string;
         };
+        /**
+         * Coverage
+         * @description How reachable the prospect companies are. Outreach partners are counted separately.
+         */
+        Coverage: {
+            /** Companies */
+            companies: number;
+            /** Partners */
+            partners: number;
+            /** With Contacts */
+            with_contacts: number;
+            /** With Decision Maker */
+            with_decision_maker: number;
+            /** With Email */
+            with_email: number;
+        };
         /** DashboardOut */
         DashboardOut: {
             /** Currency */
@@ -1662,14 +1711,7 @@ export interface components {
             my_tasks: components["schemas"]["TaskOut"][];
             /** Upcoming Activities */
             upcoming_activities: components["schemas"]["ActivityOut"][];
-            /** Recent Activities */
-            recent_activities: components["schemas"]["ActivityOut"][];
-            /** Recent Companies */
-            recent_companies: components["schemas"]["CompanyOut"][];
-            /** Recent Contacts */
-            recent_contacts: components["schemas"]["ContactOut"][];
-            /** Recent Deals */
-            recent_deals: components["schemas"]["DealOut"][];
+            insights: components["schemas"]["Insights"];
         };
         /** DealCreate */
         DealCreate: {
@@ -1810,6 +1852,20 @@ export interface components {
             /** Description */
             description?: string | null;
         };
+        /**
+         * FitBands
+         * @description Open leads (new, contacted, qualified) by fit score: 90+, 80-89, 70-79, below 70.
+         */
+        FitBands: {
+            /** Top */
+            top: number;
+            /** High */
+            high: number;
+            /** Medium */
+            medium: number;
+            /** Low */
+            low: number;
+        };
         /** GmailStatus */
         GmailStatus: {
             /** Enabled */
@@ -1821,6 +1877,26 @@ export interface components {
         HTTPValidationError: {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
+        };
+        /** Insights */
+        Insights: {
+            funnel: components["schemas"]["LeadFunnel"];
+            fit: components["schemas"]["FitBands"];
+            coverage: components["schemas"]["Coverage"];
+            /** Cities */
+            cities: components["schemas"]["Bucket"][];
+            /** Industries */
+            industries: components["schemas"]["Bucket"][];
+            /** Weeks */
+            weeks: components["schemas"]["WeekActivity"][];
+            /** Contact Next */
+            contact_next: components["schemas"]["ContactNext"][];
+            /** To Contact */
+            to_contact: number;
+            /** Stale Deals */
+            stale_deals: number;
+            /** Stale Days */
+            stale_days: number;
         };
         /** InvitationCreate */
         InvitationCreate: {
@@ -1949,6 +2025,39 @@ export interface components {
             description?: string | null;
             /** Owner Id */
             owner_id?: string | null;
+        };
+        /** LeadFunnel */
+        LeadFunnel: {
+            /**
+             * New
+             * @default 0
+             */
+            new: number;
+            /**
+             * Contacted
+             * @default 0
+             */
+            contacted: number;
+            /**
+             * Qualified
+             * @default 0
+             */
+            qualified: number;
+            /**
+             * Unqualified
+             * @default 0
+             */
+            unqualified: number;
+            /**
+             * Converted
+             * @default 0
+             */
+            converted: number;
+            /**
+             * Lost
+             * @default 0
+             */
+            lost: number;
         };
         /** LeadOut */
         LeadOut: {
@@ -2837,6 +2946,22 @@ export interface components {
             used_this_month: number;
             /** Monthly Limit */
             monthly_limit: number;
+        };
+        /** WeekActivity */
+        WeekActivity: {
+            /**
+             * Week Start
+             * Format: date
+             */
+            week_start: string;
+            /** Calls */
+            calls: number;
+            /** Emails */
+            emails: number;
+            /** Meetings */
+            meetings: number;
+            /** Other */
+            other: number;
         };
         /** MessageOut */
         app__api__ai__MessageOut: {
