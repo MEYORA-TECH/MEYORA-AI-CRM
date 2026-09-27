@@ -11,7 +11,27 @@
      "health"
     ],
     "summary": "Health",
+    "description": "Liveness for container probes. Doesn't touch the database, so probes never keep a\nserverless database (Neon) awake.",
     "operationId": "health_api_health_get",
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/health/db": {
+   "get": {
+    "tags": [
+     "health"
+    ],
+    "summary": "Health Db",
+    "operationId": "health_db_api_health_db_get",
     "responses": {
      "200": {
       "description": "Successful Response",
@@ -1407,6 +1427,68 @@
     "responses": {
      "204": {
       "description": "Successful Response"
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/linkedin/lookup/{entity}/{entity_id}": {
+   "get": {
+    "tags": [
+     "linkedin"
+    ],
+    "summary": "Lookup",
+    "operationId": "lookup_api_linkedin_lookup__entity___entity_id__get",
+    "security": [
+     {
+      "HTTPBearer": []
+     }
+    ],
+    "parameters": [
+     {
+      "name": "entity",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "enum": [
+        "companies",
+        "contacts",
+        "leads"
+       ],
+       "type": "string",
+       "title": "Entity"
+      }
+     },
+     {
+      "name": "entity_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid",
+       "title": "Entity Id"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/LookupOut"
+        }
+       }
+      }
      },
      "422": {
       "description": "Validation Error",
@@ -6173,6 +6255,7 @@
      "note",
      "task",
      "follow_up",
+     "linkedin",
      "stage_change",
      "system"
     ],
@@ -6698,6 +6781,29 @@
     ],
     "title": "Bucket"
    },
+   "CandidateOut": {
+    "properties": {
+     "url": {
+      "type": "string",
+      "title": "Url"
+     },
+     "title": {
+      "type": "string",
+      "title": "Title"
+     },
+     "snippet": {
+      "type": "string",
+      "title": "Snippet"
+     }
+    },
+    "type": "object",
+    "required": [
+     "url",
+     "title",
+     "snippet"
+    ],
+    "title": "CandidateOut"
+   },
    "ChatIn": {
     "properties": {
      "message": {
@@ -6802,6 +6908,18 @@
        }
       ],
       "title": "Website"
+     },
+     "linkedin_url": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 500
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Linkedin Url"
      },
      "phone": {
       "anyOf": [
@@ -7001,6 +7119,17 @@
       ],
       "title": "Website"
      },
+     "linkedin_url": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Linkedin Url"
+     },
      "phone": {
       "anyOf": [
        {
@@ -7126,6 +7255,7 @@
      "name",
      "industry",
      "website",
+     "linkedin_url",
      "phone",
      "email",
      "address",
@@ -7237,6 +7367,18 @@
        }
       ],
       "title": "Website"
+     },
+     "linkedin_url": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 500
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Linkedin Url"
      },
      "phone": {
       "anyOf": [
@@ -9599,6 +9741,18 @@
       ],
       "title": "Industry"
      },
+     "linkedin_url": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 500
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Linkedin Url"
+     },
      "status": {
       "anyOf": [
        {
@@ -9789,6 +9943,17 @@
       ],
       "title": "Industry"
      },
+     "linkedin_url": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Linkedin Url"
+     },
      "status": {
       "$ref": "#/components/schemas/LeadStatus"
      },
@@ -9882,6 +10047,7 @@
      "phone",
      "source",
      "industry",
+     "linkedin_url",
      "status",
      "score",
      "description",
@@ -10054,6 +10220,18 @@
       ],
       "title": "Industry"
      },
+     "linkedin_url": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 500
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Linkedin Url"
+     },
      "status": {
       "anyOf": [
        {
@@ -10127,6 +10305,36 @@
      "password"
     ],
     "title": "LoginIn"
+   },
+   "LookupOut": {
+    "properties": {
+     "kind": {
+      "type": "string",
+      "enum": [
+       "company",
+       "person"
+      ],
+      "title": "Kind"
+     },
+     "query": {
+      "type": "string",
+      "title": "Query"
+     },
+     "candidates": {
+      "items": {
+       "$ref": "#/components/schemas/CandidateOut"
+      },
+      "type": "array",
+      "title": "Candidates"
+     }
+    },
+    "type": "object",
+    "required": [
+     "kind",
+     "query",
+     "candidates"
+    ],
+    "title": "LookupOut"
    },
    "MailAccountOut": {
     "properties": {
@@ -12810,6 +13018,10 @@
       "type": "integer",
       "title": "Meetings"
      },
+     "linkedin": {
+      "type": "integer",
+      "title": "Linkedin"
+     },
      "other": {
       "type": "integer",
       "title": "Other"
@@ -12821,6 +13033,7 @@
      "calls",
      "emails",
      "meetings",
+     "linkedin",
      "other"
     ],
     "title": "WeekActivity"

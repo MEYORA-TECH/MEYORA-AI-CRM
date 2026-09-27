@@ -73,7 +73,8 @@ SELECT
              count(*) FILTER (WHERE type = 'call') AS calls,
              count(*) FILTER (WHERE type = 'email') AS emails,
              count(*) FILTER (WHERE type = 'meeting') AS meetings,
-             count(*) FILTER (WHERE type NOT IN ('call', 'email', 'meeting')) AS other
+             count(*) FILTER (WHERE type = 'linkedin') AS linkedin,
+             count(*) FILTER (WHERE type NOT IN ('call', 'email', 'meeting', 'linkedin')) AS other
       FROM activities
       WHERE organization_id = :org AND status = 'completed'
         AND type NOT IN ('stage_change', 'system') AND occurred_at >= :since
@@ -113,7 +114,10 @@ async def build(session: AsyncSession, organization_id, tz_name: str, week_start
     by_week = {date.fromisoformat(str(w["week_start"])): w for w in row.weeks}
     weeks = [
         by_week.get(first_week + timedelta(weeks=i))
-        or {"week_start": first_week + timedelta(weeks=i), "calls": 0, "emails": 0, "meetings": 0, "other": 0}
+        or {
+            "week_start": first_week + timedelta(weeks=i),
+            "calls": 0, "emails": 0, "meetings": 0, "linkedin": 0, "other": 0,
+        }
         for i in range(WEEKS)
     ]
     return Insights.model_validate(

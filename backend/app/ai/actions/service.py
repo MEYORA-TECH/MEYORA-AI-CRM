@@ -9,6 +9,7 @@ from sqlalchemy import func, select
 from app.ai.actions.base import ActionSpec
 from app.ai.actions.crm_actions import CRM_ACTIONS
 from app.ai.actions.email_action import EMAIL_ACTIONS
+from app.ai.actions.linkedin_actions import LINKEDIN_ACTIONS
 from app.ai.tools.base import Tool, ToolContext, ToolResult
 from app.auth.deps import TenantContext
 from app.auth.permissions import Perm
@@ -18,7 +19,7 @@ from app.models import AIAction, AIMessage
 from app.services.audit import audit
 
 log = get_logger("ai.actions")
-SPECS: dict[str, ActionSpec] = {a.name: a for a in CRM_ACTIONS + EMAIL_ACTIONS}
+SPECS: dict[str, ActionSpec] = {a.name: a for a in CRM_ACTIONS + EMAIL_ACTIONS + LINKEDIN_ACTIONS}
 EXPIRES_AFTER = timedelta(minutes=30)
 
 

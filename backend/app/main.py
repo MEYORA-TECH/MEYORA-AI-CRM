@@ -5,7 +5,19 @@ from fastapi import APIRouter, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
 
-from app.api import ai, api_keys, auth, crm, emails, integrations, memories, organizations, platform, research
+from app.api import (
+    ai,
+    api_keys,
+    auth,
+    crm,
+    emails,
+    integrations,
+    linkedin,
+    memories,
+    organizations,
+    platform,
+    research,
+)
 from app.core.config import get_settings
 from app.core.errors import register_error_handlers
 from app.core.logging import configure_logging
@@ -75,6 +87,7 @@ def create_app() -> FastAPI:
     api.include_router(organizations.router)
     api.include_router(api_keys.router)
     api.include_router(platform.router)
+    api.include_router(linkedin.router)
     api.include_router(crm.router)
     api.include_router(ai.router)
     api.include_router(memories.router)

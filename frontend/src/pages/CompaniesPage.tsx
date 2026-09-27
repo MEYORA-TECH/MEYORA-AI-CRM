@@ -5,6 +5,7 @@ import { useParams } from "react-router-dom";
 import { EntityName } from "@/components/data/EntityPicker";
 import { ListPage } from "@/components/data/ListPage";
 import { RecordPage, Facts } from "@/components/data/RecordPage";
+import { LinkedInBox } from "@/components/data/LinkedInBox";
 import { ContactsPanel, DealsPanel, LogActivityButton, NotesPanel, TasksPanel } from "@/components/data/Related";
 import { RecordMemoryPanel } from "@/ai/memories";
 import { RecordEmailsPanel } from "@/email/components";
@@ -97,6 +98,8 @@ export function CompanyDetailPage() {
               { label: "Added", value: relative(c.created_at) },
             ]}
           />
+          <LinkedInBox entity="companies" id={c.id} url={c.linkedin_url} name={c.name}
+            onSave={(u) => update.mutateAsync({ id, input: { linkedin_url: u } })} />
           {c.tags.length ? (
             <div className="mt-4 flex flex-wrap gap-1.5">{c.tags.map((t) => <Badge key={t}>{t}</Badge>)}</div>
           ) : null}

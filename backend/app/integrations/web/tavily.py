@@ -24,6 +24,7 @@ class TavilyProvider:
         time_range: TimeRange | None = None,
         max_results: int = 6,
         country: str | None = None,
+        include_domains: list[str] | None = None,
     ) -> list[WebResult]:
         body = {
             "query": query[:400],
@@ -35,6 +36,8 @@ class TavilyProvider:
         }
         if time_range:
             body["time_range"] = time_range
+        if include_domains:
+            body["include_domains"] = include_domains
         if country and topic == "general":  # Tavily only supports country boosting for general search
             body["country"] = country.lower()
         try:

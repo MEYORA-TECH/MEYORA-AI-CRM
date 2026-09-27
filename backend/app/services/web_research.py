@@ -69,6 +69,7 @@ async def search(
     time_range: TimeRange | None = None,
     max_results: int = 6,
     country: str | None = None,
+    include_domains: list[str] | None = None,
 ) -> tuple[list[WebResult], bool]:
     """Returns (results, cached). Raises WebUnavailable / WebBudgetExceeded with a user-facing message."""
     s = get_settings()
@@ -79,7 +80,7 @@ async def search(
     if len(query) < 2:
         raise ValidationFailed("Search for at least two characters.")
     key = hashlib.sha256(
-        f"{engine.id}|{topic}|{time_range}|{max_results}|{country}|{query.lower()}".encode()
+        f"{engine.id}|{topic}|{time_range}|{max_results}|{country}|{include_domains}|{query.lower()}".encode()
     ).hexdigest()
 
     hit = await session.scalar(
@@ -118,7 +119,8 @@ async def search(
 
     try:
         results = await engine.search(
-            query, topic=topic, time_range=time_range, max_results=max_results, country=country
+            query, topic=topic, time_range=time_range, max_results=max_results, country=country,
+            include_domains=include_domains,
         )
     except WebSearchError as exc:
         raise WebUnavailable(exc.message) from exc

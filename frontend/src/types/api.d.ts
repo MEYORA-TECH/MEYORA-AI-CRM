@@ -11,8 +11,29 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Health */
+        /**
+         * Health
+         * @description Liveness for container probes. Doesn't touch the database, so probes never keep a
+         *     serverless database (Neon) awake.
+         */
         get: operations["health_api_health_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/health/db": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Health Db */
+        get: operations["health_db_api_health_db_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -448,6 +469,23 @@ export interface paths {
         post?: never;
         /** Remove Shared Key */
         delete: operations["remove_shared_key_api_platform_keys__provider__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/linkedin/lookup/{entity}/{entity_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Lookup */
+        get: operations["lookup_api_linkedin_lookup__entity___entity_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -1248,7 +1286,7 @@ export interface components {
          * ActivityType
          * @enum {string}
          */
-        ActivityType: "call" | "meeting" | "email" | "note" | "task" | "follow_up" | "stage_change" | "system";
+        ActivityType: "call" | "meeting" | "email" | "note" | "task" | "follow_up" | "linkedin" | "stage_change" | "system";
         /** ActivityUpdate */
         ActivityUpdate: {
             /** Company Id */
@@ -1407,6 +1445,15 @@ export interface components {
             /** Count */
             count: number;
         };
+        /** CandidateOut */
+        CandidateOut: {
+            /** Url */
+            url: string;
+            /** Title */
+            title: string;
+            /** Snippet */
+            snippet: string;
+        };
         /** ChatIn */
         ChatIn: {
             /** Message */
@@ -1434,6 +1481,8 @@ export interface components {
             industry?: string | null;
             /** Website */
             website?: string | null;
+            /** Linkedin Url */
+            linkedin_url?: string | null;
             /** Phone */
             phone?: string | null;
             /** Email */
@@ -1485,6 +1534,8 @@ export interface components {
             industry: string | null;
             /** Website */
             website: string | null;
+            /** Linkedin Url */
+            linkedin_url: string | null;
             /** Phone */
             phone: string | null;
             /** Email */
@@ -1536,6 +1587,8 @@ export interface components {
             industry?: string | null;
             /** Website */
             website?: string | null;
+            /** Linkedin Url */
+            linkedin_url?: string | null;
             /** Phone */
             phone?: string | null;
             /** Email */
@@ -2162,6 +2215,8 @@ export interface components {
             source?: string | null;
             /** Industry */
             industry?: string | null;
+            /** Linkedin Url */
+            linkedin_url?: string | null;
             status?: components["schemas"]["LeadStatus"] | null;
             /** Score */
             score?: number | null;
@@ -2240,6 +2295,8 @@ export interface components {
             source: string | null;
             /** Industry */
             industry: string | null;
+            /** Linkedin Url */
+            linkedin_url: string | null;
             status: components["schemas"]["LeadStatus"];
             /** Score */
             score: number;
@@ -2296,6 +2353,8 @@ export interface components {
             source?: string | null;
             /** Industry */
             industry?: string | null;
+            /** Linkedin Url */
+            linkedin_url?: string | null;
             status?: components["schemas"]["LeadStatus"] | null;
             /** Score */
             score?: number | null;
@@ -2313,6 +2372,18 @@ export interface components {
             email: string;
             /** Password */
             password: string;
+        };
+        /** LookupOut */
+        LookupOut: {
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "company" | "person";
+            /** Query */
+            query: string;
+            /** Candidates */
+            candidates: components["schemas"]["CandidateOut"][];
         };
         /** MailAccountOut */
         MailAccountOut: {
@@ -3201,6 +3272,8 @@ export interface components {
             emails: number;
             /** Meetings */
             meetings: number;
+            /** Linkedin */
+            linkedin: number;
             /** Other */
             other: number;
         };
@@ -3309,6 +3382,26 @@ export interface components {
 export type $defs = Record<string, never>;
 export interface operations {
     health_api_health_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+        };
+    };
+    health_db_api_health_db_get: {
         parameters: {
             query?: never;
             header?: never;
@@ -4215,6 +4308,38 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    lookup_api_linkedin_lookup__entity___entity_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                entity: "companies" | "contacts" | "leads";
+                entity_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LookupOut"];
+                };
             };
             /** @description Validation Error */
             422: {

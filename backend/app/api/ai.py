@@ -191,7 +191,8 @@ async def confirm_action(
 ):
     edits = body.edits if body else None
     if edits is not None:
-        edits = {k: v for k, v in edits.items() if k in ("to", "subject", "body")}
+        # Only the fields a person can edit on a card: an email draft, or a LinkedIn draft's text.
+        edits = {k: v for k, v in edits.items() if k in ("to", "subject", "body", "text")}
     return await actions_service.confirm(ctx, action_id, edits)
 
 

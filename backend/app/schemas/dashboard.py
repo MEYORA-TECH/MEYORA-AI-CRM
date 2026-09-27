@@ -80,6 +80,7 @@ class WeekActivity(OutputModel):
     calls: int
     emails: int
     meetings: int
+    linkedin: int
     other: int
 
 

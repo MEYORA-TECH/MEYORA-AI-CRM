@@ -37,6 +37,7 @@ class ActivityType(StrEnum):
     NOTE = "note"
     TASK = "task"
     FOLLOW_UP = "follow_up"
+    LINKEDIN = "linkedin"  # connection request, message or InMail, sent by the user on LinkedIn
     STAGE_CHANGE = "stage_change"
     SYSTEM = "system"
 

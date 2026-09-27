@@ -238,17 +238,18 @@ const SERIES = [
   { key: "calls", label: "Calls", color: "var(--ice)" },
   { key: "emails", label: "Emails", color: "var(--frost)" },
   { key: "meetings", label: "Meetings", color: "var(--jade)" },
+  { key: "linkedin", label: "LinkedIn", color: "#6d8fd6" },
   { key: "other", label: "Other", color: "var(--line-strong)" },
 ] as const;
 
 function Activity({ i }: { i: Insights }) {
-  const weeks = i.weeks.map((w) => ({ ...w, total: w.calls + w.emails + w.meetings + w.other }));
+  const weeks = i.weeks.map((w) => ({ ...w, total: w.calls + w.emails + w.meetings + w.linkedin + w.other }));
   const max = Math.max(1, ...weeks.map((w) => w.total));
   const thisWeek = weeks[weeks.length - 1];
   const lastWeek = weeks[weeks.length - 2];
   const fmt = (iso: string) => new Intl.DateTimeFormat("en-IN", { day: "numeric", month: "short" }).format(new Date(iso));
   if (!weeks.some((w) => w.total)) {
-    return <EmptyState icon={<Phone className="size-5" />} title="No calls, emails or meetings yet"
+    return <EmptyState icon={<Phone className="size-5" />} title="No outreach logged yet"
       body="Log outreach from any lead or company and the weekly rhythm shows up here." action={<LogActivityButton />} />;
   }
   const delta = thisWeek.total - (lastWeek?.total ?? 0);
@@ -262,7 +263,7 @@ function Activity({ i }: { i: Insights }) {
         aria-label={weeks.map((w) => `Week of ${fmt(w.week_start)}: ${w.total}`).join(", ")}>
         {weeks.map((w) => (
           <div key={w.week_start} className="flex h-full flex-1 flex-col items-center justify-end gap-1"
-            title={`${fmt(w.week_start)}: ${w.calls} calls, ${w.emails} emails, ${w.meetings} meetings, ${w.other} other`}>
+            title={`${fmt(w.week_start)}: ${w.calls} calls, ${w.emails} emails, ${w.meetings} meetings, ${w.linkedin} LinkedIn, ${w.other} other`}>
             <div className="flex w-full max-w-9 flex-col-reverse overflow-hidden rounded-md" style={{ height: `${Math.max(4, (w.total / max) * 100)}%` }}>
               {w.total ? SERIES.map((s) => (w[s.key] ? <span key={s.key} style={{ flexGrow: w[s.key], background: s.color }} /> : null))
                 : <span className="h-full bg-[var(--line)]" />}
@@ -417,7 +418,7 @@ export function DashboardPage() {
             </Card>
 
             <Card className={PANEL + " lg:col-span-5"}>
-              <CardHeader title="Team activity" subtitle="Calls, emails and meetings logged, last 8 weeks"
+              <CardHeader title="Team activity" subtitle="Calls, emails, meetings and LinkedIn, last 8 weeks"
                 action={<Link to="/activities" className={link}>All</Link>} />
               <Activity i={d.insights} />
             </Card>

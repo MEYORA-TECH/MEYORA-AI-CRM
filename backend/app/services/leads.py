@@ -78,6 +78,7 @@ async def convert(ctx: TenantContext, lead: Lead, opts: LeadConvertIn) -> tuple[
                 "job_title": lead.job_title,
                 "email": lead.email,
                 "phone": lead.phone,
+                "linkedin_url": lead.linkedin_url,
                 "company_id": company_id,
                 "owner_id": lead.owner_id,
                 "description": lead.description,

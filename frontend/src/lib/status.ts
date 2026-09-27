@@ -43,6 +43,7 @@ export const ACTIVITY_TYPES = [
   { value: "email", label: "Email" },
   { value: "note", label: "Note" },
   { value: "follow_up", label: "Follow-up" },
+  { value: "linkedin", label: "LinkedIn" },
 ];
 
 export const options = (map: Record<string, { label: string }>) =>

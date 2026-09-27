@@ -6,6 +6,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { EntityName } from "@/components/data/EntityPicker";
 import { ListPage } from "@/components/data/ListPage";
 import { Facts, RecordPage } from "@/components/data/RecordPage";
+import { LinkedInBox } from "@/components/data/LinkedInBox";
 import { LogActivityButton, NotesPanel, TasksPanel } from "@/components/data/Related";
 import { Timeline } from "@/components/data/Timeline";
 import { WebResearchPanel } from "@/research/WebResearchPanel";
@@ -204,6 +205,9 @@ export function LeadDetailPage() {
               { label: "Created", value: relative(l.created_at) },
             ]}
           />
+          <LinkedInBox entity="leads" id={l.id} url={l.linkedin_url} name={l.name}
+            person={l.name.trim().toLowerCase() !== (l.company_name ?? "").trim().toLowerCase()}
+            onSave={(u) => update.mutateAsync({ id, input: { linkedin_url: u } })} />
           {l.status === "converted" ? (
             <div className="mt-4 rounded-2xl bg-jade-soft p-3.5 text-sm">
               <p className="font-semibold text-jade">Converted {relative(l.converted_at)}</p>

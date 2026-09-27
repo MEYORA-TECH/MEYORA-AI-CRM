@@ -1,5 +1,5 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { ArrowRight, Check, Copy, ExternalLink, Mail, ShieldCheck, X } from "@/components/icons";
+import { ArrowRight, Check, Copy, ExternalLink, Linkedin, Mail, ShieldCheck, X } from "@/components/icons";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
@@ -16,10 +16,19 @@ export interface ActionUi {
   status: "proposed" | "executed" | "rejected" | "failed" | "expired";
   title: string;
   summary: string;
-  variant: "crm" | "email";
+  variant: "crm" | "email" | "linkedin";
   changes: { field: string; old: unknown; new: unknown }[];
   target: { type: string | null; id: string | null; label: string | null; href: string | null };
   email?: { to: string[]; subject: string; body: string; can_send: boolean; from: string | null } | null;
+  linkedin?: {
+    kind: "connection_note" | "message" | "inmail";
+    label: string;
+    text: string;
+    subject: string | null;
+    limit: number;
+    profile_url: string | null;
+    recipient: string;
+  } | null;
   result?: { summary: string; href: string | null } | null;
   error?: string | null;
 }
@@ -72,16 +81,19 @@ export function ActionCard({ ui: raw }: { ui: ActionUi }) {
   const [busy, setBusy] = useState<"confirm" | "reject" | null>(null);
   const [draft, setDraft] = useState(() => ({
     to: ui.email?.to.join(", ") ?? "", subject: ui.email?.subject ?? "", body: ui.email?.body ?? "",
+    text: ui.linkedin?.text ?? "",
   }));
+  const overLimit = ui.variant === "linkedin" && ui.linkedin ? draft.text.length > ui.linkedin.limit : false;
   const pending = ui.status === "proposed";
   const status = STATUS[ui.status];
 
   const decide = async (kind: "confirm" | "reject") => {
     setBusy(kind);
     try {
-      const body = kind === "confirm" && ui.variant === "email"
-        ? { edits: { to: draft.to.split(",").map((s) => s.trim()).filter(Boolean), subject: draft.subject, body: draft.body } }
-        : undefined;
+      const body = kind !== "confirm" ? undefined
+        : ui.variant === "email"
+          ? { edits: { to: draft.to.split(",").map((s) => s.trim()).filter(Boolean), subject: draft.subject, body: draft.body } }
+          : ui.variant === "linkedin" ? { edits: { text: draft.text } } : undefined;
       apply(await api.post<ActionResponse>(`/ai/actions/${ui.id}/${kind}`, body));
       refresh();
     } catch (e) {
@@ -94,7 +106,9 @@ export function ActionCard({ ui: raw }: { ui: ActionUi }) {
   return (
     <div className={cn("glass-dense overflow-hidden rounded-2xl text-sm", pending && "ring-1 ring-[var(--jade)]/40")}>
       <div className="flex items-center gap-2 border-b border-line px-3.5 py-2.5">
-        {ui.variant === "email" ? <Mail className="size-4 text-jade" /> : <ShieldCheck className="size-4 text-jade" />}
+        {ui.variant === "email" ? <Mail className="size-4 text-jade" />
+          : ui.variant === "linkedin" ? <Linkedin className="size-4 text-[#0a66c2]" />
+          : <ShieldCheck className="size-4 text-jade" />}
         <span className="font-semibold">{ui.title}</span>
         {ui.target.label ? (
           ui.target.href ? <Link to={ui.target.href} className="truncate text-xs text-ink-3 hover:underline">· {ui.target.label}</Link>
@@ -111,6 +125,18 @@ export function ActionCard({ ui: raw }: { ui: ActionUi }) {
           <Input value={draft.subject} disabled={!pending} onChange={(e) => setDraft({ ...draft, subject: e.target.value })} className="h-8 font-semibold" aria-label="Subject" />
           <Textarea value={draft.body} disabled={!pending} onChange={(e) => setDraft({ ...draft, body: e.target.value })} className="min-h-40 text-[13px]" aria-label="Message" />
           {ui.email.from ? <p className="text-[11px] text-ink-3">Sends from {ui.email.from}</p> : null}
+        </div>
+      ) : ui.variant === "linkedin" && ui.linkedin ? (
+        <div className="space-y-2 px-3.5 py-3">
+          <p className="text-[11px] text-ink-3">
+            Meyora can't send on LinkedIn. Copy this, send it there, then log it here.
+          </p>
+          {ui.linkedin.subject ? <p className="text-[13px] font-semibold">{ui.linkedin.subject}</p> : null}
+          <Textarea value={draft.text} disabled={!pending} onChange={(e) => setDraft({ ...draft, text: e.target.value })}
+            className="min-h-28 text-[13px]" aria-label="LinkedIn message" />
+          <p className={cn("num text-right text-[11px]", overLimit ? "font-semibold text-danger" : "text-ink-3")}>
+            {draft.text.length} / {ui.linkedin.limit}{overLimit ? " · too long for a connection note" : ""}
+          </p>
         </div>
       ) : (
         <dl className="divide-y divide-[var(--line)] px-3.5">
@@ -130,6 +156,17 @@ export function ActionCard({ ui: raw }: { ui: ActionUi }) {
 
       {pending ? (
         <div className="flex flex-wrap items-center justify-end gap-2 border-t border-line px-3.5 py-2.5">
+          {ui.variant === "linkedin" && ui.linkedin ? (
+            <>
+              <Button size="sm" variant="ghost" icon={<Copy className="size-3.5" />} className="mr-auto"
+                onClick={async () => { await navigator.clipboard.writeText(draft.text).catch(() => undefined); toast.success("Copied"); }}>Copy</Button>
+              <a className="focus-ring inline-flex h-8 items-center gap-1.5 rounded-[var(--radius-control)] px-3 text-[13px] font-semibold text-ink-2 hover:bg-glass-2"
+                target="_blank" rel="noopener noreferrer"
+                href={ui.linkedin.profile_url ?? `https://www.linkedin.com/search/results/people/?keywords=${encodeURIComponent(ui.linkedin.recipient)}`}>
+                <ExternalLink className="size-3.5" /> {ui.linkedin.profile_url ? "Open profile" : "Find on LinkedIn"}
+              </a>
+            </>
+          ) : null}
           {ui.variant === "email" && ui.email && !ui.email.can_send ? (
             <>
               <span className="mr-auto text-[11px] text-ink-3">Connect Gmail in Settings to send from Meyora.</span>
@@ -145,8 +182,8 @@ export function ActionCard({ ui: raw }: { ui: ActionUi }) {
             Cancel
           </Button>
           <Button size="sm" variant="primary" icon={ui.variant === "email" ? <Mail className="size-3.5" /> : <Check className="size-3.5" />}
-            loading={busy === "confirm"} disabled={Boolean(busy) || (ui.variant === "email" && !ui.email?.can_send)} onClick={() => decide("confirm")}>
-            {ui.variant === "email" ? "Send" : "Confirm"}
+            loading={busy === "confirm"} disabled={Boolean(busy) || (ui.variant === "email" && !ui.email?.can_send) || overLimit} onClick={() => decide("confirm")}>
+            {ui.variant === "email" ? "Send" : ui.variant === "linkedin" ? "Log as sent" : "Confirm"}
           </Button>
         </div>
       ) : ui.status === "executed" && ui.result ? (
@@ -166,7 +203,8 @@ export function ConfirmAllBar({ actions }: { actions: ActionUi[] }) {
   const byId = useActionState((s) => s.byId);
   const refresh = useRefreshAfterAction();
   const [busy, setBusy] = useState(false);
-  const pending = actions.filter((a) => (byId[a.id]?.status ?? a.status) === "proposed" && a.variant !== "email");
+  // Drafts (email, LinkedIn) need a person's eye one at a time; only plain CRM changes batch.
+  const pending = actions.filter((a) => (byId[a.id]?.status ?? a.status) === "proposed" && a.variant === "crm");
   if (pending.length < 2) return null;
   return (
     <div className="glass-soft flex items-center justify-between gap-3 rounded-2xl px-3.5 py-2.5 text-sm">

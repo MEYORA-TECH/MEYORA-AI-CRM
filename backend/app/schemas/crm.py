@@ -52,6 +52,7 @@ class CompanyFields(TaggedInput):
     name: Name | None = None
     industry: ShortText | None = None
     website: Url | None = None
+    linkedin_url: Url | None = None
     phone: Phone | None = None
     email: EmailStr | None = None
     address: ShortText | None = None
@@ -77,6 +78,7 @@ class CompanyOut(TaggedOut):
     name: str
     industry: str | None
     website: str | None
+    linkedin_url: str | None
     phone: str | None
     email: str | None
     address: str | None
@@ -151,6 +153,7 @@ class LeadFields(TaggedInput):
     phone: Phone | None = None
     source: ShortText | None = None
     industry: ShortText | None = None
+    linkedin_url: Url | None = None
     status: LeadStatus | None = None
     score: int | None = Field(default=None, ge=0, le=100)
     description: LongText | None = None
@@ -173,6 +176,7 @@ class LeadOut(TaggedOut):
     phone: str | None
     source: str | None
     industry: str | None
+    linkedin_url: str | None
     status: LeadStatus
     score: int
     description: str | None

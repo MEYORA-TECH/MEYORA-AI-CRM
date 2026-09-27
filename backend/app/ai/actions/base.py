@@ -26,8 +26,9 @@ class Proposal:
     target_id: uuid.UUID | None = None
     target_version: str | None = None
     target_label: str | None = None
-    kind: str = "crm"  # crm | email
+    kind: str = "crm"  # crm | email | linkedin
     email: dict[str, Any] | None = None  # draft for email actions (editable before sending)
+    linkedin: dict[str, Any] | None = None  # draft for LinkedIn actions (sent by the user on LinkedIn)
 
     def card(self) -> dict[str, Any]:
         return {
@@ -36,6 +37,7 @@ class Proposal:
             "changes": self.changes,
             "variant": self.kind,
             "email": self.email,
+            "linkedin": self.linkedin,
             "target": {
                 "type": self.target_type,
                 "id": str(self.target_id) if self.target_id else None,

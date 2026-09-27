@@ -34,6 +34,7 @@ export {
   HandshakeIcon as Handshake,
   KanbanIcon as KanbanSquare,
   KeyIcon as KeyRound,
+  LinkedinLogoIcon as Linkedin,
   SquaresFourIcon as LayoutDashboard,
   ListBulletsIcon as List,
   CircleNotchIcon as Loader2,

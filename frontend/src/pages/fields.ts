@@ -6,6 +6,7 @@ export const COMPANY_FIELDS: FieldSpec[] = [
   { name: "industry", label: "Industry", type: "text", half: true, placeholder: "Manufacturing" },
   { name: "status", label: "Status", type: "select", half: true, options: options(COMPANY_STATUS) },
   { name: "website", label: "Website", type: "url", half: true, placeholder: "https://" },
+  { name: "linkedin_url", label: "LinkedIn", type: "url", half: true, placeholder: "https://linkedin.com/company/…" },
   { name: "email", label: "Email", type: "email", half: true },
   { name: "phone", label: "Phone", type: "tel", half: true },
   { name: "employee_count", label: "Employees", type: "number", half: true, min: 0 },
@@ -41,6 +42,7 @@ export const LEAD_FIELDS: FieldSpec[] = [
   { name: "industry", label: "Industry", type: "text", half: true },
   { name: "email", label: "Email", type: "email", half: true },
   { name: "phone", label: "Phone", type: "tel", half: true },
+  { name: "linkedin_url", label: "LinkedIn", type: "url", half: true, placeholder: "https://linkedin.com/in/…" },
   { name: "source", label: "Source", type: "text", half: true, placeholder: "Referral, website, event…" },
   {
     name: "status", label: "Status", type: "select", half: true,

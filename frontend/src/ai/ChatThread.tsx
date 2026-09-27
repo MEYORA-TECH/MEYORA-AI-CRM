@@ -43,6 +43,9 @@ const TOOL_LABEL: Record<string, [string, string]> = {
   web_search: ["Searching the web", "Searched the web"],
   research_company: ["Researching on the web", "Researched on the web"],
   research_lead: ["Researching on the web", "Researched on the web"],
+  find_linkedin: ["Looking for their LinkedIn page", "Looked for their LinkedIn page"],
+  draft_linkedin_message: ["Drafting a LinkedIn message", "Drafted a LinkedIn message"],
+  save_linkedin_url: ["Preparing to save a LinkedIn page", "Prepared a LinkedIn page"],
 };
 
 const ENTITY: Record<RecordsUi["entity"], { icon: ReactNode; path?: string }> = {

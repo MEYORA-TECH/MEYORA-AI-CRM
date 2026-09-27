@@ -37,4 +37,5 @@ class WebSearchProvider(Protocol):
         time_range: TimeRange | None = None,
         max_results: int = 6,
         country: str | None = None,
+        include_domains: list[str] | None = None,
     ) -> list[WebResult]: ...

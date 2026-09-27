@@ -5,6 +5,7 @@ import { Link, useParams } from "react-router-dom";
 import { EntityName } from "@/components/data/EntityPicker";
 import { ListPage } from "@/components/data/ListPage";
 import { Facts, RecordPage } from "@/components/data/RecordPage";
+import { LinkedInBox } from "@/components/data/LinkedInBox";
 import { DealsPanel, LogActivityButton, NotesPanel, TasksPanel } from "@/components/data/Related";
 import { RecordMemoryPanel } from "@/ai/memories";
 import { RecordEmailsPanel } from "@/email/components";
@@ -97,12 +98,13 @@ export function ContactDetailPage() {
             items={[
               { label: "Email", value: c.email ? <a className="text-jade hover:underline" href={`mailto:${c.email}`}>{c.email}</a> : null },
               { label: "Phone", value: c.phone ? <a className="num hover:underline" href={`tel:${c.phone}`}>{c.phone}</a> : null },
-              { label: "LinkedIn", value: c.linkedin_url ? <a className="text-jade hover:underline" href={c.linkedin_url} target="_blank" rel="noreferrer noopener">Profile</a> : null },
               { label: "Location", value: [c.city, c.country].filter(Boolean).join(", ") || null },
               { label: "Owner", value: <EntityName kind="member" id={c.owner_id} /> },
               { label: "Added", value: relative(c.created_at) },
             ]}
           />
+          <LinkedInBox entity="contacts" id={c.id} url={c.linkedin_url} name={c.full_name} person
+            onSave={(u) => update.mutateAsync({ id, input: { linkedin_url: u } })} />
           {c.tags.length ? <div className="mt-4 flex flex-wrap gap-1.5">{c.tags.map((t) => <Badge key={t}>{t}</Badge>)}</div> : null}
           {c.description ? <p className="mt-4 border-t border-line pt-4 text-sm whitespace-pre-line text-ink-2">{c.description}</p> : null}
         </>

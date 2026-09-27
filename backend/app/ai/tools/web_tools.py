@@ -1,5 +1,6 @@
 """Web tools. Results are external and unverified; each gets a citation id (w1, w2…) unique in the conversation."""
 
+import uuid
 from typing import Literal
 
 from pydantic import BaseModel, Field
@@ -7,7 +8,7 @@ from pydantic import BaseModel, Field
 from app.ai.tools.base import Tool, ToolContext, ToolResult
 from app.core.errors import AppError
 from app.integrations.web.base import WebResult
-from app.services import records, web_research
+from app.services import linkedin, records, web_research
 
 
 def _cite(ctx: ToolContext, results: list[WebResult], title: str) -> ToolResult:
@@ -101,6 +102,44 @@ async def research_lead(ctx: ToolContext, a: ResearchRecord) -> ToolResult:
     return await _run(ctx, go)
 
 
+class FindLinkedIn(BaseModel):
+    ref: str = Field(description="Company (c1), contact (p1) or lead (l1) ref")
+
+
+async def find_linkedin(ctx: ToolContext, a: FindLinkedIn) -> ToolResult:
+    entry = ctx.working_set.refs.get(a.ref.strip().lower())
+    if not entry or entry["type"] not in ("company", "contact", "lead"):
+        return ToolResult(summary="Unknown record. Search for the company, contact or lead first.", ok=False)
+    kind = entry["type"]
+
+    async def go():
+        if kind == "company":
+            c = await records.companies(ctx.tenant).get(uuid.UUID(entry["id"]))
+            want, query = "company", linkedin.query_for("company", c.name, city=c.city)
+        elif kind == "contact":
+            p = await records.contacts(ctx.tenant).get(uuid.UUID(entry["id"]))
+            company = p.company.name if p.company else None
+            want, query = "person", linkedin.query_for("person", p.full_name, company=company, title=p.job_title)
+        else:
+            lead = await records.leads(ctx.tenant).get(uuid.UUID(entry["id"]))
+            want = linkedin.person_or_company(lead.name, lead.company_name)
+            query = linkedin.query_for(want, lead.name, company=lead.company_name, title=lead.job_title)
+        found = await linkedin.lookup(ctx.tenant.session, ctx.tenant.organization_id, ctx.tenant.user_id, want, query)
+        rows = [{"ref": f"li{i + 1}", "title": c.title, "url": c.url, "domain": "linkedin.com",
+                 "snippet": c.snippet, "published": None} for i, c in enumerate(found)]
+        if not found:
+            return ToolResult(summary=f"No public LinkedIn {want} page found for “{query}”.",
+                              ui={"kind": "web", "title": "LinkedIn", "rows": []})
+        lines = [f"- {c.url} — {c.title}: {c.snippet[:160]}" for c in found]
+        return ToolResult(
+            summary="Public LinkedIn pages (unverified; confirm with the user before saving with save_linkedin_url):\n"
+            + "\n".join(lines),
+            ui={"kind": "web", "title": "LinkedIn", "rows": rows},
+        )
+
+    return await _run(ctx, go)
+
+
 WEB_TOOLS: list[Tool] = [
     Tool(
         "web_search",
@@ -122,5 +161,13 @@ WEB_TOOLS: list[Tool] = [
         "Web research on a lead's company (company-level, not the person).",
         ResearchRecord,
         research_lead,
+    ),
+    Tool(
+        "find_linkedin",
+        "web",
+        "Find the public LinkedIn page of a CRM company, contact or lead (linkedin.com only). "
+        "Returns candidates to confirm; save one with save_linkedin_url.",
+        FindLinkedIn,
+        find_linkedin,
     ),
 ]

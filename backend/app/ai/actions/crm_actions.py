@@ -148,7 +148,7 @@ async def task_version(ctx: TenantContext, target_id: uuid.UUID) -> str | None:
 
 
 class LogActivity(BaseModel):
-    type: Literal["call", "meeting", "email", "note", "follow_up"]
+    type: Literal["call", "meeting", "email", "note", "follow_up", "linkedin"]
     subject: str = Field(min_length=2, max_length=300)
     about_ref: str | None = None
     notes: str | None = Field(None, max_length=5000)
