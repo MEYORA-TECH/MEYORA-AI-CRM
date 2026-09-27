@@ -349,6 +349,41 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/organization/api-keys": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Keys */
+        get: operations["list_keys_api_organization_api_keys_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/organization/api-keys/{provider}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Set Key */
+        put: operations["set_key_api_organization_api_keys__provider__put"];
+        post?: never;
+        /** Remove Key */
+        delete: operations["remove_key_api_organization_api_keys__provider__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/companies": {
         parameters: {
             query?: never;
@@ -1173,6 +1208,35 @@ export interface components {
          * @enum {string}
          */
         ActorType: "user" | "ai" | "system";
+        /** ApiKeyIn */
+        ApiKeyIn: {
+            /** Value */
+            value: string;
+        };
+        /** ApiKeyOut */
+        ApiKeyOut: {
+            /**
+             * Provider
+             * @enum {string}
+             */
+            provider: "groq" | "openrouter" | "gemini" | "tavily";
+            /** Label */
+            label: string;
+            /** Used For */
+            used_for: string;
+            /** Get Key Url */
+            get_key_url: string;
+            /** Source */
+            source: ("organization" | "server") | null;
+            /** Last4 */
+            last4: string | null;
+            /** Verified At */
+            verified_at: string | null;
+            /** Updated At */
+            updated_at: string | null;
+            /** Updated By Id */
+            updated_by_id: string | null;
+        };
         /** AuditLogOut */
         AuditLogOut: {
             /**
@@ -2366,7 +2430,7 @@ export interface components {
          * Perm
          * @enum {string}
          */
-        Perm: "crm:read" | "crm:write" | "crm:delete" | "pipelines:manage" | "members:read" | "members:manage" | "org:manage" | "org:delete" | "audit:read";
+        Perm: "crm:read" | "crm:write" | "crm:delete" | "pipelines:manage" | "members:read" | "members:manage" | "org:manage" | "org:delete" | "org:secrets" | "audit:read";
         /** PipelineCreate */
         PipelineCreate: {
             /** Name */
@@ -3500,6 +3564,90 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["DashboardOut"];
                 };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_keys_api_organization_api_keys_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiKeyOut"][];
+                };
+            };
+        };
+    };
+    set_key_api_organization_api_keys__provider__put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                provider: "groq" | "openrouter" | "gemini" | "tavily";
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ApiKeyIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiKeyOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    remove_key_api_organization_api_keys__provider__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                provider: "groq" | "openrouter" | "gemini" | "tavily";
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Validation Error */
             422: {

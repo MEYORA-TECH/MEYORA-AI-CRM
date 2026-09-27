@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 
 import { GmailSettings } from "@/email/GmailSettings";
+import { ApiKeysTab } from "@/settings/ApiKeysTab";
 import { toast } from "sonner";
 
 import { ConfirmDialog, Modal } from "@/components/ui/overlay";
@@ -346,18 +347,20 @@ const fmt = (v: unknown) => (v === null || v === undefined || v === "" ? "∅" :
 
 export function SettingsPage() {
   const canAudit = useCan("audit:read");
+  const canManageKeys = useCan("org:secrets");
   const [params, setParams] = useSearchParams();
   const tabs = [
     { value: "organization", label: "Organization", content: <OrganizationTab /> },
     { value: "members", label: "Members", content: <MembersTab /> },
     { value: "pipelines", label: "Pipelines", content: <PipelinesTab /> },
     { value: "email", label: "Email", content: <GmailSettings /> },
+    ...(canManageKeys ? [{ value: "api-keys", label: "API keys", content: <ApiKeysTab /> }] : []),
     ...(canAudit ? [{ value: "audit", label: "Audit log", content: <AuditTab /> }] : []),
   ];
   const tab = tabs.some((t) => t.value === params.get("tab")) ? params.get("tab")! : "organization";
   return (
     <>
-      <PageHeader title="Settings" description="Workspace, people, pipelines, email and history." />
+      <PageHeader title="Settings" description="Workspace, people, pipelines, email, API keys and history." />
       <Tabs.Root value={tab} onValueChange={(v) => setParams({ tab: v }, { replace: true })} className="rise">
         <Tabs.List aria-label="Settings sections" className="glass-soft mb-4 inline-flex max-w-full gap-1 overflow-x-auto rounded-full p-1">
           {tabs.map((t) => (

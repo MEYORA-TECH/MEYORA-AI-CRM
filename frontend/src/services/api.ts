@@ -83,7 +83,7 @@ export async function refreshSession(): Promise<boolean> {
 }
 
 export async function request<T>(
-  method: "GET" | "POST" | "PATCH" | "DELETE",
+  method: "GET" | "POST" | "PUT" | "PATCH" | "DELETE",
   path: string,
   opts: { body?: unknown; query?: Query; retry?: boolean } = {},
 ): Promise<T> {
@@ -111,6 +111,7 @@ export const api = {
   get: <T>(path: string, query?: Query) => request<T>("GET", path, { query }),
   post: <T>(path: string, body?: unknown) => request<T>("POST", path, { body: body ?? {} }),
   patch: <T>(path: string, body: unknown) => request<T>("PATCH", path, { body }),
+  put: <T>(path: string, body: unknown) => request<T>("PUT", path, { body }),
   delete: (path: string) => request<void>("DELETE", path),
 };
 

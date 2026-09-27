@@ -1056,6 +1056,143 @@
     }
    }
   },
+  "/api/organization/api-keys": {
+   "get": {
+    "tags": [
+     "organization"
+    ],
+    "summary": "List Keys",
+    "operationId": "list_keys_api_organization_api_keys_get",
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "items": {
+          "$ref": "#/components/schemas/ApiKeyOut"
+         },
+         "type": "array",
+         "title": "Response List Keys Api Organization Api Keys Get"
+        }
+       }
+      }
+     }
+    },
+    "security": [
+     {
+      "HTTPBearer": []
+     }
+    ]
+   }
+  },
+  "/api/organization/api-keys/{provider}": {
+   "put": {
+    "tags": [
+     "organization"
+    ],
+    "summary": "Set Key",
+    "operationId": "set_key_api_organization_api_keys__provider__put",
+    "security": [
+     {
+      "HTTPBearer": []
+     }
+    ],
+    "parameters": [
+     {
+      "name": "provider",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "enum": [
+        "groq",
+        "openrouter",
+        "gemini",
+        "tavily"
+       ],
+       "type": "string",
+       "title": "Provider"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ApiKeyIn"
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ApiKeyOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   },
+   "delete": {
+    "tags": [
+     "organization"
+    ],
+    "summary": "Remove Key",
+    "operationId": "remove_key_api_organization_api_keys__provider__delete",
+    "security": [
+     {
+      "HTTPBearer": []
+     }
+    ],
+    "parameters": [
+     {
+      "name": "provider",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "enum": [
+        "groq",
+        "openrouter",
+        "gemini",
+        "tavily"
+       ],
+       "type": "string",
+       "title": "Provider"
+      }
+     }
+    ],
+    "responses": {
+     "204": {
+      "description": "Successful Response"
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
   "/api/companies": {
    "get": {
     "tags": [
@@ -5959,6 +6096,123 @@
     ],
     "title": "ActorType"
    },
+   "ApiKeyIn": {
+    "properties": {
+     "value": {
+      "type": "string",
+      "maxLength": 400,
+      "minLength": 16,
+      "title": "Value"
+     }
+    },
+    "additionalProperties": false,
+    "type": "object",
+    "required": [
+     "value"
+    ],
+    "title": "ApiKeyIn"
+   },
+   "ApiKeyOut": {
+    "properties": {
+     "provider": {
+      "type": "string",
+      "enum": [
+       "groq",
+       "openrouter",
+       "gemini",
+       "tavily"
+      ],
+      "title": "Provider"
+     },
+     "label": {
+      "type": "string",
+      "title": "Label"
+     },
+     "used_for": {
+      "type": "string",
+      "title": "Used For"
+     },
+     "get_key_url": {
+      "type": "string",
+      "title": "Get Key Url"
+     },
+     "source": {
+      "anyOf": [
+       {
+        "type": "string",
+        "enum": [
+         "organization",
+         "server"
+        ]
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Source"
+     },
+     "last4": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Last4"
+     },
+     "verified_at": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "date-time"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Verified At"
+     },
+     "updated_at": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "date-time"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Updated At"
+     },
+     "updated_by_id": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "uuid"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Updated By Id"
+     }
+    },
+    "type": "object",
+    "required": [
+     "provider",
+     "label",
+     "used_for",
+     "get_key_url",
+     "source",
+     "last4",
+     "verified_at",
+     "updated_at",
+     "updated_by_id"
+    ],
+    "title": "ApiKeyOut"
+   },
    "AuditLogOut": {
     "properties": {
      "id": {
@@ -10278,6 +10532,7 @@
      "members:manage",
      "org:manage",
      "org:delete",
+     "org:secrets",
      "audit:read"
     ],
     "title": "Perm"
