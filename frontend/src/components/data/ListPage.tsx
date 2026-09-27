@@ -81,7 +81,9 @@ export function ListPage<T extends { id: string }>({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [search]);
 
-  const list = res.useList({ page, page_size: 25, sort, q: params.get("q") ?? undefined, ...filterValues });
+  // Empty filters are left out, so the default view shares its cache entry with sidebar prefetching.
+  const activeFilters = Object.fromEntries(Object.entries(filterValues).filter(([, v]) => v));
+  const list = res.useList({ page, page_size: 25, sort, q: params.get("q") || undefined, ...activeFilters });
   const create = res.useCreate();
   const filtered = Boolean(params.get("q")) || Object.values(filterValues).some(Boolean);
 

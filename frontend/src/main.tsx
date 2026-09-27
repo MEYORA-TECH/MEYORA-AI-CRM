@@ -12,7 +12,9 @@ import "./index.css";
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 15_000,
+      // Data changed by this user is refreshed right after each save; this only covers other people's edits.
+      staleTime: 60_000,
+      gcTime: 15 * 60_000,
       refetchOnWindowFocus: false,
       // Don't retry requests the server rejected on purpose.
       retry: (count, error) => !(error instanceof ApiError && error.status < 500) && count < 2,

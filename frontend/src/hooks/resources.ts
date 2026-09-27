@@ -1,6 +1,7 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
+import { timeZone } from "@/lib/format";
 import { api, describeError } from "@/services/api";
 import type {
   Activity, Board, Company, Contact, Dashboard, Deal, Lead, LeadConvertInput, LeadConvertResult,
@@ -24,10 +25,19 @@ export function resource<T extends { id: string }, TInput = Partial<T>>(path: st
       });
     },
     useOne(id: string | undefined) {
+      const qc = useQueryClient();
+      // Opening a record from a list shows the row already loaded, then refreshes it quietly.
+      let fromList: T | undefined;
+      for (const [, page] of qc.getQueriesData<Page<T>>({ queryKey: [...key, "list"] })) {
+        fromList = page?.items.find((row) => row.id === id);
+        if (fromList) break;
+      }
       return useQuery({
         queryKey: [...key, "one", id],
         queryFn: () => api.get<T>(`${path}/${id}`),
         enabled: Boolean(id),
+        // Records are plain objects; the cast only satisfies the library's "not a function" guard on generic T.
+        placeholderData: fromList as never,
       });
     },
     useCreate() {
@@ -91,8 +101,31 @@ export function useMembers() {
   });
 }
 
+const dashboardQuery = (tz: string) => ({
+  queryKey: ["dashboard", tz],
+  queryFn: () => api.get<Dashboard>("/dashboard", { tz }),
+});
+
 export function useDashboard(tz: string) {
-  return useQuery({ queryKey: ["dashboard", tz], queryFn: () => api.get<Dashboard>("/dashboard", { tz }) });
+  return useQuery(dashboardQuery(tz));
+}
+
+const DEFAULT_LIST = { page: 1, page_size: 25 };
+const LISTS: Record<string, string> = { "/companies": "/companies", "/contacts": "/contacts", "/leads": "/leads" };
+
+/** Start loading a screen's first data when the pointer is on its link, so it opens already filled. */
+export function usePrefetchRoute() {
+  const qc = useQueryClient();
+  return (to: string) => {
+    if (to === "/") {
+      void qc.prefetchQuery(dashboardQuery(timeZone()));
+    } else if (LISTS[to]) {
+      void qc.prefetchQuery({
+        queryKey: [LISTS[to], "list", DEFAULT_LIST],
+        queryFn: () => api.get<Page<unknown>>(LISTS[to], DEFAULT_LIST),
+      });
+    }
+  };
 }
 
 export function useTimeline(entity: "companies" | "contacts" | "leads" | "deals", id: string | undefined) {

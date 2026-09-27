@@ -1,6 +1,7 @@
 import { LayoutGroup, motion } from "motion/react";
 import { NavLink, useLocation } from "react-router-dom";
 
+import { usePrefetchRoute } from "@/hooks/resources";
 import { cn } from "@/lib/format";
 import { isActive, PRIMARY_NAV, SECONDARY_NAV, type NavItem } from "./nav";
 
@@ -11,6 +12,7 @@ import { isActive, PRIMARY_NAV, SECONDARY_NAV, type NavItem } from "./nav";
  */
 export function Sidebar() {
   const { pathname } = useLocation();
+  const prefetch = usePrefetchRoute();
 
   const renderItem = (item: NavItem) => {
     const active = isActive(pathname, item.to);
@@ -21,6 +23,8 @@ export function Sidebar() {
           to={item.to}
           end={item.to === "/"}
           aria-label={item.label}
+          onMouseEnter={() => prefetch(item.to)}
+          onFocus={() => prefetch(item.to)}
           className={cn(
             "group/item relative flex h-11 items-center gap-3 rounded-2xl px-3 outline-none",
             "text-[var(--rail-ink)] transition-colors hover:text-white focus-visible:text-white",
@@ -36,7 +40,7 @@ export function Sidebar() {
           ) : null}
           <span className="pointer-events-none absolute inset-0 rounded-2xl ring-[var(--jade)] group-focus-visible/item:ring-2" />
           <Icon className="relative size-[19px] shrink-0" strokeWidth={active ? 2.2 : 1.8} />
-          <span className="relative text-sm font-semibold whitespace-nowrap opacity-0 transition-opacity duration-150 group-hover/rail:opacity-100 group-focus-within/rail:opacity-100">
+          <span className="relative text-sm font-semibold whitespace-nowrap opacity-0 transition-opacity duration-150 group-hover/rail:opacity-100 group-has-[:focus-visible]/rail:opacity-100">
             {item.label}
           </span>
         </NavLink>
@@ -51,7 +55,7 @@ export function Sidebar() {
         aria-label="Main"
         className={cn(
           "group/rail glass-rail fixed top-1/2 left-4 z-30 hidden -translate-y-1/2 flex-col rounded-[28px] p-2 md:flex",
-          "w-[60px] overflow-hidden transition-[width] duration-200 ease-out hover:w-[196px] focus-within:w-[196px]",
+          "w-[60px] overflow-hidden transition-[width] duration-200 ease-out hover:w-[196px] has-[:focus-visible]:w-[196px]",
         )}
       >
         <LayoutGroup id="rail">
