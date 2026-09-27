@@ -5,7 +5,7 @@ from typing import Literal
 from zoneinfo import ZoneInfo
 
 from pydantic import BaseModel, Field
-from sqlalchemy import func, or_, select
+from sqlalchemy import Integer, cast, func, or_, select
 
 from app.ai.tools.base import MAX_ROWS, Tool, ToolContext, ToolResult, rows_ui
 from app.models import Activity, Company, Contact, Deal, Lead, Organization, PipelineStage, Task
@@ -67,7 +67,26 @@ class SearchCompanies(BaseModel):
     industry: str | None = None
     city: str | None = None
     status: Literal["prospect", "active", "customer", "churned", "inactive"] | None = None
+    tag: str | None = Field(None, description="Only companies with this tag, e.g. 'High priority'")
+    size: str | None = Field(None, description="Employee band as stored, e.g. '51–200' or '201–500'")
+    min_fit: int | None = Field(None, ge=0, le=100, description="Minimum fit score (0-100)")
+    include_partners: bool = Field(
+        False, description="Include associations and industrial estates tagged 'Outreach partner' (not sales targets)"
+    )
+    sort: Literal["best_fit", "recent", "name"] = "best_fit"
     limit: int = Field(MAX_ROWS, ge=1, le=MAX_ROWS)
+
+
+def _has_tag(column, tag: str):
+    """Whole-tag match, ignoring case: tags typed in the app are lowercased, imported ones may not be."""
+    joined = func.concat("|", func.lower(func.array_to_string(column, "|")), "|")
+    return joined.contains(f"|{tag.strip().lower()}|", autoescape=True)
+
+
+# Fields that imports keep in custom_fields; read as text so any value shape is safe.
+_FIT = cast(func.nullif(func.regexp_replace(Company.custom_fields["Fit score"].astext, "[^0-9]", "", "g"), ""), Integer)
+_SIZE = Company.custom_fields["Company size"].astext
+_PRIORITY = Company.custom_fields["Priority"].astext
 
 
 async def search_companies(ctx: ToolContext, a: SearchCompanies) -> ToolResult:
@@ -81,19 +100,64 @@ async def search_companies(ctx: ToolContext, a: SearchCompanies) -> ToolResult:
         stmt = stmt.where(Company.city.ilike(like_pattern(a.city), escape="\\"))
     if a.status:
         stmt = stmt.where(Company.status == a.status)
+    if a.tag:
+        stmt = stmt.where(_has_tag(Company.tags, a.tag))
+    if a.size:
+        # Imports write en dashes ("51–200"); accept a hyphen too.
+        stmt = stmt.where(func.replace(_SIZE, "–", "-") == a.size.replace("–", "-").strip())
+    if a.min_fit is not None:
+        stmt = stmt.where(a.min_fit <= _FIT)
+    if not a.include_partners:
+        stmt = stmt.where(~_has_tag(Company.tags, "Outreach partner"))
     total = await ctx.tenant.session.scalar(select(func.count()).select_from(stmt.subquery())) or 0
-    rows = list(await ctx.tenant.session.scalars(stmt.order_by(Company.updated_at.desc()).limit(a.limit)))
+
+    contacts = (
+        select(func.count(Contact.id))
+        .where(Contact.company_id == Company.id, Contact.deleted_at.is_(None))
+        .correlate(Company)
+        .scalar_subquery()
+    )
+    deciders = (
+        select(func.count(Contact.id))
+        .where(Contact.company_id == Company.id, Contact.deleted_at.is_(None), _has_tag(Contact.tags, "Decision maker"))
+        .correlate(Company)
+        .scalar_subquery()
+    )
+    order = {
+        "best_fit": [_FIT.desc().nulls_last(), deciders.desc(), Company.updated_at.desc()],
+        "recent": [Company.updated_at.desc()],
+        "name": [Company.name.asc()],
+    }[a.sort]
+    rows = (
+        await ctx.tenant.session.execute(
+            stmt.add_columns(_FIT.label("fit"), contacts.label("contacts"), deciders.label("deciders"))
+            .order_by(*order)
+            .limit(a.limit)
+        )
+    ).all()
 
     lines, ui_rows = [], []
-    for c in rows:
+    for c, fit, n_contacts, n_deciders in rows:
         ref = ctx.working_set.ref_for("company", c.id, c.name)
-        lines.append(f"{ref}: {c.name} · {c.industry or '-'} · {c.city or '-'} · {c.status}")
+        facts = [
+            c.industry or "-",
+            c.city or "-",
+            c.status,
+            f"fit {fit}" if fit is not None else None,
+            f"priority {c.custom_fields.get('Priority')}" if c.custom_fields.get("Priority") else None,
+            f"size {c.custom_fields.get('Company size')}" if c.custom_fields.get("Company size") else None,
+            f"{n_contacts} contact{'s' if n_contacts != 1 else ''}"
+            + (f" ({n_deciders} decision maker{'s' if n_deciders != 1 else ''})" if n_deciders else ""),
+            ("tags: " + ", ".join(c.tags)) if c.tags else None,
+        ]
+        lines.append(f"{ref}: {c.name} · " + " · ".join(f for f in facts if f))
         ui_rows.append(
             {
                 "id": str(c.id),
                 "title": c.name,
                 "subtitle": " · ".join(filter(None, [c.industry, c.city])),
                 "badge": c.status,
+                "value": f"fit {fit}" if fit is not None else None,
             }
         )
     head = f"{total} compan{'y' if total == 1 else 'ies'} found" + (
@@ -524,7 +588,8 @@ TOOLS: list[Tool] = [
     Tool(
         "search_companies",
         "companies",
-        "Find companies by text, industry, city or status.",
+        "Find companies by text, industry, city, status, tag, employee band or fit score. Best fit first; "
+        "associations and industrial estates ('Outreach partner') are left out unless asked for.",
         SearchCompanies,
         search_companies,
     ),

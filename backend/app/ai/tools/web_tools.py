@@ -49,6 +49,12 @@ class WebSearch(BaseModel):
     )
     news: bool = Field(False, description="Search recent news instead of the general web")
     recent: Literal["day", "week", "month", "year"] | None = None
+    country: str | None = Field(
+        None,
+        max_length=40,
+        description="Prefer results from this country, lowercase English name (e.g. 'india'). "
+        "Default to the organisation's market for prospect searches.",
+    )
 
 
 async def web_search(ctx: ToolContext, a: WebSearch) -> ToolResult:
@@ -60,6 +66,7 @@ async def web_search(ctx: ToolContext, a: WebSearch) -> ToolResult:
             a.query,
             topic="news" if a.news else "general",
             time_range=a.recent,
+            country=a.country,
         )
         return _cite(ctx, results, f"Web: {a.query}")
 

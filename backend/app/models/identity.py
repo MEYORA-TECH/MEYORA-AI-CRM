@@ -3,7 +3,7 @@
 import uuid
 from datetime import datetime
 
-from sqlalchemy import ForeignKey, Index, String, UniqueConstraint, func, text
+from sqlalchemy import ForeignKey, Index, String, Text, UniqueConstraint, func, text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.auth.permissions import Role
@@ -16,6 +16,9 @@ class Organization(UUIDPk, Timestamps, Base):
     name: Mapped[str] = mapped_column(String(200))
     slug: Mapped[str] = mapped_column(String(80), unique=True)
     default_currency: Mapped[str] = mapped_column(String(3), default="INR", server_default="INR")
+    # What the organisation sells, to whom and where. Given to the assistant so it judges fit
+    # and aims web research at the right market.
+    about: Mapped[str | None] = mapped_column(Text)
 
 
 class User(UUIDPk, Timestamps, Base):

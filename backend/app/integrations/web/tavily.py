@@ -17,7 +17,13 @@ class TavilyProvider:
         self._key = api_key
 
     async def search(
-        self, query: str, *, topic: Topic = "general", time_range: TimeRange | None = None, max_results: int = 6
+        self,
+        query: str,
+        *,
+        topic: Topic = "general",
+        time_range: TimeRange | None = None,
+        max_results: int = 6,
+        country: str | None = None,
     ) -> list[WebResult]:
         body = {
             "query": query[:400],
@@ -29,6 +35,8 @@ class TavilyProvider:
         }
         if time_range:
             body["time_range"] = time_range
+        if country and topic == "general":  # Tavily only supports country boosting for general search
+            body["country"] = country.lower()
         try:
             async with httpx.AsyncClient(timeout=25, transport=transport) as client:
                 resp = await client.post(URL, json=body, headers={"Authorization": f"Bearer {self._key}"})

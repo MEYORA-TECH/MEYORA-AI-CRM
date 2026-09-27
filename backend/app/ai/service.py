@@ -204,7 +204,7 @@ async def chat_stream(req: ChatRequest) -> AsyncIterator[str]:
         yield sse("conversation", {"id": str(conv.id), "title": conv.title})
 
         ws = WorkingSet.load(conv.state)
-        tools = select_tools(req.message, req.page_type)
+        tools = select_tools(req.message, req.page_type, await _recent_tools(session, conv.id))
         tool_tokens = sum(len(json.dumps(t.spec().parameters)) + len(t.description) for t in tools) // 4
         system = [
             ChatMessage(
@@ -215,6 +215,7 @@ async def chat_stream(req: ChatRequest) -> AsyncIterator[str]:
                     role=membership.role,
                     tz=req.timezone,
                     currency=org.default_currency,
+                    about=org.about,
                 ),
             )
         ]
@@ -286,6 +287,28 @@ async def chat_stream(req: ChatRequest) -> AsyncIterator[str]:
                 "quota": settings.ai_daily_token_quota,
             },
         )
+
+
+async def _recent_tools(session, conversation_id: uuid.UUID, turns: int = 2) -> set[str]:
+    """Tools called in the last `turns` user turns of this conversation."""
+    rows = (
+        await session.execute(
+            select(AIMessage.role, AIMessage.tool_name)
+            .where(AIMessage.conversation_id == conversation_id, AIMessage.role.in_(["user", "tool"]))
+            .order_by(AIMessage.created_at.desc())
+            .limit(40)
+        )
+    ).all()
+    names: set[str] = set()
+    users_seen = 0
+    for role, tool_name in rows:
+        if role == "user":
+            users_seen += 1
+            if users_seen > turns:  # the first user row is the message being answered now
+                break
+        elif tool_name:
+            names.add(tool_name)
+    return names
 
 
 async def _persist(

@@ -9,7 +9,7 @@ import { ApiKeysTab } from "@/settings/ApiKeysTab";
 import { toast } from "sonner";
 
 import { ConfirmDialog, Modal } from "@/components/ui/overlay";
-import { Avatar, Badge, Button, Card, CardHeader, EmptyState, ErrorState, Field, IconButton, Input, Select, Skeleton, tintBg } from "@/components/ui/primitives";
+import { Avatar, Badge, Button, Card, CardHeader, EmptyState, ErrorState, Field, IconButton, Input, Select, Skeleton, Textarea, tintBg } from "@/components/ui/primitives";
 import { useMembers, usePipelines } from "@/hooks/resources";
 import { PageHeader } from "@/layouts/AppShell";
 import { cn, dateTime, label, relative } from "@/lib/format";
@@ -32,14 +32,16 @@ function OrganizationTab() {
   const org = useQuery({ queryKey: ["/organization"], queryFn: () => api.get<Organization>("/organization") });
   const [name, setName] = useState("");
   const [currency, setCurrency] = useState("INR");
+  const [about, setAbout] = useState("");
   useEffect(() => {
     if (org.data) {
       setName(org.data.name);
       setCurrency(org.data.default_currency);
+      setAbout(org.data.about ?? "");
     }
   }, [org.data]);
   const save = useMutation({
-    mutationFn: () => api.patch<Organization>("/organization", { name, default_currency: currency }),
+    mutationFn: () => api.patch<Organization>("/organization", { name, default_currency: currency, about: about.trim() || null }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["/organization"] });
       qc.invalidateQueries({ queryKey: ["dashboard"] });
@@ -52,7 +54,7 @@ function OrganizationTab() {
   return (
     <Card>
       <CardHeader title="Organization" subtitle={canManage ? "Shown to everyone in your workspace." : "Only admins can change these settings."} />
-      <form className="grid max-w-xl gap-4 px-5 pb-5 sm:grid-cols-2" onSubmit={(e) => { e.preventDefault(); save.mutate(); }}>
+      <form className="grid max-w-2xl gap-4 px-5 pb-5 sm:grid-cols-2" onSubmit={(e) => { e.preventDefault(); save.mutate(); }}>
         <Field label="Name" htmlFor="org-name" className="sm:col-span-2">
           <Input id="org-name" value={name} disabled={!canManage} onChange={(e) => setName(e.target.value)} />
         </Field>
@@ -60,6 +62,15 @@ function OrganizationTab() {
           <Select id="org-currency" value={currency} disabled={!canManage} onChange={(e) => setCurrency(e.target.value)}>
             {["INR", "USD", "EUR", "GBP", "AED", "SGD"].map((c) => <option key={c}>{c}</option>)}
           </Select>
+        </Field>
+        <Field
+          label="About your business"
+          htmlFor="org-about"
+          className="sm:col-span-2"
+          hint={`What you sell, who your ideal customers are, and where. The assistant uses this to judge which companies fit, to aim web research, and to tell competitors from prospects. ${about.length}/2000`}
+        >
+          <Textarea id="org-about" value={about} maxLength={2000} disabled={!canManage} onChange={(e) => setAbout(e.target.value)}
+            className="min-h-44 text-[13px] leading-relaxed" placeholder="We build … for … in …" />
         </Field>
         {canManage ? <div className="flex items-end sm:col-span-2"><Button variant="primary" type="submit" loading={save.isPending}>Save changes</Button></div> : null}
       </form>

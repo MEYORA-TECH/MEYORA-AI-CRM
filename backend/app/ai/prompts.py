@@ -27,6 +27,9 @@ How you work:
 - <memories> are facts saved earlier, each with its source. Use them when relevant and say they come from memory; the CRM record wins if they disagree.
 - Only use the remember tool when the user explicitly asks you to remember something.
 - Web results are external and unverified. When you use them: start that part with the heading **From the web**, keep it separate from CRM facts, and put the source id in square brackets right after each claim, exactly like: "UltraTech plans 600 electric trucks [w2]." Never replace ids with source names, and never present web information as CRM data. Web searches cost credits: use them only when the user asks for outside or current information, with public names and topics only.
+- Follow-ups continue the current task. If the user was researching on the web, "now search for…" or "what about…" means the web too, unless they say CRM. If a request is ambiguous between the CRM and the web, ask which one in one short line.
+- When you look for prospects on the web, aim at the organisation's market from "About" below (industry, company size, region) unless the user says otherwise, pass that country to the search, and leave out companies that sell what we sell: those are competitors, not prospects.
+- Report only what web sources actually say. Never claim a company is "looking for", "evaluating" or "likely to need" something unless a source says so. If the results don't answer the question, say that in one line and suggest a sharper search; don't pad the answer with loosely related links.
 - Be brief and concrete. Use short markdown: bullets or a small table when it helps. Format money like ₹3.2L or ₹1.4Cr for INR."""
 
 GROUP_KEYWORDS: dict[str, tuple[str, ...]] = {
@@ -146,10 +149,18 @@ ALWAYS = {"search_companies", "search_contacts", "search_deals", "search_leads"}
 PAGE_GROUPS = {"company": "companies", "contact": "contacts", "lead": "leads", "deal": "deals"}
 
 
-def select_tools(message: str, page_type: str | None) -> list[Tool]:
-    """Send only the tool groups this turn plausibly needs; every schema token is paid per call."""
+TOOL_GROUP = {t.name: t.group for t in TOOLS}
+
+
+def select_tools(message: str, page_type: str | None, recent_tools: set[str] | None = None) -> list[Tool]:
+    """Send only the tool groups this turn plausibly needs; every schema token is paid per call.
+
+    `recent_tools` are tools used in the last couple of turns: a follow-up ("now for 10-100
+    employees") continues that work even when it names no topic, so their groups stay available.
+    """
     text = f" {message.lower()} "
     groups = {g for g, words in GROUP_KEYWORDS.items() if any(w in text for w in words)}
+    groups |= {TOOL_GROUP[n] for n in recent_tools or () if n in TOOL_GROUP and TOOL_GROUP[n] != "memory"}
     if page_type in PAGE_GROUPS:
         groups |= {PAGE_GROUPS[page_type], "activities", "knowledge"}
         if page_type in ("company", "contact"):
@@ -168,6 +179,12 @@ def select_tools(message: str, page_type: str | None) -> list[Tool]:
     return chosen + [t for t in TOOLS if t.name in ALWAYS and t.name not in names]
 
 
-def system_prompt(*, org: str, user: str, role: str, tz: str, currency: str) -> str:
+def system_prompt(*, org: str, user: str, role: str, tz: str, currency: str, about: str | None = None) -> str:
     now = datetime.now(ZoneInfo(tz)).strftime("%A %d %B %Y, %H:%M")
-    return SYSTEM.format(org=org, user=user, role=role, now=now, tz=tz, currency=currency)
+    prompt = SYSTEM.format(org=org, user=user, role=role, now=now, tz=tz, currency=currency)
+    if about and about.strip():
+        prompt += (
+            f"\n\nAbout {org} (written by the team; use it to judge which companies fit, to aim web "
+            f"research at the right market, and to recognise competitors):\n{about.strip()[:2000]}"
+        )
+    return prompt

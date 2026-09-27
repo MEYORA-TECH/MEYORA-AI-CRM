@@ -2271,6 +2271,22 @@ export interface components {
             /** Body */
             body: string;
         };
+        /** OrganizationDetailOut */
+        OrganizationDetailOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Name */
+            name: string;
+            /** Slug */
+            slug: string;
+            /** Default Currency */
+            default_currency: string;
+            /** About */
+            about: string | null;
+        };
         /** OrganizationOut */
         OrganizationOut: {
             /**
@@ -2291,6 +2307,8 @@ export interface components {
             name?: string | null;
             /** Default Currency */
             default_currency?: string | null;
+            /** About */
+            about?: string | null;
         };
         /** PageContext */
         PageContext: {
@@ -3187,7 +3205,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["OrganizationOut"];
+                    "application/json": components["schemas"]["OrganizationDetailOut"];
                 };
             };
         };
@@ -3211,7 +3229,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["OrganizationOut"];
+                    "application/json": components["schemas"]["OrganizationDetailOut"];
                 };
             };
             /** @description Validation Error */

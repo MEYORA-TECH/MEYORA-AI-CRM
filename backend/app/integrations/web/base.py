@@ -30,5 +30,11 @@ class WebSearchProvider(Protocol):
     id: str
 
     async def search(
-        self, query: str, *, topic: Topic = "general", time_range: TimeRange | None = None, max_results: int = 6
+        self,
+        query: str,
+        *,
+        topic: Topic = "general",
+        time_range: TimeRange | None = None,
+        max_results: int = 6,
+        country: str | None = None,
     ) -> list[WebResult]: ...

@@ -8,10 +8,10 @@ from app.auth.deps import TenantContext, require
 from app.auth.permissions import Perm
 from app.core.errors import ValidationFailed
 from app.models import AuditLog
-from app.schemas.auth import InvitationCreate, InvitationCreated, InvitationOut, OrganizationOut
+from app.schemas.auth import InvitationCreate, InvitationCreated, InvitationOut
 from app.schemas.common import Page
 from app.schemas.dashboard import DashboardOut
-from app.schemas.organizations import AuditLogOut, MemberOut, OrganizationUpdate, RoleUpdate
+from app.schemas.organizations import AuditLogOut, MemberOut, OrganizationDetailOut, OrganizationUpdate, RoleUpdate
 from app.schemas.pipelines import PipelineCreate, PipelineOut, PipelineUpdate
 from app.services import dashboard as dashboard_service
 from app.services import organizations as org_service
@@ -25,12 +25,12 @@ router = APIRouter()
 org = APIRouter(prefix="/organization", tags=["organization"])
 
 
-@org.get("", response_model=OrganizationOut)
+@org.get("", response_model=OrganizationDetailOut)
 async def get_organization(ctx: TenantContext = Depends(require(Perm.CRM_READ))):
     return await org_service.get_organization(ctx)
 
 
-@org.patch("", response_model=OrganizationOut)
+@org.patch("", response_model=OrganizationDetailOut)
 async def update_organization(body: OrganizationUpdate, ctx: TenantContext = Depends(require(Perm.ORG_MANAGE))):
     result = await org_service.update_organization(ctx, body)
     await ctx.session.commit()

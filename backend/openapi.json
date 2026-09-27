@@ -389,7 +389,7 @@
       "content": {
        "application/json": {
         "schema": {
-         "$ref": "#/components/schemas/OrganizationOut"
+         "$ref": "#/components/schemas/OrganizationDetailOut"
         }
        }
       }
@@ -423,7 +423,7 @@
       "content": {
        "application/json": {
         "schema": {
-         "$ref": "#/components/schemas/OrganizationOut"
+         "$ref": "#/components/schemas/OrganizationDetailOut"
         }
        }
       }
@@ -10093,6 +10093,47 @@
     ],
     "title": "NoteUpdate"
    },
+   "OrganizationDetailOut": {
+    "properties": {
+     "id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Id"
+     },
+     "name": {
+      "type": "string",
+      "title": "Name"
+     },
+     "slug": {
+      "type": "string",
+      "title": "Slug"
+     },
+     "default_currency": {
+      "type": "string",
+      "title": "Default Currency"
+     },
+     "about": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "About"
+     }
+    },
+    "type": "object",
+    "required": [
+     "id",
+     "name",
+     "slug",
+     "default_currency",
+     "about"
+    ],
+    "title": "OrganizationDetailOut"
+   },
    "OrganizationOut": {
     "properties": {
      "id": {
@@ -10148,6 +10189,18 @@
        }
       ],
       "title": "Default Currency"
+     },
+     "about": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 2000
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "About"
      }
     },
     "additionalProperties": false,

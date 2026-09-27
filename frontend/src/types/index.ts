@@ -32,7 +32,7 @@ export type Member = S["MemberOut"];
 export type Invitation = S["InvitationOut"];
 export type InvitationCreated = S["InvitationCreated"];
 export type AuditLog = S["AuditLogOut"];
-export type Organization = S["OrganizationOut"];
+export type Organization = S["OrganizationDetailOut"];
 
 export type CompanyStatus = S["CompanyStatus"];
 export type LeadStatus = S["LeadStatus"];
