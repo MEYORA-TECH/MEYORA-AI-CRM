@@ -28,6 +28,9 @@ class AIConversation(UUIDPk, Timestamps, TenantOwned, SoftDelete, Base):
     # Pinned at the first answer so a conversation never silently changes model mid-way.
     provider: Mapped[str | None] = mapped_column(String(50))
     model: Mapped[str | None] = mapped_column(String(120))
+    # Set while an answer is being written, so two tabs can't run turns on the same
+    # conversation at once. Expires by itself if a turn dies without releasing it.
+    busy_until: Mapped[datetime | None]
     # Working set: entities the conversation is about, so "all of them" resolves without re-searching.
     state: Mapped[dict[str, Any]] = mapped_column(default=dict, server_default="{}")
     last_message_at: Mapped[datetime] = mapped_column(server_default=text("now()"))

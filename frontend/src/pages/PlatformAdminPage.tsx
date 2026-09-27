@@ -9,6 +9,7 @@ import {
   Sparkles, UsersRound,
 } from "@/components/icons";
 import { ConfirmDialog } from "@/components/ui/overlay";
+import { Scroller } from "@/components/ui/Scroller";
 import { Badge, Button, Card, CardHeader, EmptyState, ErrorState, Input, Skeleton, tintBg } from "@/components/ui/primitives";
 import { PageHeader } from "@/layouts/AppShell";
 import { cn, relative, timeZone } from "@/lib/format";
@@ -102,7 +103,7 @@ function OverviewTab() {
         <Card className={PANEL + " lg:col-span-3"}>
           <CardHeader title="By provider" subtitle="Last 30 days" />
           {o.providers.length ? (
-            <ul className="fade-bottom min-h-0 flex-1 space-y-2 overflow-hidden px-5 pb-4">
+            <Scroller as="ul" className="flex-1 space-y-2 px-5 pb-4">
               {o.providers.map((p) => (
                 <li key={p.provider}>
                   <div className="flex justify-between text-[12.5px]"><span className="font-semibold capitalize">{p.provider}</span>
@@ -112,7 +113,7 @@ function OverviewTab() {
                   </span>
                 </li>
               ))}
-            </ul>
+            </Scroller>
           ) : <EmptyState title="No AI use yet" body="Calls to any AI provider show up here." />}
         </Card>
         <Card className={PANEL + " lg:col-span-3"}>
@@ -166,14 +167,14 @@ function OverviewTab() {
         </Card>
         <Card className={PANEL + " lg:col-span-3"}>
           <CardHeader title="Newest users" />
-          <ul className="fade-bottom min-h-0 flex-1 divide-y divide-[var(--line)] overflow-hidden">
+          <Scroller as="ul" className="flex-1 divide-y divide-[var(--line)]">
             {o.recent_users.map((u) => (
               <li key={u.email} className="px-5 py-2">
                 <p className="truncate text-[13px] font-semibold">{u.full_name}</p>
                 <p className="truncate text-[11px] text-ink-3">{u.email} · joined {relative(u.created_at)}</p>
               </li>
             ))}
-          </ul>
+          </Scroller>
         </Card>
       </div>
     </div>

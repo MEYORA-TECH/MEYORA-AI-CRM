@@ -360,3 +360,11 @@ body {
   -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 14px, #000 calc(100% - 22px), transparent);
   mask-image: linear-gradient(to bottom, transparent 0, #000 14px, #000 calc(100% - 22px), transparent);
 }
+.fade-top {
+  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 24px);
+  mask-image: linear-gradient(to bottom, transparent, #000 24px);
+}
+.fade-both {
+  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 24px, #000 calc(100% - 28px), transparent);
+  mask-image: linear-gradient(to bottom, transparent, #000 24px, #000 calc(100% - 28px), transparent);
+}

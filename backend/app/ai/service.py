@@ -1,13 +1,14 @@
 """One chat turn, end to end: quota → conversation → context → agent → persistence."""
 
+import asyncio
 import json
 import uuid
 from collections.abc import AsyncIterator
 from dataclasses import dataclass
-from datetime import UTC, datetime, time
+from datetime import UTC, datetime, time, timedelta
 from typing import Any, Literal
 
-from sqlalchemy import func, select
+from sqlalchemy import func, or_, select, update
 
 from app.ai import memory, registry, summaries
 from app.ai.agent import TurnRecord, estimate_tokens, run_turn
@@ -24,6 +25,8 @@ from app.jobs.handlers import worth_extracting
 from app.jobs.queue import enqueue
 from app.models import AIConversation, AIMessage, AIUsageLog, Membership, Organization, User
 from app.services import records
+
+TURN_CLAIM = timedelta(minutes=3)  # longer than any turn, including free-tier waits
 
 log = get_logger("ai.service")
 
@@ -189,104 +192,155 @@ async def chat_stream(req: ChatRequest) -> AsyncIterator[str]:
             except NotFound:
                 yield sse("error", {"message": "That conversation doesn't exist.", "code": "not_found"})
                 return
+            # One answer at a time per conversation (atomic claim; see AIConversation.busy_until).
+            claimed = await session.scalar(
+                update(AIConversation)
+                .where(
+                    AIConversation.id == conv.id,
+                    or_(AIConversation.busy_until.is_(None), AIConversation.busy_until < func.now()),
+                )
+                .values(busy_until=func.now() + TURN_CLAIM)
+                .returning(AIConversation.id)
+                .execution_options(synchronize_session=False)
+            )
+            if claimed is None:
+                await session.rollback()
+                yield sse(
+                    "error",
+                    {
+                        "message": "Meyora is still answering your last message in this chat. "
+                        "Wait for it to finish, then send this again.",
+                        "code": "busy",
+                    },
+                )
+                return
         else:
-            conv = AIConversation(organization_id=req.organization_id, user_id=req.user_id, title=_title(req.message))
+            conv = AIConversation(
+                organization_id=req.organization_id,
+                user_id=req.user_id,
+                title=_title(req.message),
+                busy_until=datetime.now(UTC) + TURN_CLAIM,
+            )
             session.add(conv)
             await session.flush()
 
-        user_message = AIMessage(
-            organization_id=req.organization_id, conversation_id=conv.id, role="user", content=req.message
+        conv_id = conv.id
+        try:
+            async for chunk in _answer(session, req, ctx, org, user, membership, conv, providers, used):
+                yield chunk
+        finally:
+            # Also runs when the browser disconnects mid-answer; shielded so cancellation can't skip it.
+            await asyncio.shield(_release(req.organization_id, conv_id))
+
+
+async def _release(organization_id: uuid.UUID, conversation_id: uuid.UUID) -> None:
+    try:
+        async with SessionLocal() as session:
+            await set_tenant(session, organization_id)
+            await session.execute(
+                update(AIConversation).where(AIConversation.id == conversation_id).values(busy_until=None)
+            )
+            await session.commit()
+    except Exception:  # the claim expires on its own; never fail the answer over this
+        log.exception("ai_turn_release_failed", conversation_id=str(conversation_id))
+
+
+async def _answer(session, req: ChatRequest, ctx: TenantContext, org, user, membership, conv, providers, used):
+    """One assistant turn: save the question, run the model and tools, save the answer."""
+    settings = get_settings()
+    user_message = AIMessage(
+        organization_id=req.organization_id, conversation_id=conv.id, role="user", content=req.message
+    )
+    session.add(user_message)
+    conv.last_message_at = datetime.now(UTC)
+    await session.commit()
+    user_message_id = user_message.id  # plain value: survives a rollback later in the turn
+    yield sse("conversation", {"id": str(conv.id), "title": conv.title})
+
+    ws = WorkingSet.load(conv.state)
+    tools = select_tools(req.message, req.page_type, await _recent_tools(session, conv.id))
+    tool_tokens = sum(len(json.dumps(t.spec().parameters)) + len(t.description) for t in tools) // 4
+    system = [
+        ChatMessage(
+            role="system",
+            content=system_prompt(
+                org=org.name,
+                user=user.full_name,
+                role=membership.role,
+                tz=req.timezone,
+                currency=org.default_currency,
+                about=org.about,
+            ),
         )
-        session.add(user_message)
-        conv.last_message_at = datetime.now(UTC)
-        await session.commit()
-        user_message_id = user_message.id  # plain value: survives a rollback later in the turn
-        yield sse("conversation", {"id": str(conv.id), "title": conv.title})
-
-        ws = WorkingSet.load(conv.state)
-        tools = select_tools(req.message, req.page_type, await _recent_tools(session, conv.id))
-        tool_tokens = sum(len(json.dumps(t.spec().parameters)) + len(t.description) for t in tools) // 4
-        system = [
-            ChatMessage(
-                role="system",
-                content=system_prompt(
-                    org=org.name,
-                    user=user.full_name,
-                    role=membership.role,
-                    tz=req.timezone,
-                    currency=org.default_currency,
-                    about=org.about,
-                ),
-            )
-        ]
-        note = await _page_note(ctx, ws, req.page_type, req.page_id)
-        current = ([ChatMessage(role="system", content=note)] if note else []) + [
-            ChatMessage(role="user", content=req.message)
-        ]
-        summary = await summaries.summary_for(session, conv.id)
-        if summary:
-            system.append(
-                ChatMessage(role="system", content=f"Earlier in this conversation (summary):\n{summary.summary}")
-            )
-        recalled = await _recall(ctx, ws, req.message)
-        if recalled:
-            current.insert(0, ChatMessage(role="system", content=_memory_block(recalled)))
-            yield sse(
-                "memories",
-                {
-                    "items": [
-                        {
-                            "id": str(r.memory.id),
-                            "content": r.memory.content,
-                            "scope": r.memory.scope,
-                            "source_type": r.memory.source_type,
-                        }
-                        for r in recalled
-                    ]
-                },
-            )
-        history = (await _history(ctx, conv, summary.covered_until if summary else None))[:-1]  # last one is `current`
-        messages = _fit(system, history, current, tool_tokens, settings.ai_request_token_budget)
-
-        try:
-            candidates = registry.route("crm", prefer=conv.provider, entries=providers)
-        except registry.NoProviderAvailable as exc:
-            yield sse("error", {"message": str(exc), "code": "not_configured"})
-            return
-
-        record = TurnRecord()
-        tool_ctx = ToolContext(tenant=ctx, working_set=ws, timezone=req.timezone, conversation_id=conv.id)
-        try:
-            async for event in run_turn(
-                candidates=candidates,
-                messages=messages,
-                tools=tools,
-                tool_ctx=tool_ctx,
-                record=record,
-                max_model_calls=settings.ai_max_model_calls,
-            ):
-                yield sse(event["type"], {k: v for k, v in event.items() if k != "type"})
-        except Exception:  # never leave the stream hanging on a bug
-            log.exception("ai_turn_failed", conversation_id=str(conv.id))
-            await session.rollback()
-            await session.refresh(conv)  # rollback expires loaded objects
-            # Proposals and results from this turn were rolled back; don't save cards pointing at them.
-            record.tool_messages.clear()
-            record.error = "Something went wrong while answering."
-            yield sse("error", {"message": record.error})
-
-        assistant_id = await _persist(session, req, conv, ws, record, user_message_id)
-        total = sum(c.usage.prompt_tokens + c.usage.completion_tokens for c in record.calls)
+    ]
+    note = await _page_note(ctx, ws, req.page_type, req.page_id)
+    current = ([ChatMessage(role="system", content=note)] if note else []) + [
+        ChatMessage(role="user", content=req.message)
+    ]
+    summary = await summaries.summary_for(session, conv.id)
+    if summary:
+        system.append(
+            ChatMessage(role="system", content=f"Earlier in this conversation (summary):\n{summary.summary}")
+        )
+    recalled = await _recall(ctx, ws, req.message)
+    if recalled:
+        current.insert(0, ChatMessage(role="system", content=_memory_block(recalled)))
         yield sse(
-            "done",
+            "memories",
             {
-                "message_id": str(assistant_id) if assistant_id else None,
-                "tokens": total,
-                "provider": record.provider.label if record.provider else None,
-                "used_today": used + total,
-                "quota": settings.ai_daily_token_quota,
+                "items": [
+                    {
+                        "id": str(r.memory.id),
+                        "content": r.memory.content,
+                        "scope": r.memory.scope,
+                        "source_type": r.memory.source_type,
+                    }
+                    for r in recalled
+                ]
             },
         )
+    history = (await _history(ctx, conv, summary.covered_until if summary else None))[:-1]  # last one is `current`
+    messages = _fit(system, history, current, tool_tokens, settings.ai_request_token_budget)
+
+    try:
+        candidates = registry.route("crm", prefer=conv.provider, entries=providers)
+    except registry.NoProviderAvailable as exc:
+        yield sse("error", {"message": str(exc), "code": "not_configured"})
+        return
+
+    record = TurnRecord()
+    tool_ctx = ToolContext(tenant=ctx, working_set=ws, timezone=req.timezone, conversation_id=conv.id)
+    try:
+        async for event in run_turn(
+            candidates=candidates,
+            messages=messages,
+            tools=tools,
+            tool_ctx=tool_ctx,
+            record=record,
+            max_model_calls=settings.ai_max_model_calls,
+        ):
+            yield sse(event["type"], {k: v for k, v in event.items() if k != "type"})
+    except Exception:  # never leave the stream hanging on a bug
+        log.exception("ai_turn_failed", conversation_id=str(conv.id))
+        await session.rollback()
+        await session.refresh(conv)  # rollback expires loaded objects
+        # Proposals and results from this turn were rolled back; don't save cards pointing at them.
+        record.tool_messages.clear()
+        record.error = "Something went wrong while answering."
+        yield sse("error", {"message": record.error})
+
+    assistant_id = await _persist(session, req, conv, ws, record, user_message_id)
+    total = sum(c.usage.prompt_tokens + c.usage.completion_tokens for c in record.calls)
+    yield sse(
+        "done",
+        {
+            "message_id": str(assistant_id) if assistant_id else None,
+            "tokens": total,
+            "provider": record.provider.label if record.provider else None,
+            "used_today": used + total,
+            "quota": settings.ai_daily_token_quota,
+        },
+    )
 
 
 async def _recent_tools(session, conversation_id: uuid.UUID, turns: int = 2) -> set[str]:

@@ -7,6 +7,7 @@ import { LogActivityButton } from "@/components/data/Related";
 import {
   AlertTriangle, ArrowUpRight, Building2, CalendarClock, CheckSquare, Handshake, Magnet, Mail, Phone, Plus, UsersRound,
 } from "@/components/icons";
+import { Scroller } from "@/components/ui/Scroller";
 import { Badge, Button, Card, CardHeader, EmptyState, ErrorState, Skeleton, tintBg } from "@/components/ui/primitives";
 import { tasks as taskRes, useDashboard } from "@/hooks/resources";
 import { cn, dateTime, label, money, relative, timeZone } from "@/lib/format";
@@ -97,7 +98,7 @@ function ContactNext({ i }: { i: Insights }) {
       body={`Every open lead has had a call, email or meeting in the last ${i.stale_days} days.`} />;
   }
   return (
-    <ul className="fade-bottom min-h-0 flex-1 divide-y divide-[var(--line)] overflow-hidden">
+    <Scroller as="ul" className="flex-1 divide-y divide-[var(--line)]">
       {i.contact_next.map((l) => (
         <li key={l.id} className="group flex items-center gap-3 px-5 py-2.5 hover:bg-[var(--glass-2)]">
           <FitScore score={l.score} />
@@ -122,7 +123,7 @@ function ContactNext({ i }: { i: Insights }) {
           </button>
         </li>
       ))}
-    </ul>
+    </Scroller>
   );
 }
 
@@ -192,7 +193,7 @@ function Today({ d }: { d: Dashboard }) {
   const quiet = d.insights.stale_deals;
   const nothing = !d.my_tasks.length && !d.upcoming_activities.length;
   return (
-    <div className="fade-bottom flex min-h-0 flex-1 flex-col overflow-hidden">
+    <Scroller as="div" className="flex flex-1 flex-col">
       {quiet ? (
         <Link to="/deals?view=list" className="focus-ring mx-5 mb-2 flex items-center gap-2 rounded-xl bg-tint-amber px-3 py-2 text-xs font-semibold text-[#8a5200] dark:text-[#f2c47e]">
           <AlertTriangle className="size-3.5 shrink-0" /> {plural(quiet, "deal")} quiet for {d.insights.stale_days}+ days
@@ -227,7 +228,7 @@ function Today({ d }: { d: Dashboard }) {
           ))}
         </ul>
       )}
-    </div>
+    </Scroller>
   );
 }
 
@@ -296,7 +297,7 @@ function Where({ i }: { i: Insights }) {
         ))}
       </div>
       {rows.length ? (
-        <ul className="fade-bottom min-h-0 flex-1 space-y-1.5 overflow-hidden">
+        <Scroller as="ul" className="flex-1 space-y-1.5">
           {rows.map((r) => (
             <li key={r.label} className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2">
               <span className="relative h-6 overflow-hidden rounded-lg bg-[var(--line)]">
@@ -306,7 +307,7 @@ function Where({ i }: { i: Insights }) {
               <span className="num w-8 text-right text-[12px] font-semibold text-ink-2">{r.count}</span>
             </li>
           ))}
-        </ul>
+        </Scroller>
       ) : (
         <p className="text-xs text-ink-3">No prospect companies yet.</p>
       )}
@@ -324,7 +325,7 @@ function Pipeline({ d }: { d: Dashboard }) {
       body="Convert a qualified lead to open its first deal." action={<Link to="/leads"><Button size="sm">Go to leads</Button></Link>} />;
   }
   return (
-    <ul className="fade-bottom min-h-0 flex-1 space-y-1.5 overflow-hidden px-5 pb-4">
+    <Scroller as="ul" className="flex-1 space-y-1.5 px-5 pb-4">
       {stages.map((s) => (
         <li key={s.stage_id} className="grid grid-cols-[84px_1fr_auto] items-center gap-2">
           <span className="truncate text-[12px] font-semibold text-ink-2">{s.name}</span>
@@ -335,7 +336,7 @@ function Pipeline({ d }: { d: Dashboard }) {
           <span className="num w-14 text-right text-[11.5px] font-semibold text-ink">{money(s.amount, d.currency, { compact: true })}</span>
         </li>
       ))}
-    </ul>
+    </Scroller>
   );
 }
 
