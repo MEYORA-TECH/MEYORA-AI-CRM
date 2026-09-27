@@ -32,7 +32,7 @@ function NoWorkspace() {
   return (
     <div className="flex min-h-full flex-col items-center justify-center gap-3 p-6 text-center">
       <div className="ambient" aria-hidden />
-      <h1 className="text-2xl font-extrabold tracking-tight">You're not in a workspace</h1>
+      <h1 className="text-2xl font-display font-bold tracking-tight">You're not in a workspace</h1>
       <p className="max-w-sm text-sm text-ink-2">Ask an admin to invite you, then open the invitation link.</p>
       <button className="text-sm font-semibold text-jade hover:underline" onClick={() => logout()}>Sign out</button>
     </div>

@@ -1,6 +1,6 @@
 import * as Dialog from "@radix-ui/react-dialog";
 import * as Menu from "@radix-ui/react-dropdown-menu";
-import { X } from "lucide-react";
+import { X } from "@/components/icons";
 import type { ReactNode } from "react";
 
 import { cn } from "@/lib/format";

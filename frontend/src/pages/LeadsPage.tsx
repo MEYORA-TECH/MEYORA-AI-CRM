@@ -1,5 +1,5 @@
 import { createColumnHelper } from "@tanstack/react-table";
-import { ArrowRightCircle, Magnet } from "lucide-react";
+import { ArrowRightCircle, Magnet } from "@/components/icons";
 import { useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 

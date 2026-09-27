@@ -1,4 +1,4 @@
-import { ArrowUpRight, CalendarClock, CheckSquare, Plus } from "lucide-react";
+import { ArrowUpRight, CalendarClock, CheckSquare, Plus } from "@/components/icons";
 import { Link } from "react-router-dom";
 
 import { LogActivityButton } from "@/components/data/Related";
@@ -9,6 +9,9 @@ import { DEAL_STATUS, TASK_PRIORITY } from "@/lib/status";
 import { describeError } from "@/services/api";
 import { useAuth, useCan } from "@/stores/auth";
 import type { Dashboard } from "@/types";
+
+/** Dashboard panels fill their grid cell; lists show what fits and fade out, with a link to the full view. */
+const PANEL = "flex flex-col overflow-hidden lg:min-h-0";
 
 function greeting() {
   const h = new Date().getHours();
@@ -23,7 +26,7 @@ function Tile({ tint, title, value, detail, meter, to }: {
     <Link
       to={to}
       className={cn(
-        "focus-ring group relative overflow-hidden rounded-[var(--radius-card)] border border-[var(--glass-edge)] p-4 transition hover:-translate-y-0.5",
+        "focus-ring group relative overflow-hidden rounded-[var(--radius-card)] border border-[var(--glass-edge)] p-4 transition hover:-translate-y-0.5 [@media(max-height:760px)]:p-3",
         tintBg(tint),
       )}
     >
@@ -31,8 +34,8 @@ function Tile({ tint, title, value, detail, meter, to }: {
         <p className="text-[13px] font-semibold opacity-80">{title}</p>
         <ArrowUpRight className="size-4 opacity-0 transition group-hover:opacity-70" />
       </div>
-      <p className="num mt-3 text-[30px] leading-none font-extrabold tracking-[-0.04em] text-ink">{value}</p>
-      <p className="mt-2 text-xs font-medium opacity-80">{detail}</p>
+      <p className="num mt-2.5 text-[28px] leading-none font-display font-bold tracking-[-0.035em] text-ink [@media(max-height:760px)]:text-[24px]">{value}</p>
+      <p className="mt-2 truncate text-xs font-medium opacity-80">{detail}</p>
       {meter !== undefined ? (
         <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-white/50 dark:bg-white/10">
           <div className="h-full rounded-full bg-current opacity-70" style={{ width: `${Math.min(100, Math.max(0, meter))}%` }} />
@@ -49,7 +52,7 @@ function PipelineByStage({ d }: { d: Dashboard }) {
     return <EmptyState title="No open deals yet" body="Deals you create or convert from leads will fill this chart." action={<Link to="/deals"><Button size="sm">Open pipeline</Button></Link>} />;
   }
   return (
-    <ul className="space-y-3 px-5 pb-5">
+    <ul className="fade-bottom min-h-0 flex-1 space-y-2.5 overflow-hidden px-5 pb-4">
       {stages.map((s) => (
         <li key={s.stage_id} className="grid grid-cols-[110px_1fr_auto] items-center gap-3">
           <span className="truncate text-sm font-semibold">{s.name}</span>
@@ -74,7 +77,7 @@ function MyTasks({ d }: { d: Dashboard }) {
     return <EmptyState icon={<CheckSquare className="size-5" />} title="Nothing due today" body="Tasks due today or overdue will appear here." />;
   }
   return (
-    <ul className="divide-y divide-[var(--line)]">
+    <ul className="fade-bottom min-h-0 flex-1 divide-y divide-[var(--line)] overflow-hidden">
       {d.my_tasks.map((t) => {
         const overdue = t.due_at && new Date(t.due_at) < new Date();
         return (
@@ -105,11 +108,11 @@ export function DashboardPage() {
   const today = new Intl.DateTimeFormat("en-IN", { weekday: "long", day: "numeric", month: "long" }).format(new Date());
 
   return (
-    <div>
-      <div className="rise mb-6 flex flex-wrap items-end justify-between gap-4">
+    <div className="flex min-h-0 flex-1 flex-col">
+      <div className="rise mb-4 flex flex-none flex-wrap items-end justify-between gap-4">
         <div>
           <p className="text-sm font-semibold text-ink-3">{today}</p>
-          <h1 className="mt-1 text-[32px] leading-tight font-extrabold tracking-[-0.035em] md:text-[40px]">
+          <h1 className="mt-0.5 font-display text-[26px] leading-tight font-bold tracking-[-0.035em] md:text-[32px] [@media(max-height:760px)]:md:text-[26px]">
             {greeting()}, {first}.
           </h1>
           {d ? (
@@ -135,7 +138,7 @@ export function DashboardPage() {
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">{[0, 1, 2, 3].map((i) => <Skeleton key={i} className="h-36 rounded-[22px]" />)}</div>
       ) : (
         <>
-          <div className="rise grid gap-4 md:grid-cols-2 xl:grid-cols-4" style={{ animationDelay: "40ms" }}>
+          <div className="rise grid flex-none gap-3 sm:grid-cols-2 xl:grid-cols-4" style={{ animationDelay: "40ms" }}>
             <Tile tint="amber" to="/deals" title="Open pipeline" value={money(d.pipeline.pipeline_value, d.currency, { compact: true })}
               detail={`${d.pipeline.open_deals} open deal${d.pipeline.open_deals === 1 ? "" : "s"}`} />
             <Tile tint="sky" to="/deals?view=list" title="Weighted forecast" value={money(d.pipeline.weighted_value, d.currency, { compact: true })}
@@ -147,25 +150,25 @@ export function DashboardPage() {
               meter={d.leads.total ? (d.leads.converted / d.leads.total) * 100 : 0} />
           </div>
           {d.pipeline.other_currency_deals ? (
-            <p className="mt-2 text-xs text-ink-3">Totals are in {d.currency}; {d.pipeline.other_currency_deals} deal{d.pipeline.other_currency_deals === 1 ? " is" : "s are"} in other currencies and not included.</p>
+            <p className="mt-2 flex-none text-xs text-ink-3">Totals are in {d.currency}; {d.pipeline.other_currency_deals} deal{d.pipeline.other_currency_deals === 1 ? " is" : "s are"} in other currencies and not included.</p>
           ) : null}
 
-          <div className="rise mt-4 grid gap-4 xl:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]" style={{ animationDelay: "90ms" }}>
-            <Card>
+          <div
+            className="rise mt-3 grid gap-3 lg:min-h-0 lg:flex-1 lg:grid-cols-12 lg:grid-rows-[minmax(0,1.15fr)_minmax(0,1fr)]"
+            style={{ animationDelay: "90ms" }}
+          >
+            <Card className={PANEL + " lg:col-span-7"}>
               <CardHeader title="Pipeline by stage" subtitle="Open deals and their value" action={<Link to="/deals" className="text-xs font-semibold text-jade hover:underline">View board</Link>} />
               <PipelineByStage d={d} />
             </Card>
-            <Card>
+            <Card className={PANEL + " lg:col-span-5"}>
               <CardHeader title="My tasks" subtitle="Due today and overdue" action={<Link to="/tasks" className="text-xs font-semibold text-jade hover:underline">All tasks</Link>} />
               <MyTasks d={d} />
             </Card>
-          </div>
-
-          <div className="rise mt-4 grid gap-4 lg:grid-cols-3" style={{ animationDelay: "140ms" }}>
-            <Card>
+            <Card className={PANEL + " lg:col-span-4"}>
               <CardHeader title="Recent activity" action={<Link to="/activities" className="text-xs font-semibold text-jade hover:underline">All</Link>} />
               {d.recent_activities.length ? (
-                <ul className="divide-y divide-[var(--line)]">
+                <ul className="fade-bottom min-h-0 flex-1 divide-y divide-[var(--line)] overflow-hidden">
                   {d.recent_activities.map((a) => (
                     <li key={a.id} className="px-5 py-2.5">
                       <p className="truncate text-sm font-medium">{a.subject}</p>
@@ -177,10 +180,10 @@ export function DashboardPage() {
                 <EmptyState title="No activity yet" body="Logged calls, meetings and stage changes show up here." />
               )}
             </Card>
-            <Card>
+            <Card className={PANEL + " lg:col-span-4"}>
               <CardHeader title="Coming up" subtitle="Planned calls and meetings" />
               {d.upcoming_activities.length ? (
-                <ul className="divide-y divide-[var(--line)]">
+                <ul className="fade-bottom min-h-0 flex-1 divide-y divide-[var(--line)] overflow-hidden">
                   {d.upcoming_activities.map((a) => (
                     <li key={a.id} className="flex items-center gap-3 px-5 py-2.5">
                       <span className="flex size-8 items-center justify-center rounded-xl bg-tint-sky"><CalendarClock className="size-4" /></span>
@@ -195,9 +198,9 @@ export function DashboardPage() {
                 <EmptyState title="Nothing scheduled" body="Log an activity with a future time to plan it." />
               )}
             </Card>
-            <Card>
+            <Card className={PANEL + " lg:col-span-4"}>
               <CardHeader title="Recently added" />
-              <ul className="divide-y divide-[var(--line)]">
+              <ul className="fade-bottom min-h-0 flex-1 divide-y divide-[var(--line)] overflow-hidden">
                 {d.recent_deals.slice(0, 3).map((x) => (
                   <li key={x.id}>
                     <Link to={`/deals/${x.id}`} className="focus-ring flex items-center gap-3 px-5 py-2.5 hover:bg-[var(--glass-2)]">

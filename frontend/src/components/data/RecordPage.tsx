@@ -1,5 +1,5 @@
 import * as Tabs from "@radix-ui/react-tabs";
-import { ArrowLeft, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
+import { ArrowLeft, MoreHorizontal, Pencil, Trash2 } from "@/components/icons";
 import { useEffect, useState, type ReactNode } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
@@ -80,8 +80,8 @@ export function RecordPage<T extends Record<string, any>>({
   }
 
   return (
-    <div className="rise">
-      <Link to={backTo} className="focus-ring mb-3 inline-flex items-center gap-1.5 rounded-lg text-sm font-semibold text-ink-3 hover:text-ink">
+    <div className="rise flex min-h-0 flex-1 flex-col">
+      <Link to={backTo} className="focus-ring mb-2 inline-flex w-fit flex-none items-center gap-1.5 rounded-lg text-sm font-semibold text-ink-3 hover:text-ink">
         <ArrowLeft className="size-4" /> {backLabel}
       </Link>
 
@@ -92,10 +92,10 @@ export function RecordPage<T extends Record<string, any>>({
         </div>
       ) : (
         <>
-          <div className="mb-5 flex flex-wrap items-start justify-between gap-4">
+          <div className="mb-4 flex flex-none flex-wrap items-start justify-between gap-4">
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-3">
-                <h1 className="text-[28px] leading-tight font-extrabold tracking-[-0.03em] md:text-[32px]">{title(row)}</h1>
+                <h1 className="font-display text-[24px] leading-tight font-bold tracking-[-0.03em] md:text-[28px]">{title(row)}</h1>
                 {badges?.(row)}
               </div>
               {subtitle ? <p className="mt-1 text-sm text-ink-2">{subtitle(row)}</p> : null}
@@ -111,8 +111,8 @@ export function RecordPage<T extends Record<string, any>>({
             </div>
           </div>
 
-          <div className="grid gap-4 lg:grid-cols-[320px_minmax(0,1fr)]">
-            <div className="flex h-fit flex-col gap-4">
+          <div className="grid gap-4 lg:min-h-0 lg:flex-1 lg:grid-cols-[320px_minmax(0,1fr)]">
+            <div className="scroll-quiet flex flex-col gap-4 lg:min-h-0 lg:overflow-y-auto lg:pr-1">
               <Card className="p-5">{summary(row)}</Card>
               <CustomFields values={row.custom_fields as Record<string, unknown> | undefined} />
             </div>
@@ -150,8 +150,8 @@ export function RecordPage<T extends Record<string, any>>({
 function RecordTabs({ tabs }: { tabs: RecordTab[] }) {
   const [value, setValue] = useState(tabs[0]?.value);
   return (
-    <Tabs.Root value={value} onValueChange={setValue} className="min-w-0">
-      <Tabs.List aria-label="Record sections" className="glass-soft mb-3 inline-flex max-w-full gap-1 overflow-x-auto rounded-full p-1">
+    <Tabs.Root value={value} onValueChange={setValue} className="flex min-w-0 flex-col lg:min-h-0">
+      <Tabs.List aria-label="Record sections" className="glass-soft mb-3 inline-flex w-fit max-w-full flex-none gap-1 overflow-x-auto rounded-full p-1">
         {tabs.map((t) => (
           <Tabs.Trigger
             key={t.value}
@@ -167,8 +167,8 @@ function RecordTabs({ tabs }: { tabs: RecordTab[] }) {
         ))}
       </Tabs.List>
       {tabs.map((t) => (
-        <Tabs.Content key={t.value} value={t.value} className="focus:outline-none">
-          <Card className="overflow-hidden">{t.content}</Card>
+        <Tabs.Content key={t.value} value={t.value} className="focus:outline-none lg:min-h-0 lg:flex-1">
+          <Card className="scroll-quiet overflow-hidden lg:h-full lg:overflow-y-auto">{t.content}</Card>
         </Tabs.Content>
       ))}
     </Tabs.Root>

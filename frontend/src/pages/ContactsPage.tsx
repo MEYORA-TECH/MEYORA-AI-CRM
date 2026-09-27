@@ -1,5 +1,5 @@
 import { createColumnHelper } from "@tanstack/react-table";
-import { UsersRound } from "lucide-react";
+import { UsersRound } from "@/components/icons";
 import { Link, useParams } from "react-router-dom";
 
 import { EntityName } from "@/components/data/EntityPicker";

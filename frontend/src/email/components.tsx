@@ -1,4 +1,4 @@
-import { ArrowDownLeft, ArrowUpRight, Mail, Paperclip, Sparkles } from "lucide-react";
+import { ArrowDownLeft, ArrowUpRight, Mail, Paperclip, Sparkles } from "@/components/icons";
 import { Link } from "react-router-dom";
 
 import { useAiUi } from "@/ai/store";

@@ -1,7 +1,7 @@
 /** Activities and Tasks: cross-record work lists. */
 import { createColumnHelper } from "@tanstack/react-table";
-import { CalendarRange, CheckSquare, Plus } from "lucide-react";
-import { useState } from "react";
+import { CalendarRange, CheckSquare, Plus } from "@/components/icons";
+import { useState, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
 
 import { DataTable } from "@/components/data/DataTable";
@@ -11,6 +11,7 @@ import { LogActivityButton } from "@/components/data/Related";
 import { ConfirmDialog } from "@/components/ui/overlay";
 import { Badge, Button, EmptyState, ErrorState, Select } from "@/components/ui/primitives";
 import { activities, tasks } from "@/hooks/resources";
+import { useFitRows } from "@/hooks/useFitRows";
 import { PageHeader } from "@/layouts/AppShell";
 import { cn, dateTime, label, relative, timeZone } from "@/lib/format";
 import { ACTIVITY_TYPES, TASK_PRIORITY, TASK_STATUS } from "@/lib/status";
@@ -50,7 +51,9 @@ const acol = createColumnHelper<Activity>();
 export function ActivitiesPage() {
   const { params, set, page, sort } = usePaging();
   const type = params.get("type") ?? "";
-  const list = activities.useList({ page, page_size: 25, sort, type: type || undefined });
+  const tableRef = useRef<HTMLDivElement>(null);
+  const pageSize = useFitRows(tableRef);
+  const list = activities.useList({ page, page_size: pageSize, sort, type: type || undefined });
   const update = activities.useUpdate();
   const [editing, setEditing] = useState<Activity | null>(null);
 
@@ -82,7 +85,7 @@ export function ActivitiesPage() {
   return (
     <>
       <PageHeader title="Activities" description="Calls, meetings, emails and follow-ups across every record." actions={<LogActivityButton />} />
-      <div className="rise mb-3 flex gap-2">
+      <div className="rise mb-3 flex flex-none gap-2">
         <Select aria-label="Type" value={type} onChange={(e) => set({ type: e.target.value || undefined })} className="w-auto min-w-40">
           <option value="">Type: all</option>
           {[...ACTIVITY_TYPES, { value: "stage_change", label: "Stage change" }, { value: "system", label: "System" }].map((o) => (
@@ -94,11 +97,12 @@ export function ActivitiesPage() {
         <ErrorState message={describeError(list.error)} onRetry={() => list.refetch()} />
       ) : (
         <DataTable
+          ref={tableRef}
           columns={columns}
           rows={list.data?.items}
           total={list.data?.total ?? 0}
           page={page}
-          pageSize={25}
+          pageSize={pageSize}
           onPageChange={(p) => set({ page: String(p) })}
           sort={sort}
           onSortChange={(s) => set({ sort: s })}
@@ -136,8 +140,10 @@ export function TasksPage() {
   const due = params.get("due") ?? "";
   const mine = params.get("assignee") !== "any";
   const status = params.get("status") ?? "";
+  const tableRef = useRef<HTMLDivElement>(null);
+  const pageSize = useFitRows(tableRef);
   const list = tasks.useList({
-    page, page_size: 25, sort: sort ?? "due_at", due: due || undefined, assignee: mine ? "me" : undefined,
+    page, page_size: pageSize, sort: sort ?? "due_at", due: due || undefined, assignee: mine ? "me" : undefined,
     status: status ? [status] : ["todo", "in_progress"], tz: timeZone(),
   });
   const create = tasks.useCreate();
@@ -200,7 +206,7 @@ export function TasksPage() {
         description={mine ? "What's on your plate, soonest first." : "Everyone's open work."}
         actions={canWrite ? <Button variant="primary" icon={<Plus className="size-4" />} onClick={() => setCreating(true)}>New task</Button> : null}
       />
-      <div className="rise mb-3 flex flex-wrap items-center gap-2">
+      <div className="rise mb-3 flex flex-none flex-wrap items-center gap-2">
         <div className="glass-soft flex gap-1 rounded-full p-1" role="group" aria-label="Due">
           {DUE_VIEWS.map((v) => (
             <button
@@ -226,11 +232,12 @@ export function TasksPage() {
         <ErrorState message={describeError(list.error)} onRetry={() => list.refetch()} />
       ) : (
         <DataTable
+          ref={tableRef}
           columns={columns}
           rows={list.data?.items}
           total={list.data?.total ?? 0}
           page={page}
-          pageSize={25}
+          pageSize={pageSize}
           onPageChange={(p) => set({ page: String(p) })}
           sort={sort ?? "due_at"}
           onSortChange={(s) => set({ sort: s })}

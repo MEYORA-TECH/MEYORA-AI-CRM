@@ -1,4 +1,4 @@
-import { CalendarPlus, CheckSquare, Handshake, Plus, StickyNote, UsersRound } from "lucide-react";
+import { CalendarPlus, CheckSquare, Handshake, Plus, StickyNote, UsersRound } from "@/components/icons";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 

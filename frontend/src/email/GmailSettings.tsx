@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Mail, RefreshCw, Unplug } from "lucide-react";
+import { Mail, RefreshCw, Unplug } from "@/components/icons";
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { toast } from "sonner";

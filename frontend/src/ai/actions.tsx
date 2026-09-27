@@ -1,5 +1,5 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { ArrowRight, Check, Copy, ExternalLink, Mail, ShieldCheck, X } from "lucide-react";
+import { ArrowRight, Check, Copy, ExternalLink, Mail, ShieldCheck, X } from "@/components/icons";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";

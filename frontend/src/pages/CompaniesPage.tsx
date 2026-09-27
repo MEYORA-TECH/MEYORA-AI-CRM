@@ -1,5 +1,5 @@
 import { createColumnHelper } from "@tanstack/react-table";
-import { Building2, Globe } from "lucide-react";
+import { Building2, Globe } from "@/components/icons";
 import { useParams } from "react-router-dom";
 
 import { EntityName } from "@/components/data/EntityPicker";

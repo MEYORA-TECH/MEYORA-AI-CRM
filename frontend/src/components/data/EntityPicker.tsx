@@ -1,7 +1,7 @@
 import * as Popover from "@radix-ui/react-popover";
 import { useQuery } from "@tanstack/react-query";
 import { Command } from "cmdk";
-import { Check, ChevronsUpDown, X } from "lucide-react";
+import { Check, ChevronsUpDown, X } from "@/components/icons";
 import { useState } from "react";
 
 import { useMembers } from "@/hooks/resources";

@@ -1,6 +1,7 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
+import { estimateRows } from "@/hooks/useFitRows";
 import { timeZone } from "@/lib/format";
 import { api, describeError } from "@/services/api";
 import type {
@@ -110,7 +111,8 @@ export function useDashboard(tz: string) {
   return useQuery(dashboardQuery(tz));
 }
 
-const DEFAULT_LIST = { page: 1, page_size: 25 };
+// Must match what ListPage asks for on first load, so the prefetched page is the one it uses.
+const defaultList = () => ({ page: 1, page_size: estimateRows() });
 const LISTS: Record<string, string> = { "/companies": "/companies", "/contacts": "/contacts", "/leads": "/leads" };
 
 /** Start loading a screen's first data when the pointer is on its link, so it opens already filled. */
@@ -121,8 +123,8 @@ export function usePrefetchRoute() {
       void qc.prefetchQuery(dashboardQuery(timeZone()));
     } else if (LISTS[to]) {
       void qc.prefetchQuery({
-        queryKey: [LISTS[to], "list", DEFAULT_LIST],
-        queryFn: () => api.get<Page<unknown>>(LISTS[to], DEFAULT_LIST),
+        queryKey: [LISTS[to], "list", defaultList()],
+        queryFn: () => api.get<Page<unknown>>(LISTS[to], defaultList()),
       });
     }
   };

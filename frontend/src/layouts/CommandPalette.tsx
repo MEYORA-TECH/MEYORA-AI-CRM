@@ -1,7 +1,7 @@
 import * as Dialog from "@radix-ui/react-dialog";
 import { useQuery } from "@tanstack/react-query";
 import { Command } from "cmdk";
-import { Building2, Handshake, Magnet, UserRound } from "lucide-react";
+import { Building2, Handshake, Magnet, UserRound } from "@/components/icons";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 

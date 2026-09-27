@@ -10,13 +10,13 @@ import {
   Settings,
   Sparkles,
   UsersRound,
-  type LucideIcon,
-} from "lucide-react";
+  type Icon,
+} from "@/components/icons";
 
 export interface NavItem {
   to: string;
   label: string;
-  icon: LucideIcon;
+  icon: Icon;
 }
 
 export const PRIMARY_NAV: NavItem[] = [

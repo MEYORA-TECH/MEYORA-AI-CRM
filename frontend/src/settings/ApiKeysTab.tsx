@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ExternalLink, KeyRound, LockKeyhole, Trash2 } from "lucide-react";
+import { ExternalLink, KeyRound, LockKeyhole, Trash2 } from "@/components/icons";
 import { useState } from "react";
 import { toast } from "sonner";
 

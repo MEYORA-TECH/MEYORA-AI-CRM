@@ -1,10 +1,11 @@
 import type { ColumnDef } from "@tanstack/react-table";
-import { Plus, Search } from "lucide-react";
-import { useEffect, useState, type ReactNode } from "react";
+import { Plus, Search } from "@/components/icons";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
 import { Button, EmptyState, ErrorState, Input, Select } from "@/components/ui/primitives";
 import type { resource } from "@/hooks/resources";
+import { useFitRows } from "@/hooks/useFitRows";
 import { PageHeader } from "@/layouts/AppShell";
 import { describeError } from "@/services/api";
 import { useCan } from "@/stores/auth";
@@ -56,6 +57,7 @@ export function ListPage<T extends { id: string }>({
   const navigate = useNavigate();
   const canWrite = useCan("crm:write");
   const [creating, setCreating] = useState(false);
+  const tableRef = useRef<HTMLDivElement>(null);
   const [search, setSearch] = useState(params.get("q") ?? "");
 
   const page = Number(params.get("page") ?? 1);
@@ -83,7 +85,8 @@ export function ListPage<T extends { id: string }>({
 
   // Empty filters are left out, so the default view shares its cache entry with sidebar prefetching.
   const activeFilters = Object.fromEntries(Object.entries(filterValues).filter(([, v]) => v));
-  const list = res.useList({ page, page_size: 25, sort, q: params.get("q") || undefined, ...activeFilters });
+  const pageSize = useFitRows(tableRef);
+  const list = res.useList({ page, page_size: pageSize, sort, q: params.get("q") || undefined, ...activeFilters });
   const create = res.useCreate();
   const filtered = Boolean(params.get("q")) || Object.values(filterValues).some(Boolean);
 
@@ -104,7 +107,7 @@ export function ListPage<T extends { id: string }>({
         }
       />
 
-      <div className="rise mb-3 flex flex-wrap items-center gap-2" style={{ animationDelay: "40ms" }}>
+      <div className="rise mb-3 flex flex-none flex-wrap items-center gap-2" style={{ animationDelay: "40ms" }}>
         <div className="relative w-full max-w-xs">
           <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-ink-3" />
           <Input
@@ -129,18 +132,19 @@ export function ListPage<T extends { id: string }>({
         ))}
       </div>
 
-      <div className="rise" style={{ animationDelay: "80ms" }}>
+      <div className="rise flex min-h-0 flex-1 flex-col" style={{ animationDelay: "80ms" }}>
         {list.error ? (
           <div className="glass-dense rounded-[var(--radius-card)]">
             <ErrorState message={describeError(list.error)} onRetry={() => list.refetch()} />
           </div>
         ) : (
           <DataTable
+            ref={tableRef}
             columns={columns}
             rows={list.data?.items}
             total={list.data?.total ?? 0}
             page={page}
-            pageSize={25}
+            pageSize={pageSize}
             onPageChange={(p) => update({ page: String(p) })}
             sort={sort}
             onSortChange={(s) => update({ sort: s })}

@@ -16,6 +16,8 @@ export interface ChatItem {
   pending?: boolean;
   error?: string;
   provider?: string | null;
+  /** A passing note while the answer is on hold, e.g. waiting out a free-tier limit. */
+  status?: string;
 }
 
 interface StoredMessage {
@@ -111,21 +113,24 @@ export function useChat(conversationId: string | null, onConversation?: (id: str
             }
           } else if (ev.type === "memories") {
             patchAssistant({ memories: ev.items });
+          } else if (ev.type === "status") {
+            patchAssistant({ status: ev.message });
           } else if (ev.type === "token") {
-            patchAssistant((i) => ({ content: i.content + ev.text }));
+            patchAssistant((i) => ({ content: i.content + ev.text, status: undefined }));
           } else if (ev.type === "tool_start") {
             // Tool steps appear above the answer they feed.
             setItems((xs) => {
               const at = xs.findIndex((i) => i.key === assistantKey);
               const step: ChatItem = { key: `tool-${ev.id}`, role: "tool", content: "", toolName: ev.name, pending: true };
-              return [...xs.slice(0, at), step, ...xs.slice(at)];
+              const next = [...xs.slice(0, at), step, ...xs.slice(at)];
+              return next.map((i) => (i.key === assistantKey ? { ...i, status: undefined } : i));
             });
           } else if (ev.type === "tool_result") {
             setItems((xs) => xs.map((i) => (i.key === `tool-${ev.id}` ? { ...i, pending: false, ui: ev.ui, error: ev.ok ? undefined : "failed" } : i)));
           } else if (ev.type === "error") {
-            patchAssistant({ pending: false, error: ev.message });
+            patchAssistant({ pending: false, error: ev.message, status: undefined });
           } else if (ev.type === "done") {
-            patchAssistant({ pending: false, provider: ev.provider });
+            patchAssistant({ pending: false, provider: ev.provider, status: undefined });
             qc.setQueryData<AiStatus>(["ai", "status"], (s) => (s ? { ...s, used_today: ev.used_today, quota: ev.quota } : s));
           }
         }

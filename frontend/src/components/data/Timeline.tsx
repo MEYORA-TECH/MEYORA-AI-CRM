@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { ArrowRightLeft, CalendarClock, CheckSquare, Mail, MessageSquareText, Phone, Sparkles, StickyNote, Users } from "lucide-react";
+import { ArrowRightLeft, CalendarClock, CheckSquare, Mail, MessageSquareText, Phone, Sparkles, StickyNote, Users } from "@/components/icons";
 import type { ReactNode } from "react";
 
 import { EmptyState, ErrorState, Skeleton } from "@/components/ui/primitives";

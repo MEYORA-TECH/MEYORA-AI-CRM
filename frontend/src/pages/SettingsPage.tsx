@@ -1,6 +1,6 @@
 import * as Tabs from "@radix-ui/react-tabs";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowDown, ArrowUp, Copy, Plus, Trash2, UserMinus } from "lucide-react";
+import { ArrowDown, ArrowUp, Copy, Plus, Trash2, UserMinus } from "@/components/icons";
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 
@@ -361,8 +361,8 @@ export function SettingsPage() {
   return (
     <>
       <PageHeader title="Settings" description="Workspace, people, pipelines, email, API keys and history." />
-      <Tabs.Root value={tab} onValueChange={(v) => setParams({ tab: v }, { replace: true })} className="rise">
-        <Tabs.List aria-label="Settings sections" className="glass-soft mb-4 inline-flex max-w-full gap-1 overflow-x-auto rounded-full p-1">
+      <Tabs.Root value={tab} onValueChange={(v) => setParams({ tab: v }, { replace: true })} className="rise flex min-h-0 flex-1 flex-col">
+        <Tabs.List aria-label="Settings sections" className="glass-soft mb-4 inline-flex w-fit max-w-full flex-none gap-1 overflow-x-auto rounded-full p-1">
           {tabs.map((t) => (
             <Tabs.Trigger key={t.value} value={t.value}
               className="focus-ring flex h-8 items-center gap-1.5 rounded-full px-3.5 text-[13px] font-semibold whitespace-nowrap text-ink-2 hover:text-ink data-[state=active]:bg-[var(--ink)] data-[state=active]:text-[var(--canvas)]">
@@ -370,7 +370,11 @@ export function SettingsPage() {
             </Tabs.Trigger>
           ))}
         </Tabs.List>
-        {tabs.map((t) => <Tabs.Content key={t.value} value={t.value} className="max-w-4xl focus:outline-none">{t.content}</Tabs.Content>)}
+        {tabs.map((t) => (
+          <Tabs.Content key={t.value} value={t.value} className="scroll-quiet min-h-0 max-w-4xl flex-1 overflow-y-auto pb-1 focus:outline-none">
+            {t.content}
+          </Tabs.Content>
+        ))}
       </Tabs.Root>
     </>
   );

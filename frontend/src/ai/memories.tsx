@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Brain, Check, Lock, Pencil, Pin, Trash2 } from "lucide-react";
+import { Brain, Check, Lock, Pencil, Pin, Trash2 } from "@/components/icons";
 import { useState } from "react";
 import { toast } from "sonner";
 

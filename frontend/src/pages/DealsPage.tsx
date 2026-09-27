@@ -1,7 +1,7 @@
 import { DndContext, PointerSensor, KeyboardSensor, useDraggable, useDroppable, useSensor, useSensors, type DragEndEvent } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
 import { createColumnHelper } from "@tanstack/react-table";
-import { CalendarDays, Handshake, KanbanSquare, List, Plus } from "lucide-react";
+import { CalendarDays, Handshake, KanbanSquare, List, Plus } from "@/components/icons";
 import { useMemo, useState } from "react";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 
@@ -107,18 +107,19 @@ function StageColumn({ column, currency }: { column: BoardColumn; currency: stri
       ref={setNodeRef}
       aria-label={`${column.name} stage`}
       className={cn(
-        "glass-soft flex w-[272px] shrink-0 flex-col rounded-[22px] p-2 transition-colors",
+        // Stages share the width; each column's cards scroll inside it, never the page.
+        "glass-soft flex min-h-0 min-w-[200px] flex-1 basis-0 flex-col rounded-[22px] p-2 transition-colors",
         isOver && "ring-2 ring-[var(--jade)]",
       )}
     >
-      <header className={cn("mb-2 rounded-2xl px-3 py-2.5", tintBg(column.color))}>
+      <header className={cn("mb-2 flex-none rounded-2xl px-3 py-2.5", tintBg(column.color))}>
         <div className="flex items-center justify-between gap-2">
           <h2 className="text-sm font-bold">{column.name}</h2>
           <span className="num text-xs font-semibold opacity-75">{column.count}</span>
         </div>
         <p className="num mt-0.5 text-xs font-semibold opacity-80">{money(column.total_amount, currency, { compact: true })}</p>
       </header>
-      <div className="flex min-h-24 flex-col gap-2">
+      <div className="scroll-quiet flex min-h-24 flex-1 flex-col gap-2 overflow-y-auto">
         {column.deals.map((d) => <DealCard key={d.id} deal={d} />)}
         {column.count > column.deals.length ? (
           <p className="px-2 py-1 text-center text-xs text-ink-3">+{column.count - column.deals.length} more in list view</p>
@@ -147,11 +148,11 @@ function Board({ pipelineId }: { pipelineId?: string }) {
 
   if (board.error) return <ErrorState message={describeError(board.error)} onRetry={() => board.refetch()} />;
   if (!board.data) {
-    return <div className="flex gap-3 overflow-hidden">{[0, 1, 2, 3].map((i) => <Skeleton key={i} className="h-96 w-[272px] shrink-0" />)}</div>;
+    return <div className="flex min-h-0 flex-1 gap-3 overflow-hidden">{[0, 1, 2, 3].map((i) => <Skeleton key={i} className="h-full min-w-[200px] flex-1" />)}</div>;
   }
   return (
     <DndContext sensors={sensors} onDragEnd={onDragEnd}>
-      <div className="-mx-4 flex gap-3 overflow-x-auto px-4 pb-4 md:mx-0 md:px-0">
+      <div className="scroll-quiet -mx-4 flex min-h-0 flex-1 gap-3 overflow-x-auto px-4 pb-1 md:mx-0 md:px-0">
         {board.data.columns.map((c) => <StageColumn key={c.stage_id} column={c} currency={currency} />)}
       </div>
     </DndContext>
@@ -234,7 +235,7 @@ export function DealsPage() {
           </>
         }
       />
-      <div className="rise" style={{ animationDelay: "60ms" }}>
+      <div className="rise flex min-h-0 flex-1 flex-col" style={{ animationDelay: "60ms" }}>
         {pipeline ? <Board pipelineId={pipeline.id} /> : <EmptyState title="No pipeline" body="Create a pipeline in Settings to start tracking deals." />}
       </div>
       <EntityForm
@@ -281,7 +282,7 @@ export function DealDetailPage() {
       deleting={remove.isPending}
       summary={(d) => (
         <>
-          <p className="num text-[34px] leading-none font-extrabold tracking-[-0.04em]">{money(d.amount, d.currency)}</p>
+          <p className="num text-[34px] leading-none font-display font-bold tracking-[-0.04em]">{money(d.amount, d.currency)}</p>
           <p className="mt-1.5 text-xs text-ink-3">{d.probability}% probability · weighted {money((d.amount * d.probability) / 100, d.currency)}</p>
 
           {/* Stage stepper: the pipeline as a row of segments, clickable to move. */}

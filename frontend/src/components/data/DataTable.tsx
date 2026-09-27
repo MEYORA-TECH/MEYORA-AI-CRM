@@ -4,9 +4,10 @@ import {
   useReactTable,
   type ColumnDef,
 } from "@tanstack/react-table";
-import { ArrowDown, ArrowUp, ChevronLeft, ChevronRight } from "lucide-react";
-import type { ReactNode } from "react";
+import { ArrowDown, ArrowUp, ChevronLeft, ChevronRight } from "@/components/icons";
+import { forwardRef, type ReactNode, type Ref } from "react";
 
+import { ROW_HEIGHT } from "@/hooks/useFitRows";
 import { cn } from "@/lib/format";
 import { IconButton, Skeleton } from "@/components/ui/primitives";
 
@@ -34,9 +35,13 @@ export interface DataTableProps<T> {
   empty: ReactNode;
 }
 
-export function DataTable<T extends { id: string }>({
-  columns, rows, total, page, pageSize, onPageChange, sort, onSortChange, loading, onRowClick, empty,
-}: DataTableProps<T>) {
+/** Later columns give way on narrow screens (pages list the most important ones first). */
+const responsive = (index: number) => (index >= 5 ? "hidden xl:table-cell" : index >= 3 ? "hidden md:table-cell" : "");
+
+function DataTableInner<T extends { id: string }>(
+  { columns, rows, total, page, pageSize, onPageChange, sort, onSortChange, loading, onRowClick, empty }: DataTableProps<T>,
+  ref: Ref<HTMLDivElement>,
+) {
   const table = useReactTable({
     data: rows ?? [],
     columns,
@@ -58,13 +63,13 @@ export function DataTable<T extends { id: string }>({
   };
 
   return (
-    <div className="glass-dense overflow-hidden rounded-[var(--radius-card)]">
-      <div className="overflow-x-auto">
-        <table className="w-full min-w-[720px] border-collapse text-sm">
+    <div ref={ref} className="glass-dense flex min-h-0 flex-1 flex-col overflow-hidden rounded-[var(--radius-card)]">
+      <div className="min-h-0 flex-1 overflow-hidden">
+        <table className="w-full table-fixed border-collapse text-sm">
           <thead>
             {table.getHeaderGroups().map((hg) => (
               <tr key={hg.id} className="border-b border-line">
-                {hg.headers.map((header) => {
+                {hg.headers.map((header, index) => {
                   const meta = header.column.columnDef.meta;
                   const key = meta?.sortKey;
                   const dir = key && sort === key ? "asc" : key && sort === `-${key}` ? "desc" : null;
@@ -76,6 +81,7 @@ export function DataTable<T extends { id: string }>({
                       className={cn(
                         "h-11 px-4 text-left text-[12px] font-semibold tracking-wide whitespace-nowrap text-ink-3",
                         meta?.align === "right" && "text-right",
+                        responsive(index),
                         meta?.className,
                       )}
                     >
@@ -99,10 +105,10 @@ export function DataTable<T extends { id: string }>({
           </thead>
           <tbody>
             {loading && !rows?.length
-              ? Array.from({ length: 6 }, (_, i) => (
-                  <tr key={i} className="border-b border-line last:border-0">
+              ? Array.from({ length: pageSize }, (_, i) => (
+                  <tr key={i} className="border-b border-line last:border-0" style={{ height: ROW_HEIGHT }}>
                     {columns.map((_c, j) => (
-                      <td key={j} className="px-4 py-3.5"><Skeleton className="h-4 w-3/4" /></td>
+                      <td key={j} className={cn("px-4", responsive(j))}><Skeleton className="h-4 w-3/4" /></td>
                     ))}
                   </tr>
                 ))
@@ -112,17 +118,23 @@ export function DataTable<T extends { id: string }>({
                     onClick={onRowClick ? () => onRowClick(row.original) : undefined}
                     onKeyDown={onRowClick ? (e) => e.key === "Enter" && onRowClick(row.original) : undefined}
                     tabIndex={onRowClick ? 0 : undefined}
+                    style={{ height: ROW_HEIGHT }}
                     className={cn(
                       "border-b border-line transition-colors last:border-0",
                       onRowClick && "focus-ring cursor-pointer hover:bg-[var(--glass-2)]",
                     )}
                   >
-                    {row.getVisibleCells().map((cell) => {
+                    {row.getVisibleCells().map((cell, index) => {
                       const meta = cell.column.columnDef.meta;
                       return (
                         <td
                           key={cell.id}
-                          className={cn("px-4 py-3 align-middle text-ink", meta?.align === "right" && "num text-right", meta?.className)}
+                          className={cn(
+                            "truncate px-4 align-middle text-ink",
+                            meta?.align === "right" && "num text-right",
+                            responsive(index),
+                            meta?.className,
+                          )}
                         >
                           {flexRender(cell.column.columnDef.cell, cell.getContext())}
                         </td>
@@ -135,7 +147,7 @@ export function DataTable<T extends { id: string }>({
       </div>
       {!loading && rows && rows.length === 0 ? empty : null}
       {total > 0 ? (
-        <div className="flex items-center justify-between border-t border-line px-4 py-2.5 text-xs text-ink-3">
+        <div className="flex flex-none items-center justify-between border-t border-line px-4 py-2.5 text-xs text-ink-3">
           <span className="num">
             {from}–{to} of {total}
           </span>
@@ -155,3 +167,8 @@ export function DataTable<T extends { id: string }>({
     </div>
   );
 }
+
+/** Server-paginated table that fills its container. Its box is measured to size pages. */
+export const DataTable = forwardRef(DataTableInner) as <T extends { id: string }>(
+  props: DataTableProps<T> & { ref?: Ref<HTMLDivElement> },
+) => ReturnType<typeof DataTableInner>;

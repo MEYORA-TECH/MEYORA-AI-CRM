@@ -1,4 +1,4 @@
-import { Mail, Search } from "lucide-react";
+import { Mail, Search } from "@/components/icons";
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 
@@ -33,7 +33,7 @@ export function EmailsPage() {
         }
         actions={<Link to="/settings?tab=email"><Button>Mailbox settings</Button></Link>}
       />
-      <div className="rise grid h-[calc(100vh-190px)] min-h-[480px] gap-4 lg:grid-cols-[380px_minmax(0,1fr)]">
+      <div className="rise grid min-h-0 flex-1 gap-4 lg:grid-cols-[380px_minmax(0,1fr)]">
         <Card className="flex min-h-0 flex-col">
           <div className="p-3">
             <div className="relative">
@@ -41,7 +41,7 @@ export function EmailsPage() {
               <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search subject, text or sender" aria-label="Search emails" className="pl-9" />
             </div>
           </div>
-          <div className="min-h-0 flex-1 overflow-y-auto">
+          <div className="scroll-quiet min-h-0 flex-1 overflow-y-auto">
             {list.isLoading ? (
               <div className="space-y-3 p-4">{[0, 1, 2, 3].map((i) => <Skeleton key={i} className="h-14" />)}</div>
             ) : list.error ? (
@@ -59,7 +59,7 @@ export function EmailsPage() {
             )}
           </div>
         </Card>
-        <Card className="hidden min-h-0 overflow-y-auto lg:block">
+        <Card className="scroll-quiet hidden min-h-0 overflow-y-auto lg:block">
           {id ? <ThreadView id={id} /> : <EmptyState title="Pick a conversation" body="Select a thread to read it, summarise it, or draft a reply with the assistant." className="h-full" />}
         </Card>
       </div>

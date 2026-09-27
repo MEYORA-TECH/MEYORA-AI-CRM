@@ -1,4 +1,4 @@
-import { Building, Check, LogOut, Monitor, Moon, Search, Sun } from "lucide-react";
+import { Building, Check, LogOut, Monitor, Moon, Search, Sun } from "@/components/icons";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
@@ -8,7 +8,7 @@ import { label } from "@/lib/format";
 import { describeError } from "@/services/api";
 import { useAuth } from "@/stores/auth";
 import { useUi, type Theme } from "@/stores/ui";
-import { Spark } from "@/ai/ChatThread";
+import { Orb } from "@/ai/Orb";
 import { useAiUi } from "@/ai/store";
 
 const THEMES: { value: Theme; label: string; icon: typeof Sun }[] = [
@@ -29,11 +29,11 @@ export function Topbar() {
   const ThemeIcon = THEMES.find((t) => t.value === theme)?.icon ?? Monitor;
 
   return (
-    <header className="sticky top-0 z-20 px-4 pt-4 md:pr-6 md:pl-[100px]">
+    <header className="relative z-20 flex-none px-4 pt-4 md:pr-6 md:pl-[100px]">
       <div className="glass-soft flex h-14 items-center gap-3 rounded-[20px] px-3 pl-4">
         <div className="flex min-w-0 items-center gap-2.5">
           <img src="/favicon.svg" alt="" className="size-7" />
-          <span className="hidden text-[15px] font-extrabold tracking-tight sm:inline">Meyora</span>
+          <span className="hidden font-brand text-[13px] font-light tracking-[0.26em] text-ink uppercase sm:inline">Meyora</span>
           {current ? (
             <>
               <span className="text-ink-3">/</span>
@@ -83,7 +83,7 @@ export function Topbar() {
           className="focus-ring glass-dense flex h-9 items-center gap-2 rounded-full pr-3.5 pl-1.5 text-sm font-semibold"
           aria-label="Ask Meyora (Ctrl J)"
         >
-          <Spark className="size-6" />
+          <Orb className="size-6" />
           <span className="hidden lg:inline">Ask Meyora</span>
         </button>
 

@@ -8,7 +8,8 @@ export type ChatEvent =
   | { type: "tool_result"; id: string; name: string; ok: boolean; ui: ToolUi | null }
   | { type: "memories"; items: UsedMemory[] }
   | { type: "done"; message_id: string | null; tokens: number; provider: string | null; used_today: number; quota: number }
-  | { type: "error"; message: string; code?: string };
+  | { type: "error"; message: string; code?: string }
+  | { type: "status"; message: string };
 
 export interface RecordsUi {
   kind: "records";

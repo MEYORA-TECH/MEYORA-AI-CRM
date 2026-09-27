@@ -39,7 +39,7 @@ export function Sidebar() {
             />
           ) : null}
           <span className="pointer-events-none absolute inset-0 rounded-2xl ring-[var(--jade)] group-focus-visible/item:ring-2" />
-          <Icon className="relative size-[19px] shrink-0" strokeWidth={active ? 2.2 : 1.8} />
+          <Icon className="relative size-[19px] shrink-0" weight={active ? "fill" : "regular"} />
           <span className="relative text-sm font-semibold whitespace-nowrap opacity-0 transition-opacity duration-150 group-hover/rail:opacity-100 group-has-[:focus-visible]/rail:opacity-100">
             {item.label}
           </span>

@@ -1,4 +1,4 @@
-import { Loader2 } from "lucide-react";
+import { Loader2 } from "@/components/icons";
 import { forwardRef, type ButtonHTMLAttributes, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes, type TextareaHTMLAttributes } from "react";
 
 import { cn, initials } from "@/lib/format";
@@ -162,9 +162,9 @@ export function Card({ children, className, as: As = "section" }: { children: Re
 
 export function CardHeader({ title, action, subtitle }: { title: ReactNode; subtitle?: ReactNode; action?: ReactNode }) {
   return (
-    <div className="flex items-start justify-between gap-3 px-5 pt-4 pb-3">
+    <div className="flex flex-none items-start justify-between gap-3 px-5 pt-4 pb-3">
       <div className="min-w-0">
-        <h2 className="text-[15px] font-bold tracking-tight text-ink">{title}</h2>
+        <h2 className="font-display text-[15px] font-semibold tracking-[-0.01em] text-ink">{title}</h2>
         {subtitle ? <p className="mt-0.5 text-xs text-ink-3">{subtitle}</p> : null}
       </div>
       {action}

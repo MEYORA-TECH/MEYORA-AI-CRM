@@ -3,124 +3,137 @@
 @custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
 
 /* ------------------------------------------------------------------
-   Meyora design tokens
-   Light: sage canvas, frosted white glass, ink text, jade accent.
-   Dark: deep forest canvas, smoked glass, same jade family.
+   Meyora design tokens — "Graphite & Ice Blue", from the brand site.
+   Light: cool paper canvas, frosted white glass, graphite ink, ice accent.
+   Dark: graphite canvas, smoked glass, the same ice family lifted for contrast.
+   Token names are historical (--jade is the accent); values are the brand's.
    ------------------------------------------------------------------ */
 :root {
-  --canvas: #e3ebe4;
-  --glow-mint: #cfe6da;
-  --glow-lilac: #e6e1f3;
-  --glow-peach: #f6e3d3;
+  --canvas: #eff2f5;
+  --glow-mint: #d3e2ec; /* ice */
+  --glow-lilac: #e1e5ee; /* frost */
+  --glow-peach: #e7eaf0; /* paper-steel */
 
-  --ink: #14181b;
-  --ink-2: #4a5550;
-  --ink-3: #7c8781;
-  --line: rgb(20 24 27 / 0.08);
-  --line-strong: rgb(20 24 27 / 0.14);
+  --ink: #101317;
+  --ink-2: #3f4751;
+  --ink-3: #6b7480;
+  --line: rgb(16 19 23 / 0.08);
+  --line-strong: rgb(16 19 23 / 0.14);
 
   /* Glass steps: 1 = airy panels, 2 = cards, 3 = dense data & inputs */
-  --glass-1: rgb(255 255 255 / 0.42);
-  --glass-2: rgb(255 255 255 / 0.62);
-  --glass-3: rgb(255 255 255 / 0.84);
-  --glass-edge: rgb(255 255 255 / 0.75);
-  --glass-shadow: 0 1px 1px rgb(20 24 27 / 0.03), 0 8px 24px -6px rgb(35 60 48 / 0.12),
-    0 24px 48px -24px rgb(35 60 48 / 0.18);
+  --glass-1: rgb(255 255 255 / 0.46);
+  --glass-2: rgb(255 255 255 / 0.66);
+  --glass-3: rgb(255 255 255 / 0.88);
+  --glass-edge: rgb(255 255 255 / 0.8);
+  --glass-shadow: 0 1px 1px rgb(16 19 23 / 0.03), 0 8px 24px -8px rgb(24 44 60 / 0.12),
+    0 24px 48px -28px rgb(24 44 60 / 0.2);
 
-  --rail: rgb(20 24 27 / 0.86);
-  --rail-ink: rgb(255 255 255 / 0.62);
-  --rail-lens: rgb(255 255 255 / 0.14);
+  --rail: rgb(16 19 23 / 0.9);
+  --rail-ink: rgb(255 255 255 / 0.58);
+  --rail-lens: rgb(154 175 189 / 0.2);
 
-  --jade: #1e6b57;
+  --ice: #5e8ca8;
+  --frost: #9aafbd;
+  --jade: #4a7894; /* accent for text, links and buttons: #5e8ca8 deepened to pass 4.5:1 on white */
   --jade-ink: #ffffff;
-  --jade-soft: #d3ebe1;
+  --jade-soft: #e0ebf2;
   --danger: #b4233c;
   --danger-soft: #fbdde3;
   --warn: #9a5b0a;
 
-  --tint-slate: #e6eaee;
-  --tint-sky: #dcebfb;
-  --tint-violet: #e8e1fa;
-  --tint-amber: #fdebd3;
-  --tint-orange: #fde0cc;
-  --tint-emerald: #d8f1e4;
-  --tint-rose: #fbdde5;
+  --tint-slate: #e7eaee;
+  --tint-sky: #dde9f3;
+  --tint-violet: #e6e3f5;
+  --tint-amber: #fbecd6;
+  --tint-orange: #fbe2d0;
+  --tint-emerald: #dcefe6;
+  --tint-rose: #f9e0e6;
 
-  --ring: 0 0 0 3px rgb(30 107 87 / 0.28);
+  --ring: 0 0 0 3px rgb(94 140 168 / 0.32);
   color-scheme: light;
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --canvas: #0e1311;
-    --glow-mint: #12332a;
-    --glow-lilac: #1f1b33;
-    --glow-peach: #2e2119;
-    --ink: #eef3f0;
-    --ink-2: #b3beb8;
-    --ink-3: #7f8a85;
+    --canvas: #0b0e11;
+    --glow-mint: #10222e;
+    --glow-lilac: #161b24;
+    --glow-peach: #131820;
+    --ink: #e9edf1;
+    --ink-2: #aab3bd;
+    --ink-3: #78828c;
     --line: rgb(255 255 255 / 0.07);
     --line-strong: rgb(255 255 255 / 0.13);
-    --glass-1: rgb(28 36 33 / 0.42);
-    --glass-2: rgb(30 38 35 / 0.6);
-    --glass-3: rgb(24 31 28 / 0.88);
-    --glass-edge: rgb(255 255 255 / 0.1);
-    --glass-shadow: 0 1px 1px rgb(0 0 0 / 0.2), 0 12px 32px -8px rgb(0 0 0 / 0.5);
-    --rail: rgb(8 11 10 / 0.8);
-    --jade: #5fcfa6;
-    --jade-ink: #06201a;
-    --jade-soft: rgb(95 207 166 / 0.16);
+    --glass-1: rgb(22 27 33 / 0.46);
+    --glass-2: rgb(24 30 37 / 0.64);
+    --glass-3: rgb(18 23 29 / 0.9);
+    --glass-edge: rgb(255 255 255 / 0.08);
+    --glass-shadow: 0 1px 1px rgb(0 0 0 / 0.2), 0 12px 32px -10px rgb(0 0 0 / 0.55);
+    --rail: rgb(6 8 10 / 0.84);
+    --rail-lens: rgb(154 175 189 / 0.16);
+    --ice: #7aa6c2;
+    --frost: #a9bccb;
+    --jade: #8fb8d2;
+    --jade-ink: #0b1a24;
+    --jade-soft: rgb(143 184 210 / 0.15);
     --danger: #ff7b93;
     --danger-soft: rgb(255 123 147 / 0.14);
     --warn: #f2b35c;
     --tint-slate: rgb(160 175 190 / 0.14);
-    --tint-sky: rgb(110 170 240 / 0.16);
-    --tint-violet: rgb(160 130 240 / 0.16);
+    --tint-sky: rgb(122 166 194 / 0.18);
+    --tint-violet: rgb(160 150 230 / 0.16);
     --tint-amber: rgb(240 180 90 / 0.16);
     --tint-orange: rgb(245 150 90 / 0.16);
-    --tint-emerald: rgb(95 207 166 / 0.16);
+    --tint-emerald: rgb(110 200 160 / 0.16);
     --tint-rose: rgb(245 120 150 / 0.16);
-    --ring: 0 0 0 3px rgb(95 207 166 / 0.35);
+    --ring: 0 0 0 3px rgb(143 184 210 / 0.38);
     color-scheme: dark;
   }
 }
 
 :root[data-theme="dark"] {
-  --canvas: #0e1311;
-  --glow-mint: #12332a;
-  --glow-lilac: #1f1b33;
-  --glow-peach: #2e2119;
-  --ink: #eef3f0;
-  --ink-2: #b3beb8;
-  --ink-3: #7f8a85;
+  --canvas: #0b0e11;
+  --glow-mint: #10222e;
+  --glow-lilac: #161b24;
+  --glow-peach: #131820;
+  --ink: #e9edf1;
+  --ink-2: #aab3bd;
+  --ink-3: #78828c;
   --line: rgb(255 255 255 / 0.07);
   --line-strong: rgb(255 255 255 / 0.13);
-  --glass-1: rgb(28 36 33 / 0.42);
-  --glass-2: rgb(30 38 35 / 0.6);
-  --glass-3: rgb(24 31 28 / 0.88);
-  --glass-edge: rgb(255 255 255 / 0.1);
-  --glass-shadow: 0 1px 1px rgb(0 0 0 / 0.2), 0 12px 32px -8px rgb(0 0 0 / 0.5);
-  --rail: rgb(8 11 10 / 0.8);
-  --jade: #5fcfa6;
-  --jade-ink: #06201a;
-  --jade-soft: rgb(95 207 166 / 0.16);
+  --glass-1: rgb(22 27 33 / 0.46);
+  --glass-2: rgb(24 30 37 / 0.64);
+  --glass-3: rgb(18 23 29 / 0.9);
+  --glass-edge: rgb(255 255 255 / 0.08);
+  --glass-shadow: 0 1px 1px rgb(0 0 0 / 0.2), 0 12px 32px -10px rgb(0 0 0 / 0.55);
+  --rail: rgb(6 8 10 / 0.84);
+  --rail-lens: rgb(154 175 189 / 0.16);
+  --ice: #7aa6c2;
+  --frost: #a9bccb;
+  --jade: #8fb8d2;
+  --jade-ink: #0b1a24;
+  --jade-soft: rgb(143 184 210 / 0.15);
   --danger: #ff7b93;
   --danger-soft: rgb(255 123 147 / 0.14);
   --warn: #f2b35c;
   --tint-slate: rgb(160 175 190 / 0.14);
-  --tint-sky: rgb(110 170 240 / 0.16);
-  --tint-violet: rgb(160 130 240 / 0.16);
+  --tint-sky: rgb(122 166 194 / 0.18);
+  --tint-violet: rgb(160 150 230 / 0.16);
   --tint-amber: rgb(240 180 90 / 0.16);
   --tint-orange: rgb(245 150 90 / 0.16);
-  --tint-emerald: rgb(95 207 166 / 0.16);
+  --tint-emerald: rgb(110 200 160 / 0.16);
   --tint-rose: rgb(245 120 150 / 0.16);
-  --ring: 0 0 0 3px rgb(95 207 166 / 0.35);
+  --ring: 0 0 0 3px rgb(143 184 210 / 0.38);
   color-scheme: dark;
 }
 
 @theme inline {
-  --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
-  --font-mono: "Geist Mono", ui-monospace, "SFMono-Regular", monospace;
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Space Grotesk", "Inter", ui-sans-serif, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", monospace;
+  --font-brand: "Exo 2", "Space Grotesk", sans-serif;
+  --color-ice: var(--ice);
+  --color-frost: var(--frost);
 
   --color-canvas: var(--canvas);
   --color-ink: var(--ink);
@@ -160,7 +173,7 @@ body {
   background: var(--canvas);
   color: var(--ink);
   font-family: var(--font-sans);
-  font-feature-settings: "ss01", "cv11";
+  font-feature-settings: "cv05", "cv08", "ss03"; /* Inter: rounder l, open digits */
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
@@ -275,8 +288,65 @@ body {
 .prose-chat ol { list-style: decimal; padding-left: 1.3em; }
 .prose-chat li + li { margin-top: 0.25em; }
 .prose-chat strong { font-weight: 700; }
-.prose-chat h1, .prose-chat h2, .prose-chat h3 { font-weight: 800; letter-spacing: -0.01em; }
+.prose-chat h1, .prose-chat h2, .prose-chat h3 { font-family: var(--font-display); font-weight: 700; letter-spacing: -0.015em; }
 .prose-chat code { font-family: var(--font-mono); font-size: 0.9em; background: var(--line); padding: 0.1em 0.35em; border-radius: 6px; }
 .prose-chat table { width: 100%; border-collapse: collapse; font-size: 0.92em; font-variant-numeric: tabular-nums; }
 .prose-chat th, .prose-chat td { border-bottom: 1px solid var(--line); padding: 0.4em 0.5em; text-align: left; }
 .prose-chat th { color: var(--ink-3); font-weight: 600; }
+
+/* Panels that scroll inside the fixed-height shell: thin, quiet scrollbars. */
+.scroll-quiet {
+  scrollbar-width: thin;
+  scrollbar-color: var(--line-strong) transparent;
+}
+.scroll-quiet::-webkit-scrollbar { width: 8px; height: 8px; }
+.scroll-quiet::-webkit-scrollbar-thumb { background: var(--line-strong); border-radius: 8px; }
+.scroll-quiet::-webkit-scrollbar-track { background: transparent; }
+
+/* Lists that show only what fits: the last row fades instead of being cut hard. */
+.fade-bottom {
+  -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 28px), transparent);
+  mask-image: linear-gradient(to bottom, #000 calc(100% - 28px), transparent);
+}
+
+/* ---------- The assistant's orb ---------- */
+.orb::before {
+  /* halo: invisible at rest, breathes while thinking */
+  content: "";
+  position: absolute;
+  inset: -30%;
+  border-radius: 9999px;
+  background: radial-gradient(circle, rgb(94 140 168 / 0.55), transparent 62%);
+  filter: blur(6px);
+  opacity: 0;
+  transition: opacity 300ms ease;
+}
+.orb::after {
+  /* sheen that turns across the surface while thinking */
+  content: "";
+  position: absolute;
+  inset: 4%;
+  z-index: 2;
+  border-radius: 9999px;
+  background: conic-gradient(from 0deg, transparent 0 58%, rgb(255 255 255 / 0.42) 72%, transparent 86%);
+  mix-blend-mode: soft-light;
+  opacity: 0;
+}
+.orb-thinking::before { opacity: 1; animation: orb-breathe 1.9s ease-in-out infinite; }
+.orb-thinking::after { opacity: 1; animation: orb-turn 2.6s linear infinite; }
+@keyframes orb-breathe {
+  0%, 100% { transform: scale(0.86); opacity: 0.55; }
+  50% { transform: scale(1.06); opacity: 1; }
+}
+@keyframes orb-turn { to { transform: rotate(1turn); } }
+
+/* "Thinking" text with a light passing through it. */
+.shimmer-text {
+  background: linear-gradient(90deg, var(--ink-3) 0%, var(--ink-3) 40%, var(--ink) 50%, var(--ink-3) 60%, var(--ink-3) 100%);
+  background-size: 250% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: shimmer 1.8s linear infinite;
+}
+@keyframes shimmer { from { background-position: 100% 0; } to { background-position: -150% 0; } }

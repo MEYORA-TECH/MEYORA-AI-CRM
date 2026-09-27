@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { MessageSquarePlus, MoreHorizontal, Pencil, Search, Trash2 } from "lucide-react";
+import { MessageSquarePlus, MoreHorizontal, Pencil, Search, Trash2 } from "@/components/icons";
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
@@ -18,6 +18,22 @@ interface Conversation {
   title: string;
   provider: string | null;
   last_message_at: string;
+}
+
+/** Today / Yesterday / This week / Earlier, like a mail client. */
+function groupByDay(items: Conversation[]) {
+  const startOfDay = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+  const today = startOfDay(new Date());
+  const day = 86_400_000;
+  const groups: { label: string; items: Conversation[] }[] = [];
+  for (const c of items) {
+    const t = startOfDay(new Date(c.last_message_at));
+    const label = t >= today ? "Today" : t >= today - day ? "Yesterday" : t >= today - 6 * day ? "This week" : "Earlier";
+    const last = groups[groups.length - 1];
+    if (last?.label === label) last.items.push(c);
+    else groups.push({ label, items: [c] });
+  }
+  return groups;
 }
 
 function useConversations(q: string) {
@@ -57,9 +73,9 @@ export function AssistantPage() {
   });
 
   return (
-    <div className="rise grid h-[calc(100vh-140px)] min-h-[520px] gap-4 md:grid-cols-[280px_minmax(0,1fr)]">
-      <Card className="hidden min-h-0 flex-col md:flex">
-        <div className="flex items-center gap-2 p-3">
+    <div className="rise grid min-h-0 flex-1 gap-4 md:grid-cols-[272px_minmax(0,1fr)]">
+      <Card className="hidden min-h-0 flex-col overflow-hidden md:flex">
+        <div className="flex flex-none items-center gap-2 p-3">
           <div className="relative flex-1">
             <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-ink-3" />
             <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search chats" aria-label="Search conversations" className="h-9 pl-9" />
@@ -68,16 +84,19 @@ export function AssistantPage() {
             <MessageSquarePlus className="size-4" />
           </IconButton>
         </div>
-        <div className="min-h-0 flex-1 overflow-y-auto px-2 pb-2">
+        <div className="scroll-quiet min-h-0 flex-1 overflow-y-auto px-2 pb-2">
           {list.isLoading ? (
             <div className="space-y-2 p-2">{[0, 1, 2].map((i) => <Skeleton key={i} className="h-11" />)}</div>
           ) : list.data?.items.length ? (
+            groupByDay(list.data.items).map((g) => (
+            <section key={g.label} className="mb-2">
+            <h3 className="px-3 pt-2 pb-1 text-[11px] font-semibold tracking-wide text-ink-3 uppercase">{g.label}</h3>
             <ul className="space-y-0.5">
-              {list.data.items.map((c) => (
+              {g.items.map((c) => (
                 <li key={c.id} className="group relative">
                   <button
                     onClick={() => navigate(`/assistant/${c.id}`)}
-                    className={cn("focus-ring w-full rounded-xl px-3 py-2 pr-9 text-left transition hover:bg-[var(--glass-2)]", c.id === id && "bg-[var(--glass-3)]")}
+                    className={cn("focus-ring w-full rounded-xl px-3 py-2 pr-9 text-left transition hover:bg-[var(--glass-2)]", c.id === id && "bg-[var(--glass-3)] shadow-[inset_2px_0_0_var(--ice)]")}
                   >
                     <span className="block truncate text-[13px] font-semibold">{c.title}</span>
                     <span className="block text-[11px] text-ink-3">{relative(c.last_message_at)}</span>
@@ -91,15 +110,17 @@ export function AssistantPage() {
                 </li>
               ))}
             </ul>
+            </section>
+            ))
           ) : (
             <EmptyState title={q ? "No matching chats" : "No chats yet"} body={q ? undefined : "Your conversations are private to you."} />
           )}
         </div>
       </Card>
 
-      <Card className="flex min-h-0 flex-col">
-        <div className="min-h-0 flex-1 overflow-y-auto px-5 py-5 md:px-10">
-          <div className="mx-auto max-w-3xl">
+      <Card className="flex min-h-0 flex-col overflow-hidden">
+        <div className="scroll-quiet min-h-0 flex-1 overflow-y-auto px-5 pt-6 pb-4 md:px-10">
+          <div className="mx-auto h-full max-w-3xl">
             {chat.loading ? (
               <div className="space-y-4">{[0, 1].map((i) => <Skeleton key={i} className="h-16" />)}</div>
             ) : chat.items.length === 0 ? (
@@ -111,7 +132,9 @@ export function AssistantPage() {
             )}
           </div>
         </div>
-        <div className="border-t border-line p-4">
+        {/* Docked composer; the thread fades out beneath it. */}
+        <div className="relative flex-none px-4 pt-1 pb-3 md:px-10">
+          <span aria-hidden className="pointer-events-none absolute inset-x-0 -top-8 h-8 bg-gradient-to-t from-[var(--glass-2)] to-transparent" />
           <div className="mx-auto flex max-w-3xl flex-col gap-2">
             <Composer
               autoFocus

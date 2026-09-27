@@ -1,4 +1,4 @@
-import { Brain, Search } from "lucide-react";
+import { Brain, Search } from "@/components/icons";
 import { useEffect, useState } from "react";
 
 import { AddMemoryButton, MemoryList, useMemories } from "@/ai/memories";
@@ -32,7 +32,7 @@ export function MemoryPage() {
         description="Facts the assistant has learned about your customers and team, and where each came from."
         actions={<AddMemoryButton size="md" />}
       />
-      <div className="rise mb-3 flex flex-wrap items-center gap-2">
+      <div className="rise mb-3 flex flex-none flex-wrap items-center gap-2">
         <div className="relative w-full max-w-sm">
           <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-ink-3" />
           <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search by meaning, e.g. deployment preferences"
@@ -56,7 +56,7 @@ export function MemoryPage() {
           <option value="user">Only me</option>
         </Select>
       </div>
-      <Card className="rise overflow-hidden">
+      <Card className="rise scroll-quiet min-h-0 flex-1 overflow-y-auto">
         <MemoryList
           items={list.data?.items}
           loading={list.isLoading}
