@@ -311,7 +311,7 @@ export function Composer({ onSend, onStop, streaming, disabled, page, autoFocus 
   };
 
   return (
-    <div className="glass-dense rounded-[22px] p-2 shadow-[0_10px_30px_-14px_rgb(24_44_60/0.35)] transition focus-within:border-[var(--ice)] focus-within:shadow-[0_0_0_4px_rgb(94_140_168/0.16),0_10px_30px_-14px_rgb(24_44_60/0.35)]">
+    <div className="glass-dense rounded-[22px] p-2 shadow-[0_10px_30px_-14px_rgb(24_44_60/0.35)] transition-[border-color,box-shadow] focus-within:border-[rgb(94_140_168/0.55)] focus-within:shadow-[0_0_0_4px_rgb(94_140_168/0.14),0_10px_30px_-14px_rgb(24_44_60/0.35)]">
       {page ? (
         <div className="px-1.5 pt-0.5 pb-1">
           <span className="inline-flex max-w-full items-center gap-1.5 rounded-full bg-jade-soft px-2.5 py-0.5 text-[11px] font-semibold text-jade">
@@ -334,7 +334,7 @@ export function Composer({ onSend, onStop, streaming, disabled, page, autoFocus 
         }}
         aria-label="Ask Meyora"
         placeholder={disabled ? "The assistant isn't set up yet" : page ? `Ask about ${page.name}…` : "Ask about your deals, leads and customers…"}
-        className="block max-h-42 min-h-10 w-full resize-none bg-transparent px-2.5 py-2 text-[15px] leading-relaxed outline-none placeholder:text-ink-3"
+        className="block max-h-42 min-h-10 w-full resize-none border-0 bg-transparent px-2.5 py-2 text-[15px] leading-relaxed shadow-none ring-0 outline-none placeholder:text-ink-3 focus:ring-0 focus:outline-none focus-visible:outline-none"
       />
       <div className="flex items-center justify-between gap-2 pl-2.5">
         <span className="hidden text-[11px] text-ink-3 sm:inline">
@@ -377,10 +377,10 @@ export function Welcome({ page, onPick, compact }: { page: PageContext | null; o
   const isOwner = useCan("org:secrets");
   const suggestions = page ? FOR_PAGE[page.type].map((text) => ({ text, icon: ENTITY[page.type].icon })) : GENERAL;
   return (
-    <div className={cn("flex flex-col", compact ? "items-start gap-4 py-1" : "min-h-full items-center justify-center gap-6 py-6 text-center")}>
-      <Orb className={compact ? "size-11" : "size-16"} />
+    <div className={cn("flex flex-col", compact ? "items-start gap-4 py-1" : "min-h-full items-center justify-center gap-6 py-2 text-center [@media(max-height:820px)]:gap-4")}>
+      <Orb className={compact ? "size-11" : "size-16 [@media(max-height:820px)]:size-12"} />
       <div className={cn(!compact && "max-w-md")}>
-        <h2 className={cn("font-display font-bold tracking-[-0.02em]", compact ? "text-lg" : "text-[26px] leading-tight")}>
+        <h2 className={cn("font-display font-bold tracking-[-0.02em]", compact ? "text-lg" : "text-[26px] leading-tight [@media(max-height:820px)]:text-[22px]")}>
           {page ? `Ask about ${page.name}` : "What can I help you with?"}
         </h2>
         <p className="mt-1.5 text-sm text-ink-2">
@@ -402,7 +402,7 @@ export function Welcome({ page, onPick, compact }: { page: PageContext | null; o
             <button
               key={s.text}
               onClick={() => onPick(s.text)}
-              className="focus-ring glass-soft group flex items-start gap-2.5 rounded-2xl px-3.5 py-3 text-left text-[13.5px] font-medium text-ink-2 transition hover:-translate-y-px hover:text-ink"
+              className="focus-ring glass-soft group flex items-start gap-2.5 rounded-2xl px-3.5 py-3 text-left [@media(max-height:820px)]:py-2.5 text-[13.5px] font-medium text-ink-2 transition hover:-translate-y-px hover:text-ink"
             >
               <span className="mt-px text-ink-3 transition group-hover:text-jade">{s.icon}</span>
               {s.text}

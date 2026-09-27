@@ -119,7 +119,7 @@ export function AssistantPage() {
       </Card>
 
       <Card className="flex min-h-0 flex-col overflow-hidden">
-        <div className="scroll-quiet min-h-0 flex-1 overflow-y-auto px-5 pt-6 pb-4 md:px-10">
+        <div className="scroll-quiet fade-edges min-h-0 flex-1 overflow-y-auto px-5 pt-5 pb-4 md:px-10">
           <div className="mx-auto h-full max-w-3xl">
             {chat.loading ? (
               <div className="space-y-4">{[0, 1].map((i) => <Skeleton key={i} className="h-16" />)}</div>
@@ -132,9 +132,8 @@ export function AssistantPage() {
             )}
           </div>
         </div>
-        {/* Docked composer; the thread fades out beneath it. */}
-        <div className="relative flex-none px-4 pt-1 pb-3 md:px-10">
-          <span aria-hidden className="pointer-events-none absolute inset-x-0 -top-8 h-8 bg-gradient-to-t from-[var(--glass-2)] to-transparent" />
+        {/* Docked composer; the thread above fades out at its edge. */}
+        <div className="flex-none px-4 pt-1 pb-3 md:px-10">
           <div className="mx-auto flex max-w-3xl flex-col gap-2">
             <Composer
               autoFocus

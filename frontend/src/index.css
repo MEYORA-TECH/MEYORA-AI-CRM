@@ -228,9 +228,13 @@ body {
   }
 }
 
-:focus-visible {
-  outline: 2px solid var(--jade);
-  outline-offset: 2px;
+/* The default keyboard focus ring. In the base layer, so a component's own focus style
+   (outline-none, .focus-ring, the composer's glow) wins instead of stacking a second ring. */
+@layer base {
+  :focus-visible {
+    outline: 2px solid var(--jade);
+    outline-offset: 2px;
+  }
 }
 
 /* People who ask the OS for less transparency get solid surfaces. */
@@ -350,3 +354,9 @@ body {
   animation: shimmer 1.8s linear infinite;
 }
 @keyframes shimmer { from { background-position: 100% 0; } to { background-position: -150% 0; } }
+
+/* A scrolling thread that fades at its edges instead of drawing a band over the content. */
+.fade-edges {
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 14px, #000 calc(100% - 22px), transparent);
+  mask-image: linear-gradient(to bottom, transparent 0, #000 14px, #000 calc(100% - 22px), transparent);
+}
