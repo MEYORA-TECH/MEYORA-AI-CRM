@@ -57,9 +57,14 @@ XHR = {"X-Requested-With": "XMLHttpRequest"}
 
 @pytest.fixture(autouse=True)
 async def _clean_db():
+    from app.ai import registry
+    from app.services import platform
+
     tables = ", ".join(t.name for t in reversed(Base.metadata.sorted_tables))
     async with engine.begin() as conn:
         await conn.execute(text(f"TRUNCATE {tables} RESTART IDENTITY CASCADE"))
+    platform.reset_cache()
+    registry.invalidate()
     yield
 
 
