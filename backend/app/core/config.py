@@ -1,7 +1,8 @@
 from functools import lru_cache
 from typing import Literal
+from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
-from pydantic import SecretStr, model_validator
+from pydantic import SecretStr, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -81,6 +82,31 @@ class Settings(BaseSettings):
     # 32-byte key, base64. Encrypts stored OAuth tokens. Required in production.
     encryption_key: SecretStr | None = None
 
+    @field_validator("database_url", mode="before")
+    @classmethod
+    def _asyncpg_url(cls, value: str) -> str:
+        """Accept the connection string as Neon (or any host) shows it.
+
+        postgresql://…?sslmode=require&channel_binding=require becomes
+        postgresql+asyncpg://…?ssl=require: the async driver needs its own scheme, spells the
+        SSL option differently and doesn't support channel_binding.
+        """
+        if not isinstance(value, str):
+            return value
+        url = value.strip().strip('"')
+        for plain in ("postgres://", "postgresql://"):
+            if url.startswith(plain):
+                url = "postgresql+asyncpg://" + url[len(plain):]
+        parts = urlsplit(url)
+        params = []
+        for key, val in parse_qsl(parts.query, keep_blank_values=True):
+            if key == "channel_binding":
+                continue
+            if key == "sslmode":
+                key, val = "ssl", "require" if val in ("require", "verify-ca", "verify-full", "prefer") else val
+            params.append((key, val))
+        return urlunsplit(parts._replace(query=urlencode(params)))
+
     @property
     def api_url(self) -> str:
         return (self.api_public_url or self.public_url).rstrip("/")
@@ -101,6 +127,12 @@ class Settings(BaseSettings):
             problems.append("CORS_ORIGINS must list the real web app origin, not localhost")
         if not self.public_url.startswith("https://"):
             problems.append("PUBLIC_URL must be the https address of the web app")
+        user = urlsplit(self.database_url).username or ""
+        if user in ("neondb_owner", "postgres") or user.endswith("_owner"):
+            problems.append(
+                "DATABASE_URL uses the database owner login, which bypasses row-level security; "
+                "use the app login (NEON_APP_DATABASE_URL from scripts/setup_database.py)"
+            )
         if problems:
             raise ValueError("Production settings are incomplete: " + "; ".join(problems))
         self.cookie_secure = True  # the refresh cookie only travels over HTTPS in production

@@ -15,7 +15,7 @@ from app.jobs.worker import worker_loop
 
 PROD = {
     "app_env": "production",
-    "database_url": "postgresql+asyncpg://u:p@db.example/app",
+    "database_url": "postgresql+asyncpg://meyora_app:p@db.example/app",
     "jwt_secret": "x" * 40,
     "encryption_key": "A" * 43 + "=",
     "cors_origins": ["https://app.meyora.in"],
@@ -35,6 +35,19 @@ def test_production_refuses_unsafe_settings():
     ]:
         with pytest.raises(ValidationError, match=message):
             Settings(**{**PROD, **broken})
+
+
+def test_database_url_as_neon_shows_it_is_accepted():
+    s = Settings(**{**PROD, "database_url": "postgresql://meyora_app:pw@ep-x-pooler.ap-southeast-1.aws.neon.tech/neondb"
+                    "?sslmode=require&channel_binding=require"})
+    assert s.database_url == "postgresql+asyncpg://meyora_app:pw@ep-x-pooler.ap-southeast-1.aws.neon.tech/neondb?ssl=require"
+    already = "postgresql+asyncpg://meyora_app:pw@h/db?ssl=require"
+    assert Settings(**{**PROD, "database_url": already}).database_url == already
+
+
+def test_production_refuses_the_owner_login():
+    with pytest.raises(ValidationError, match="database owner login"):
+        Settings(**{**PROD, "database_url": "postgresql://neondb_owner:pw@ep-x.aws.neon.tech/neondb?sslmode=require"})
 
 
 def test_google_redirects_go_to_the_api_domain(monkeypatch):
