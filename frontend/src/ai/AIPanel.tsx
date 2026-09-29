@@ -49,7 +49,7 @@ export function AIPanel() {
         <Dialog.Content
           onInteractOutside={(e) => e.preventDefault()}
           className="glass fixed top-3 right-3 bottom-3 z-40 flex w-[min(440px,calc(100vw-24px))] flex-col rounded-[26px] focus:outline-none data-[state=open]:animate-[sheet-in_220ms_cubic-bezier(.2,.8,.2,1)]"
-          style={{ background: "var(--glass-2)" }}
+          style={{ background: "var(--sheet)", backdropFilter: "none", WebkitBackdropFilter: "none" }}
         >
           <div className="flex flex-none items-center gap-2.5 border-b border-line px-4 py-3">
             <Orb className="size-8" thinking={chat.streaming} />
