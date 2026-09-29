@@ -1,0 +1,4 @@
+# Never upload local env files (they can hold tokens)
+.env*
+node_modules
+dist
