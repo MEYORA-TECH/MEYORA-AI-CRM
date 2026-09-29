@@ -208,7 +208,7 @@ async def chat_stream(req: ChatRequest) -> AsyncIterator[str]:
                 yield sse(
                     "error",
                     {
-                        "message": "Meyora is still answering your last message in this chat. "
+                        "message": "Nila is still answering your last message in this chat. "
                         "Wait for it to finish, then send this again.",
                         "code": "busy",
                     },

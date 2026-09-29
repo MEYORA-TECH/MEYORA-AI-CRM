@@ -395,7 +395,7 @@ export function PlatformAdminPage() {
   return (
     <>
       <PageHeader eyebrow={<span className="inline-flex items-center gap-1.5"><Check className="size-3.5" /> Platform admin</span>}
-        title="Platform" description="The whole Meyora installation: every workspace, sign-in, Gmail and shared keys." />
+        title="Platform" description="The whole Nila installation: every workspace, sign-in, Gmail and shared keys." />
       <Tabs.Root value={tab} onValueChange={(v) => setParams({ tab: v }, { replace: true })} className="rise flex min-h-0 flex-1 flex-col">
         <Tabs.List aria-label="Platform sections" className="glass-soft mb-3 inline-flex w-fit max-w-full flex-none gap-1 overflow-x-auto rounded-full p-1">
           {tabs.map((t) => (

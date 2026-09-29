@@ -74,9 +74,9 @@ export function CommandPalette() {
           className="glass fixed top-[14vh] left-1/2 z-50 w-[min(620px,calc(100vw-24px))] -translate-x-1/2 overflow-hidden rounded-[24px] data-[state=open]:animate-[pop-in_160ms_ease-out]"
           style={{ background: "var(--glass-3)" }}
         >
-          <Dialog.Title className="sr-only">Search Meyora</Dialog.Title>
+          <Dialog.Title className="sr-only">Search Nila</Dialog.Title>
           <Dialog.Description className="sr-only">Jump to a page or find a record</Dialog.Description>
-          <Command shouldFilter={!term} label="Search Meyora">
+          <Command shouldFilter={!term} label="Search Nila">
             <Command.Input
               value={q}
               onValueChange={setQ}

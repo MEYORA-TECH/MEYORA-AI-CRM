@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 362 256">
+<title>Nila</title>
+<path fill="#101317" d="M0 80H26V200H0ZM0 140A60 60 0 0 1 120 140V200H94V140A34 34 0 0 0 26 140Z"/>
+<path fill="#101317" d="M144 80H170V200H144Z"/>
+<path fill="#5e8ca8" d="M182.98 42.94A25 25 0 1 1 157.06 17.02A19 19 0 1 0 182.98 42.94Z"/>
+<path fill="#101317" d="M194 30H220V200H194Z"/>
+<path fill="#101317" fill-rule="evenodd" d="M242 140A60 60 0 1 0 362 140A60 60 0 1 0 242 140ZM268 140A34 34 0 1 0 336 140A34 34 0 1 0 268 140Z"/>
+<path fill="#101317" d="M336 80H362V200H336Z"/>
+</svg>

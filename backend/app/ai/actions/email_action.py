@@ -79,7 +79,7 @@ async def execute_draft_email(ctx: TenantContext, p: dict[str, Any], edits: dict
         raise ValidationFailed("The email needs a recipient, a subject and a message.")
     account = await _mailbox(ctx.session, ctx.organization_id, ctx.user_id)
     if account is None:
-        raise ValidationFailed("Connect your Gmail in Settings > Email to send from Meyora.")
+        raise ValidationFailed("Connect your Gmail in Settings > Email to send from Nila.")
 
     provider_thread, in_reply_to = None, None
     if p.get("thread_id"):

@@ -54,7 +54,7 @@ export function AIPanel() {
           <div className="flex flex-none items-center gap-2.5 border-b border-line px-4 py-3">
             <Orb className="size-8" thinking={chat.streaming} />
             <div className="min-w-0 flex-1">
-              <Dialog.Title className="font-display text-[15px] font-bold tracking-[-0.01em]">Meyora</Dialog.Title>
+              <Dialog.Title className="font-display text-[15px] font-bold tracking-[-0.01em]">Nila</Dialog.Title>
               <Dialog.Description className="text-[11px] text-ink-3">Reads your CRM · Ctrl J</Dialog.Description>
             </div>
             <IconButton label="New chat" onClick={newChat}><Plus className="size-4" /></IconButton>

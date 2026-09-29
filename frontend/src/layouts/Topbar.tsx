@@ -1,4 +1,4 @@
-import { Building, Check, LogOut, Monitor, Moon, Search, Sun } from "@/components/icons";
+import { Building, Check, LogOut, Monitor, Moon, NilaWordmark, Search, Sun } from "@/components/icons";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
@@ -32,8 +32,10 @@ export function Topbar() {
     <header className="relative z-20 flex-none px-4 pt-4 md:pr-6 md:pl-[100px]">
       <div className="glass-soft flex h-14 items-center gap-3 rounded-[20px] px-3 pl-4">
         <div className="flex min-w-0 items-center gap-2.5">
-          <img src="/favicon.svg" alt="" className="size-7" />
-          <span className="hidden font-brand text-[13px] font-light tracking-[0.26em] text-ink uppercase sm:inline">Meyora</span>
+          <span className="flex items-end gap-2" title="Nila by Meyora">
+            <NilaWordmark className="h-[22px] w-auto text-ink" />
+            <span className="hidden pb-px font-brand text-[11px] leading-none tracking-[0.06em] text-ink-3 lg:inline">by Meyora</span>
+          </span>
           {current ? (
             <>
               <span className="text-ink-3">/</span>
@@ -74,17 +76,17 @@ export function Topbar() {
           className="focus-ring glass-dense ml-auto flex h-9 w-full max-w-72 items-center gap-2 rounded-full px-3.5 text-sm text-ink-3 hover:text-ink-2"
         >
           <Search className="size-4" />
-          <span className="flex-1 text-left">Search Meyora</span>
+          <span className="flex-1 text-left">Search Nila</span>
           <kbd className="hidden rounded-md border border-line px-1.5 font-mono text-[11px] sm:inline">Ctrl K</kbd>
         </button>
 
         <button
           onClick={() => setPanelOpen(!useAiUi.getState().panelOpen)}
           className="focus-ring glass-dense flex h-9 items-center gap-2 rounded-full pr-3.5 pl-1.5 text-sm font-semibold"
-          aria-label="Ask Meyora (Ctrl J)"
+          aria-label="Ask Nila (Ctrl J)"
         >
           <Orb className="size-6" />
-          <span className="hidden lg:inline">Ask Meyora</span>
+          <span className="hidden lg:inline">Ask Nila</span>
         </button>
 
         <DropdownMenu trigger={<IconButton label="Theme"><ThemeIcon className="size-[18px]" /></IconButton>}>

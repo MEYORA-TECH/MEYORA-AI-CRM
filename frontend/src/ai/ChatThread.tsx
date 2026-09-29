@@ -335,7 +335,7 @@ export function Composer({ onSend, onStop, streaming, disabled, page, autoFocus 
             submit();
           }
         }}
-        aria-label="Ask Meyora"
+        aria-label="Ask Nila"
         placeholder={disabled ? "The assistant isn't set up yet" : page ? `Ask about ${page.name}…` : "Ask about your deals, leads and customers…"}
         className="block max-h-42 min-h-10 w-full resize-none border-0 bg-transparent px-2.5 py-2 text-[15px] leading-relaxed shadow-none ring-0 outline-none placeholder:text-ink-3 focus:ring-0 focus:outline-none focus-visible:outline-none"
       />
@@ -387,7 +387,7 @@ export function Welcome({ page, onPick, compact }: { page: PageContext | null; o
           {page ? `Ask about ${page.name}` : "What can I help you with?"}
         </h2>
         <p className="mt-1.5 text-sm text-ink-2">
-          Meyora reads your CRM, remembers what matters, and prepares changes for you to approve. Every answer links to the records it used.
+          Nila reads your CRM, remembers what matters, and prepares changes for you to approve. Every answer links to the records it used.
         </p>
       </div>
       {status.data && !status.data.configured ? (

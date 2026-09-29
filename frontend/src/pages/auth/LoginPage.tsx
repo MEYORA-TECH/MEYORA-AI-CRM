@@ -31,7 +31,7 @@ export function LoginPage() {
     <AuthLayout
       title="Welcome back"
       subtitle="Sign in to your workspace."
-      footer={<>New to Meyora? <Link to="/register" className="font-semibold text-jade hover:underline">Create a workspace</Link></>}
+      footer={<>New to Nila? <Link to="/register" className="font-semibold text-jade hover:underline">Create a workspace</Link></>}
     >
       {providers.data?.google ? (
         <>

@@ -50,7 +50,7 @@ def create_app() -> FastAPI:
     configure_logging(json_logs=settings.is_production)
 
     app = FastAPI(
-        title="Meyora API",
+        title="Nila by Meyora API",
         version="0.1.0",
         docs_url=None if settings.is_production else "/api/docs",
         redoc_url=None,

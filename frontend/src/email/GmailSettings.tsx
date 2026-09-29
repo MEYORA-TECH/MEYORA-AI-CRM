@@ -127,7 +127,7 @@ export function GmailSettings() {
         open={Boolean(disconnecting)}
         onOpenChange={(o) => !o && setDisconnecting(null)}
         title="Disconnect Gmail?"
-        description="Meyora stops syncing and removes its access at Google. Emails already stored stay in the CRM."
+        description="Nila stops syncing and removes its access at Google. Emails already stored stay in the CRM."
         confirmLabel="Disconnect"
         loading={disconnect.isPending}
         onConfirm={() => disconnecting && disconnect.mutate(disconnecting.id)}

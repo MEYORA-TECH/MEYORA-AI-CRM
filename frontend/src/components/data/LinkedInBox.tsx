@@ -18,7 +18,7 @@ const short = (url: string) => url.replace(/^https?:\/\/(www\.)?/, "").replace(/
 
 /**
  * A record's LinkedIn page: open it, find it (public pages only, via web search), or draft
- * outreach with the assistant. Meyora never sends on LinkedIn; people send drafts themselves.
+ * outreach with the assistant. Nila never sends on LinkedIn; people send drafts themselves.
  */
 export function LinkedInBox({ entity, id, url, name, onSave, person }: {
   entity: "companies" | "contacts" | "leads";

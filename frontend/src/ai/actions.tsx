@@ -129,7 +129,7 @@ export function ActionCard({ ui: raw }: { ui: ActionUi }) {
       ) : ui.variant === "linkedin" && ui.linkedin ? (
         <div className="space-y-2 px-3.5 py-3">
           <p className="text-[11px] text-ink-3">
-            Meyora can't send on LinkedIn. Copy this, send it there, then log it here.
+            Nila can't send on LinkedIn. Copy this, send it there, then log it here.
           </p>
           {ui.linkedin.subject ? <p className="text-[13px] font-semibold">{ui.linkedin.subject}</p> : null}
           <Textarea value={draft.text} disabled={!pending} onChange={(e) => setDraft({ ...draft, text: e.target.value })}
@@ -169,7 +169,7 @@ export function ActionCard({ ui: raw }: { ui: ActionUi }) {
           ) : null}
           {ui.variant === "email" && ui.email && !ui.email.can_send ? (
             <>
-              <span className="mr-auto text-[11px] text-ink-3">Connect Gmail in Settings to send from Meyora.</span>
+              <span className="mr-auto text-[11px] text-ink-3">Connect Gmail in Settings to send from Nila.</span>
               <Button size="sm" variant="ghost" icon={<Copy className="size-3.5" />}
                 onClick={async () => { await navigator.clipboard.writeText(draft.body).catch(() => undefined); toast.success("Copied"); }}>Copy</Button>
               <a className="focus-ring inline-flex h-8 items-center gap-1.5 rounded-[var(--radius-control)] px-3 text-[13px] font-semibold text-ink-2 hover:bg-glass-2"
